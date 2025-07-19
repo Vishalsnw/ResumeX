@@ -1,10 +1,12 @@
-run = "npm start"
+[[ports]]
+localPort = 5000
+externalPort = 80
 
 [workflows]
-runButton = "Start Server"
+runButton = "ResumeX Server"
 
 [[workflows.workflow]]
-name = "Start Server"
+name = "ResumeX Server"
 author = 43564906
 mode = "sequential"
 
@@ -14,4 +16,4 @@ args = "npm install"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "npm start"
+args = "node server/index.js"
