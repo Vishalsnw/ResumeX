@@ -165,13 +165,60 @@ async function handleFileUpload(event) {
             throw new Error(uploadResult.error);
         }
 
-        // Parse uploaded file
+        // Store the uploaded filename for later enhancement
+        config.uploadedFilename = uploadResult.filename;
+        
+        // Show step 2 with basic form
+        showStep(2);
+        
+        // Add default experience and education items
+        addExperience();
+        addEducation();
+        
+        // Show enhance button
+        showEnhanceButton();
+        
+        showToast('Resume uploaded successfully! Click "Enhance with AI" to auto-fill.', 'success');
+
+    } catch (error) {
+        console.error('Upload error:', error);
+        showToast(error.message || 'Failed to process resume', 'error');
+    } finally {
+        showProgress(false);
+    }
+}
+
+// Show enhance button
+function showEnhanceButton() {
+    const enhanceContainer = document.getElementById('enhanceContainer');
+    if (enhanceContainer) {
+        enhanceContainer.classList.remove('hidden');
+    }
+}
+
+// Enhance resume with AI
+async function enhanceResumeWithAI() {
+    if (!config.uploadedFilename) {
+        showToast('No uploaded file found', 'error');
+        return;
+    }
+
+    showProgress(true);
+    
+    // Hide enhance button during processing
+    const enhanceContainer = document.getElementById('enhanceContainer');
+    if (enhanceContainer) {
+        enhanceContainer.classList.add('hidden');
+    }
+
+    try {
+        // Parse uploaded file with AI
         const parseResponse = await fetch(`${config.apiUrl}/api/parse`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ filename: uploadResult.filename })
+            body: JSON.stringify({ filename: config.uploadedFilename })
         });
 
         if (!parseResponse.ok) {
@@ -187,10 +234,11 @@ async function handleFileUpload(event) {
 
         resumeData = parseResult.data;
         
-        // Show step 2 first, then populate with AI data
-        showStep(2);
+        // Clear existing form data
+        document.getElementById('experienceContainer').innerHTML = '';
+        document.getElementById('educationContainer').innerHTML = '';
         
-        // Add default items if not present
+        // Add default items if not present in AI data
         if (!resumeData.experience || resumeData.experience.length === 0) {
             addExperience();
         }
@@ -200,11 +248,16 @@ async function handleFileUpload(event) {
         
         // Auto-fill with AI extracted data
         populateForm(resumeData);
-        showToast('Resume parsed and auto-filled successfully!', 'success');
+        showToast('Resume enhanced with AI successfully!', 'success');
 
     } catch (error) {
-        console.error('Upload error:', error);
-        showToast(error.message || 'Failed to process resume', 'error');
+        console.error('Enhancement error:', error);
+        showToast(error.message || 'Failed to enhance resume with AI', 'error');
+        
+        // Show enhance button again on error
+        if (enhanceContainer) {
+            enhanceContainer.classList.remove('hidden');
+        }
     } finally {
         showProgress(false);
     }
