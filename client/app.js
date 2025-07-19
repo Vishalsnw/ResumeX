@@ -531,7 +531,7 @@ async function verifyPayment(paymentData) {
 }
 
 // Select template
-function selectTemplate(template) {
+function selectTemplate(template, event) {
     // Check if premium template and user doesn't have access
     if (config.premiumTemplates.includes(template) && !localStorage.getItem('premiumAccess')) {
         showPaymentModal();
@@ -546,8 +546,13 @@ function selectTemplate(template) {
         el.classList.add('border-transparent');
     });
 
-    event.target.closest('.template-option').classList.remove('border-transparent');
-    event.target.closest('.template-option').classList.add('border-white');
+    if (event && event.target) {
+        const templateOption = event.target.closest('.template-option');
+        if (templateOption) {
+            templateOption.classList.remove('border-transparent');
+            templateOption.classList.add('border-white');
+        }
+    }
 }
 
 // Show toast notification

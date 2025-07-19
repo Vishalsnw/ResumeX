@@ -1,4 +1,3 @@
-
 const express = require('express');
 const router = express.Router();
 const fs = require('fs');
@@ -28,7 +27,7 @@ async function extractText(filePath, fileType) {
 async function parseResumeWithAI(text) {
   try {
     console.log('Starting AI parsing...');
-    
+
     const prompt = `Extract the following information from this resume text and return ONLY a valid JSON object with no additional text:
 
 {
@@ -102,14 +101,14 @@ ${text}`;
         });
 
         let content = response.data.choices[0].message.content.trim();
-        
+
         // Clean up response - remove any markdown formatting
         content = content.replace(/```json/g, '').replace(/```/g, '').trim();
-        
+
         const parsed = JSON.parse(content);
         console.log('OpenAI parsing successful');
         return parsed;
-        
+
       } catch (openaiError) {
         console.error('OpenAI failed:', openaiError.message);
       }
@@ -136,11 +135,11 @@ ${text}`;
 
         let content = response.data.choices[0].message.content.trim();
         content = content.replace(/```json/g, '').replace(/```/g, '').trim();
-        
+
         const parsed = JSON.parse(content);
         console.log('DeepSeek parsing successful');
         return parsed;
-        
+
       } catch (deepseekError) {
         console.error('DeepSeek failed:', deepseekError.message);
       }
@@ -167,7 +166,7 @@ ${text}`;
         if (response.data && response.data[0] && response.data[0].generated_text) {
           let content = response.data[0].generated_text.replace(prompt, '').trim();
           content = content.replace(/```json/g, '').replace(/```/g, '').trim();
-          
+
           const parsed = JSON.parse(content);
           console.log('HuggingFace parsing successful');
           return parsed;
@@ -190,7 +189,7 @@ ${text}`;
 function parseResumeManually(text) {
   console.log('Using manual parsing fallback');
   const lines = text.split('\n').map(line => line.trim()).filter(line => line);
-  
+
   const data = {
     personalInfo: {
       name: '',
@@ -252,7 +251,7 @@ function parseResumeManually(text) {
   if (expMatches) {
     const expText = expMatches[1];
     const companies = expText.match(/[A-Z][a-zA-Z\s&.,]+(?=\s*\n|\s*\d{4}|\s*present|\s*current)/g);
-    
+
     if (companies && companies.length > 0) {
       companies.slice(0, 3).forEach(company => {
         data.experience.push({
@@ -271,7 +270,7 @@ function parseResumeManually(text) {
   if (eduMatches) {
     const eduText = eduMatches[1];
     const institutions = eduText.match(/[A-Z][a-zA-Z\s&.,]+(?:university|college|institute|school)/gi);
-    
+
     if (institutions && institutions.length > 0) {
       institutions.slice(0, 2).forEach(institution => {
         data.education.push({
@@ -293,30 +292,34 @@ function parseResumeManually(text) {
 // Parse resume endpoint
 router.post('/', async (req, res) => {
   try {
+    console.log('Parse request received:', req.body);
     const { filename } = req.body;
-    
+
     if (!filename) {
-      return res.status(400).json({ error: 'Filename is required' });
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Filename is required' 
+      });
     }
 
     const filePath = path.join(__dirname, '../../uploads', filename);
-    
+
     if (!fs.existsSync(filePath)) {
       return res.status(404).json({ error: 'File not found' });
     }
 
     // Determine file type
     const fileType = filename.endsWith('.pdf') ? 'application/pdf' : 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
-    
+
     // Extract text
     const text = await extractText(filePath, fileType);
-    
+
     // Parse with AI
     const parsedData = await parseResumeWithAI(text);
-    
+
     // Clean up uploaded file
     fs.unlinkSync(filePath);
-    
+
     res.json({
       success: true,
       data: parsedData

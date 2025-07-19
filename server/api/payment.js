@@ -62,7 +62,7 @@ router.post('/verify', async (req, res) => {
     }
 
   } catch (error) {
-    console.error('Verification error:', error);
+    console.error('Payment verification error:', error);
     res.status(500).json({ error: error.message });
   }
 });
