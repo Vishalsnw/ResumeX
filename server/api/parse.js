@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const fs = require('fs');
 const path = require('path');
-const pdf = require('pdf-parse');
+const pdfParse = require('pdf-parse');
 const mammoth = require('mammoth');
 const axios = require('axios');
 
@@ -11,7 +11,7 @@ async function extractText(filePath, fileType) {
   try {
     if (fileType === 'application/pdf') {
       const dataBuffer = fs.readFileSync(filePath);
-      const data = await pdf(dataBuffer);
+      const data = await pdfParse(dataBuffer);
       return data.text;
     } else if (fileType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
       const result = await mammoth.extractRawText({ path: filePath });
@@ -28,7 +28,7 @@ async function parseResumeWithAI(text) {
   try {
     console.log('Starting AI parsing...');
 
-    const prompt = `Extract the following information from this resume text and return ONLY a valid JSON object with no additional text:
+    const prompt = `Extract the following information from this resume text and return it as valid JSON:
 
 {
   "personalInfo": {
@@ -60,14 +60,7 @@ async function parseResumeWithAI(text) {
     }
   ],
   "skills": [],
-  "projects": [
-    {
-      "name": "",
-      "description": "",
-      "technologies": [],
-      "link": ""
-    }
-  ],
+  "projects": [],
   "certifications": [
     {
       "name": "",
@@ -99,6 +92,10 @@ ${text}`;
           },
           timeout: 30000
         });
+
+        if (!response.data || !response.data.choices || !response.data.choices[0]) {
+          throw new Error('Invalid response structure from OpenAI');
+        }
 
         let content = response.data.choices[0].message.content.trim();
 
@@ -156,6 +153,10 @@ ${text}`;
           },
           timeout: 30000
         });
+
+        if (!response.data || !response.data.choices || !response.data.choices[0]) {
+          throw new Error('Invalid response structure from DeepSeek');
+        }
 
         let content = response.data.choices[0].message.content.trim();
 
