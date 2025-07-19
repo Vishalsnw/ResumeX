@@ -154,10 +154,6 @@ ${text}`;
           timeout: 30000
         });
 
-        if (!response.data || !response.data.choices || !response.data.choices[0]) {
-          throw new Error('Invalid response structure from DeepSeek');
-        }
-
         let content = response.data.choices[0].message.content.trim();
 
         // Remove any markdown code blocks
