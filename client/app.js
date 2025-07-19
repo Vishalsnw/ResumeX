@@ -537,15 +537,15 @@ function selectTemplate(template) {
         showPaymentModal();
         return;
     }
-    
+
     selectedTemplate = template;
-    
+
     // Update UI
     document.querySelectorAll('.template-option').forEach(el => {
         el.classList.remove('border-white');
         el.classList.add('border-transparent');
     });
-    
+
     event.target.closest('.template-option').classList.remove('border-transparent');
     event.target.closest('.template-option').classList.add('border-white');
 }
