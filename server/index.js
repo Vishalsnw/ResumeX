@@ -1,4 +1,3 @@
-
 const express = require('express');
 const cors = require('cors');
 const multer = require('multer');
@@ -59,17 +58,23 @@ app.use('/api/payment', paymentRoutes);
 app.post('/api/upload', upload.single('resume'), (req, res) => {
   try {
     if (!req.file) {
-      return res.status(400).json({ error: 'No file uploaded' });
+      return res.status(400).json({ 
+        success: false,
+        error: 'No file uploaded' 
+      });
     }
 
     res.json({
       success: true,
       filename: req.file.filename,
-      originalName: req.file.originalname,
-      path: req.file.path
+      originalname: req.file.originalname
     });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error('Upload error:', error);
+    res.status(500).json({ 
+      success: false,
+      error: error.message 
+    });
   }
 });
 

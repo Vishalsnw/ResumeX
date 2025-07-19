@@ -327,7 +327,10 @@ router.post('/', async (req, res) => {
 
   } catch (error) {
     console.error('Parse error:', error);
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ 
+      success: false,
+      error: error.message 
+    });
   }
 });
 

@@ -18,6 +18,7 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log('DOM loaded, initializing app...');
     showStep(1);
     setupDragAndDrop();
+    setupManualCreation();
 });
 
 // Show specific step
@@ -54,6 +55,45 @@ function setupDragAndDrop() {
             handleFileUpload({ target: { files } });
         }
     });
+}
+
+// Setup manual resume creation
+function setupManualCreation() {
+    // Add manual creation button after file input button
+    const fileButton = document.querySelector('button[onclick="document.getElementById(\'fileInput\').click()"]');
+    if (fileButton && fileButton.parentElement) {
+        const manualButton = document.createElement('button');
+        manualButton.className = 'bg-purple-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-purple-700 transition ml-4';
+        manualButton.innerHTML = '<i class="fas fa-edit mr-2"></i>Create Manually';
+        manualButton.onclick = startManualCreation;
+        fileButton.parentElement.appendChild(manualButton);
+    }
+}
+
+// Start manual resume creation
+function startManualCreation() {
+    resumeData = {
+        personalInfo: {
+            name: '',
+            email: '',
+            phone: '',
+            address: '',
+            linkedin: '',
+            github: ''
+        },
+        summary: '',
+        experience: [],
+        education: [],
+        skills: [],
+        projects: [],
+        certifications: []
+    };
+    
+    // Add one experience and education item by default
+    showStep(2);
+    addExperience();
+    addEducation();
+    showToast('Ready to create your resume manually!', 'success');
 }
 
 // Handle file upload
@@ -102,16 +142,33 @@ async function handleFileUpload(event) {
             body: JSON.stringify({ filename: uploadResult.filename })
         });
 
+        if (!parseResponse.ok) {
+            const errorData = await parseResponse.json();
+            throw new Error(errorData.error || 'Failed to parse resume');
+        }
+
         const parseResult = await parseResponse.json();
 
         if (!parseResult.success) {
-            throw new Error(parseResult.error);
+            throw new Error(parseResult.error || 'Parsing failed');
         }
 
         resumeData = parseResult.data;
-        populateForm(resumeData);
-        showToast('Resume parsed successfully!', 'success');
+        
+        // Show step 2 first, then populate with AI data
         showStep(2);
+        
+        // Add default items if not present
+        if (!resumeData.experience || resumeData.experience.length === 0) {
+            addExperience();
+        }
+        if (!resumeData.education || resumeData.education.length === 0) {
+            addEducation();
+        }
+        
+        // Auto-fill with AI extracted data
+        populateForm(resumeData);
+        showToast('Resume parsed and auto-filled successfully!', 'success');
 
     } catch (error) {
         console.error('Upload error:', error);
@@ -151,14 +208,13 @@ function populateForm(data) {
         document.getElementById('skills').value = data.skills.join(', ');
     }
 
-    // Experience
+    // Experience - populate existing items or add new ones
     if (data.experience && data.experience.length > 0) {
+        // Clear existing experience items first
+        document.getElementById('experienceContainer').innerHTML = '';
+        
         data.experience.forEach((exp, index) => {
-            if (index === 0) {
-                addExperience();
-            } else {
-                addExperience();
-            }
+            addExperience();
             const expElements = document.querySelectorAll('#experienceContainer .experience-item');
             const expElement = expElements[index];
             if (expElement) {
@@ -167,18 +223,19 @@ function populateForm(data) {
                 expElement.querySelector('[name="startDate"]').value = exp.startDate || '';
                 expElement.querySelector('[name="endDate"]').value = exp.endDate || '';
                 expElement.querySelector('[name="description"]').value = exp.description || '';
+                expElement.querySelector('[name="employmentType"]').value = exp.employmentType || '';
+                expElement.querySelector('[name="workLocation"]').value = exp.workLocation || '';
             }
         });
     }
 
-    // Education
+    // Education - populate existing items or add new ones
     if (data.education && data.education.length > 0) {
+        // Clear existing education items first
+        document.getElementById('educationContainer').innerHTML = '';
+        
         data.education.forEach((edu, index) => {
-            if (index === 0) {
-                addEducation();
-            } else {
-                addEducation();
-            }
+            addEducation();
             const eduElements = document.querySelectorAll('#educationContainer .education-item');
             const eduElement = eduElements[index];
             if (eduElement) {
@@ -188,6 +245,7 @@ function populateForm(data) {
                 eduElement.querySelector('[name="startDate"]').value = edu.startDate || '';
                 eduElement.querySelector('[name="endDate"]').value = edu.endDate || '';
                 eduElement.querySelector('[name="gpa"]').value = edu.gpa || '';
+                eduElement.querySelector('[name="studyMode"]').value = edu.studyMode || '';
             }
         });
     }
