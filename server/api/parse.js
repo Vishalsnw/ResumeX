@@ -1,3 +1,4 @@
+
 const express = require('express');
 const router = express.Router();
 const fs = require('fs');
@@ -23,87 +24,110 @@ async function extractText(filePath, fileType) {
   }
 }
 
-// Ultra-robust JSON extraction and validation
-function extractValidJSON(response) {
-  console.log('Processing AI response:', response.substring(0, 200) + '...');
+// Ultra-robust JSON cleaning and extraction
+function cleanAndParseJSON(response) {
+  console.log('Raw AI response (first 300 chars):', response.substring(0, 300));
 
-  // Remove all common prefixes and markdown
+  // Step 1: Strip all common prefixes and markdown
   let cleaned = response
     .replace(/```json\s*/gi, '')
     .replace(/```\s*/g, '')
-    .replace(/^.*?(here|the|this|is|json|response|result|data|output)[\s:]*\n?/gi, '')
+    .replace(/^[^{]*/, '') // Remove everything before first {
+    .replace(/[^}]*$/, '') // Remove everything after last }
     .trim();
 
-  // Find all potential JSON objects using bracket matching
+  // Step 2: Find the largest valid JSON object
   const jsonCandidates = [];
-  let braceCount = 0;
-  let startIndex = -1;
+  let bracketCount = 0;
+  let startIdx = -1;
 
   for (let i = 0; i < cleaned.length; i++) {
-    const char = cleaned[i];
-
-    if (char === '{') {
-      if (braceCount === 0) {
-        startIndex = i;
-      }
-      braceCount++;
-    } else if (char === '}') {
-      braceCount--;
-      if (braceCount === 0 && startIndex !== -1) {
-        const candidate = cleaned.substring(startIndex, i + 1);
-        jsonCandidates.push(candidate);
+    if (cleaned[i] === '{') {
+      if (bracketCount === 0) startIdx = i;
+      bracketCount++;
+    } else if (cleaned[i] === '}') {
+      bracketCount--;
+      if (bracketCount === 0 && startIdx !== -1) {
+        jsonCandidates.push(cleaned.substring(startIdx, i + 1));
       }
     }
   }
 
-  // Try parsing each candidate
+  // Step 3: Try parsing each candidate
   for (const candidate of jsonCandidates) {
+    // Try direct parsing first
     try {
       const parsed = JSON.parse(candidate);
       if (parsed && typeof parsed === 'object') {
-        console.log('Successfully parsed JSON candidate');
-        return addFallbackStructure(parsed);
+        console.log('✅ Successfully parsed JSON directly');
+        return ensureResumeStructure(parsed);
       }
     } catch (e) {
-      // Try fixing common JSON issues
-      try {
-        const fixed = fixCommonJSONIssues(candidate);
-        const parsed = JSON.parse(fixed);
-        if (parsed && typeof parsed === 'object') {
-          console.log('Successfully parsed fixed JSON');
-          return addFallbackStructure(parsed);
-        }
-      } catch (fixError) {
-        continue;
+      // Continue to fixing attempts
+    }
+
+    // Try with common fixes
+    try {
+      const fixed = fixJSONSyntax(candidate);
+      const parsed = JSON.parse(fixed);
+      if (parsed && typeof parsed === 'object') {
+        console.log('✅ Successfully parsed JSON after fixes');
+        return ensureResumeStructure(parsed);
       }
+    } catch (e) {
+      continue;
     }
   }
 
-  // If no valid JSON found, return fallback
-  console.warn('No valid JSON found, returning fallback structure');
-  return getFallbackStructure();
+  console.warn('❌ All JSON parsing attempts failed, returning fallback');
+  return getResumeTemplate();
 }
 
-// Fix common JSON formatting issues
-function fixCommonJSONIssues(jsonStr) {
+// Fix common JSON syntax issues
+function fixJSONSyntax(jsonStr) {
   return jsonStr
     // Remove trailing commas
-    .replace(/,\s*}/g, '}')
-    .replace(/,\s*]/g, ']')
+    .replace(/,(\s*[}\]])/g, '$1')
     // Quote unquoted keys
-    .replace(/([{,]\s*)([a-zA-Z_][a-zA-Z0-9_]*)\s*:/g, '$1"$2":')
-    // Fix single quotes
+    .replace(/([{,]\s*)([a-zA-Z_$][a-zA-Z0-9_$]*)\s*:/g, '$1"$2":')
+    // Fix single quotes to double quotes
     .replace(/:\s*'([^']*)'/g, ':"$1"')
-    // Handle special characters safely
+    // Handle problematic strings like C++
     .replace(/(['"])C\+\+(['"])/g, '"C++"')
     .replace(/(['"])C(['"])/g, '"C"')
+    // Fix boolean values
+    .replace(/:\s*true/gi, ': true')
+    .replace(/:\s*false/gi, ': false')
+    .replace(/:\s*null/gi, ': null')
     // Normalize whitespace
     .replace(/\s+/g, ' ')
     .trim();
 }
 
-// Get fallback structure
-function getFallbackStructure() {
+// Ensure proper resume structure
+function ensureResumeStructure(data) {
+  const template = getResumeTemplate();
+
+  return {
+    personalInfo: {
+      name: data.personalInfo?.name || '',
+      email: data.personalInfo?.email || '',
+      phone: data.personalInfo?.phone || '',
+      address: data.personalInfo?.address || '',
+      linkedin: data.personalInfo?.linkedin || '',
+      github: data.personalInfo?.github || ''
+    },
+    summary: data.summary || '',
+    experience: Array.isArray(data.experience) ? data.experience : [],
+    education: Array.isArray(data.education) ? data.education : [],
+    skills: Array.isArray(data.skills) ? data.skills : [],
+    projects: Array.isArray(data.projects) ? data.projects : [],
+    certifications: Array.isArray(data.certifications) ? data.certifications : []
+  };
+}
+
+// Get empty resume template
+function getResumeTemplate() {
   return {
     personalInfo: {
       name: '',
@@ -122,31 +146,14 @@ function getFallbackStructure() {
   };
 }
 
-// Ensure all required fields exist
-function addFallbackStructure(data) {
-  const fallback = getFallbackStructure();
-
-  return {
-    personalInfo: {
-      ...fallback.personalInfo,
-      ...(data.personalInfo || {})
-    },
-    summary: data.summary || fallback.summary,
-    experience: Array.isArray(data.experience) ? data.experience : fallback.experience,
-    education: Array.isArray(data.education) ? data.education : fallback.education,
-    skills: Array.isArray(data.skills) ? data.skills : fallback.skills,
-    projects: Array.isArray(data.projects) ? data.projects : fallback.projects,
-    certifications: Array.isArray(data.certifications) ? data.certifications : fallback.certifications
-  };
-}
-
 // Parse resume using AI
 async function parseResumeWithAI(text) {
   try {
-    console.log('Starting AI parsing...');
+    console.log('🚀 Starting AI parsing process...');
 
-    const prompt = `Extract resume information and return ONLY this JSON structure with NO additional text:
+    const prompt = `You must return ONLY a valid JSON object with NO additional text, explanations, or markdown formatting.
 
+Return this exact structure:
 {
   "personalInfo": {
     "name": "",
@@ -189,18 +196,18 @@ async function parseResumeWithAI(text) {
 
 Resume text: ${text}
 
-Return ONLY the JSON object:`;
+IMPORTANT: Start your response with { and end with }. No explanations, no markdown, no additional text.`;
 
     // Try OpenAI first
     if (process.env.OPENAI_API_KEY) {
-      console.log('Using OpenAI API...');
+      console.log('🔄 Trying OpenAI API...');
       try {
         const response = await axios.post('https://api.openai.com/v1/chat/completions', {
           model: 'gpt-3.5-turbo',
           messages: [
             { 
               role: 'system', 
-              content: 'You are a resume parser. Return ONLY valid JSON. No explanations, no markdown, no additional text. Start your response with { and end with }.'
+              content: 'You are a JSON-only resume parser. Return valid JSON with no explanations, markdown, or additional text. Always start with { and end with }.'
             },
             { role: 'user', content: prompt }
           ],
@@ -215,24 +222,26 @@ Return ONLY the JSON object:`;
         });
 
         if (response.data?.choices?.[0]?.message?.content) {
-          const content = response.data.choices[0].message.content;
-          return extractValidJSON(content);
+          const content = response.data.choices[0].message.content.trim();
+          const result = cleanAndParseJSON(content);
+          console.log('✅ OpenAI parsing completed successfully');
+          return result;
         }
       } catch (error) {
-        console.error('OpenAI API error:', error.response?.data || error.message);
+        console.error('❌ OpenAI API error:', error.response?.data || error.message);
       }
     }
 
-    // Try DeepSeek
+    // Try DeepSeek as fallback
     if (process.env.DEEPSEEK_API_KEY) {
-      console.log('Using DeepSeek API...');
+      console.log('🔄 Trying DeepSeek API...');
       try {
         const response = await axios.post('https://api.deepseek.com/v1/chat/completions', {
           model: 'deepseek-chat',
           messages: [
             { 
               role: 'system', 
-              content: 'You are a resume parser. Return ONLY valid JSON. No explanations, no markdown, no additional text. Start your response with { and end with }.'
+              content: 'You are a JSON-only resume parser. Return valid JSON with no explanations, markdown, or additional text. Always start with { and end with }.'
             },
             { role: 'user', content: prompt }
           ],
@@ -246,30 +255,31 @@ Return ONLY the JSON object:`;
         });
 
         if (response.data?.choices?.[0]?.message?.content) {
-          const content = response.data.choices[0].message.content;
-          return extractValidJSON(content);
+          const content = response.data.choices[0].message.content.trim();
+          const result = cleanAndParseJSON(content);
+          console.log('✅ DeepSeek parsing completed successfully');
+          return result;
         }
       } catch (error) {
-        console.error('DeepSeek API error:', error.response?.data || error.message);
+        console.error('❌ DeepSeek API error:', error.response?.data || error.message);
       }
     }
 
-    // Fallback to manual parsing
-    console.log('All AI services failed, using manual parsing');
+    // Manual parsing fallback
+    console.log('🔧 Using manual parsing fallback...');
     return parseResumeManually(text);
 
   } catch (error) {
-    console.error('AI parsing completely failed:', error.message);
+    console.error('💥 AI parsing completely failed:', error.message);
     return parseResumeManually(text);
   }
 }
 
 // Manual parsing fallback
 function parseResumeManually(text) {
-  console.log('Using manual parsing fallback');
+  console.log('🛠️ Performing manual text parsing...');
+  const data = getResumeTemplate();
   const lines = text.split('\n').map(line => line.trim()).filter(line => line);
-
-  const data = getFallbackStructure();
 
   // Extract email
   const emailMatch = text.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/);
@@ -287,32 +297,22 @@ function parseResumeManually(text) {
   const githubMatch = text.match(/(?:github\.com\/[\w-]+)/i);
   if (githubMatch) data.personalInfo.github = 'https://' + githubMatch[0];
 
-  // Extract name
-  for (let line of lines) {
+  // Extract name (first non-email, non-phone line)
+  for (const line of lines) {
     if (line.length > 2 && !line.includes('@') && !line.match(/\d{3}/)) {
       data.personalInfo.name = line;
       break;
     }
   }
 
-  // Extract skills
-  const skillsSection = text.match(/(?:skills|technologies)[:\s]*([^]*?)(?:\n\s*\n|experience|education|$)/i);
-  if (skillsSection) {
-    const skillsText = skillsSection[1];
-    data.skills = skillsText.split(/[,\n•·\-\|]/)
-      .map(skill => skill.trim())
-      .filter(skill => skill && skill.length > 1 && skill.length < 50)
-      .slice(0, 20); // Limit skills
-  }
-
-  console.log('Manual parsing completed');
+  console.log('✅ Manual parsing completed');
   return data;
 }
 
 // Parse resume endpoint
 router.post('/', async (req, res) => {
   try {
-    console.log('Parse request received:', req.body);
+    console.log('📝 Parse request received');
     const { filename } = req.body;
 
     if (!filename) {
@@ -336,17 +336,18 @@ router.post('/', async (req, res) => {
 
     // Extract text
     const text = await extractText(filePath, fileType);
-    console.log('Text extraction successful, length:', text.length);
+    console.log(`📄 Text extraction successful, length: ${text.length} characters`);
 
     // Parse with AI
     const parsedData = await parseResumeWithAI(text);
-    console.log('Resume parsing completed successfully');
+    console.log('🎉 Resume parsing completed successfully');
 
     // Clean up uploaded file
     try {
       fs.unlinkSync(filePath);
+      console.log('🗑️ File cleanup successful');
     } catch (cleanupError) {
-      console.warn('Could not clean up file:', cleanupError.message);
+      console.warn('⚠️ File cleanup failed:', cleanupError.message);
     }
 
     res.json({
@@ -355,9 +356,9 @@ router.post('/', async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Parse error:', error);
+    console.error('💥 Parse error:', error);
 
-    // Try to clean up file even on error
+    // Clean up file on error
     const { filename } = req.body;
     if (filename) {
       try {
@@ -366,7 +367,7 @@ router.post('/', async (req, res) => {
           fs.unlinkSync(filePath);
         }
       } catch (cleanupError) {
-        console.warn('Could not clean up file:', cleanupError.message);
+        console.warn('⚠️ Error cleanup failed:', cleanupError.message);
       }
     }
 
