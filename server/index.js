@@ -90,4 +90,5 @@ app.use((error, req, res, next) => {
 
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`ResumeX server running on http://0.0.0.0:${PORT}`);
+  console.log(`Access your app at: https://${process.env.REPL_SLUG}.${process.env.REPL_OWNER}.repl.co`);
 });
