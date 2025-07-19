@@ -102,15 +102,39 @@ ${text}`;
 
         let content = response.data.choices[0].message.content.trim();
 
-        // Clean up response - remove any markdown formatting
-        content = content.replace(/```json/g, '').replace(/```/g, '').trim();
+        // Remove any markdown code blocks
+        content = content.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
 
-        const parsed = JSON.parse(content);
-        console.log('OpenAI parsing successful');
-        return parsed;
+        // Try to parse the JSON
+        let parsedData;
+        try {
+          parsedData = JSON.parse(content);
+        } catch (jsonError) {
+          console.error('JSON parse error:', jsonError);
+          console.log('Raw content:', content);
+          throw new Error('Invalid JSON response from AI');
+        }
 
-      } catch (openaiError) {
-        console.error('OpenAI failed:', openaiError.message);
+        // Add fallback structure
+        parsedData = {
+          personalInfo: parsedData.personalInfo || {},
+          summary: parsedData.summary || '',
+          experience: parsedData.experience || [],
+          education: parsedData.education || [],
+          skills: parsedData.skills || [],
+          projects: parsedData.projects || [],
+          certifications: parsedData.certifications || []
+        };
+
+        return parsedData;
+
+      } catch (error) {
+        console.error('OpenAI API error:', error.response?.data || error.message);
+        if (error.response?.status === 401) {
+          console.log('OpenAI API key invalid, falling back to DeepSeek...');
+        } else if (error.response?.status === 429) {
+          console.log('OpenAI rate limit hit, falling back to DeepSeek...');
+        }
       }
     }
 
@@ -134,14 +158,40 @@ ${text}`;
         });
 
         let content = response.data.choices[0].message.content.trim();
-        content = content.replace(/```json/g, '').replace(/```/g, '').trim();
 
-        const parsed = JSON.parse(content);
-        console.log('DeepSeek parsing successful');
-        return parsed;
+        // Remove any markdown code blocks
+        content = content.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
 
-      } catch (deepseekError) {
-        console.error('DeepSeek failed:', deepseekError.message);
+        // Try to parse the JSON
+        let parsedData;
+        try {
+          parsedData = JSON.parse(content);
+        } catch (jsonError) {
+          console.error('JSON parse error:', jsonError);
+          console.log('Raw content:', content);
+          throw new Error('Invalid JSON response from AI');
+        }
+
+        // Add fallback structure
+        parsedData = {
+          personalInfo: parsedData.personalInfo || {},
+          summary: parsedData.summary || '',
+          experience: parsedData.experience || [],
+          education: parsedData.education || [],
+          skills: parsedData.skills || [],
+          projects: parsedData.projects || [],
+          certifications: parsedData.certifications || []
+        };
+
+        return parsedData;
+
+      } catch (error) {
+        console.error('OpenAI API error:', error.response?.data || error.message);
+        if (error.response?.status === 401) {
+          console.log('OpenAI API key invalid, falling back to DeepSeek...');
+        } else if (error.response?.status === 429) {
+          console.log('OpenAI rate limit hit, falling back to DeepSeek...');
+        }
       }
     }
 
