@@ -1,14 +1,16 @@
-[[ports]]
-localPort = 5000
-externalPort = 80
+run = "npm start"
 
 [workflows]
-runButton = "ResumeX Server"
+runButton = "Start Server"
 
 [[workflows.workflow]]
-name = "ResumeX Server"
+name = "Start Server"
 author = 43564906
 mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "npm install"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"

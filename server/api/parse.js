@@ -365,7 +365,11 @@ router.post('/', async (req, res) => {
     const parsedData = await parseResumeWithAI(text);
 
     // Clean up uploaded file
-    fs.unlinkSync(filePath);
+    try {
+      fs.unlinkSync(filePath);
+    } catch (cleanupError) {
+      console.warn('Could not clean up file:', cleanupError.message);
+    }
 
     res.json({
       success: true,
@@ -374,6 +378,16 @@ router.post('/', async (req, res) => {
 
   } catch (error) {
     console.error('Parse error:', error);
+
+    // Try to clean up file even on error
+    try {
+      if (fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath);
+      }
+    } catch (cleanupError) {
+      console.warn('Could not clean up file:', cleanupError.message);
+    }
+
     res.status(500).json({ 
       success: false,
       error: error.message 
