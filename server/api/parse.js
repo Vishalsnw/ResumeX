@@ -71,13 +71,22 @@ function cleanAndParseJSON(rawContent) {
     .replace(/'/g, '"')
     // Fix trailing commas
     .replace(/,(\s*[}\]])/g, '$1')
-    // Fix problematic programming language strings
-    .replace(/"C\+\+"/g, '"C_plus_plus"')
-    .replace(/"C#"/g, '"C_sharp"')
-    .replace(/: C\+\+/g, ': "C_plus_plus"')
-    .replace(/: C#/g, ': "C_sharp"')
-    // Fix bare words that should be strings
-    .replace(/:\s*([A-Za-z][A-Za-z0-9\s]*[A-Za-z0-9])\s*([,}])/g, ': "$1"$2');
+    // Fix problematic programming language strings (both quoted and unquoted)
+    .replace(/"?C\+\+"?/g, '"C_plus_plus"')
+    .replace(/"?C#"?/g, '"C_sharp"')
+    .replace(/"?\.NET"?/g, '"dotNET"')
+    .replace(/"?F#"?/g, '"F_sharp"')
+    .replace(/:\s*C\+\+/g, ': "C_plus_plus"')
+    .replace(/:\s*C#/g, ': "C_sharp"')
+    .replace(/:\s*\.NET/g, ': "dotNET"')
+    .replace(/:\s*F#/g, ': "F_sharp"')
+    // Fix other special characters in skill names
+    .replace(/([,\[\s])"?([^",\]\}]*[\+#&\-\.][^",\]\}]*)"?([,\]\}])/g, '$1"$2"$3')
+    // Fix bare words that should be strings (more comprehensive)
+    .replace(/:\s*([A-Za-z][A-Za-z0-9\s\-\._]*[A-Za-z0-9])\s*([,}\]])/g, ': "$1"$2')
+    // Fix unquoted strings in arrays
+    .replace(/\[\s*([^"\[\]{}]*[A-Za-z]+[^"\[\]{}]*)\s*\]/g, '["$1"]')
+    .replace(/,\s*([^",\[\]{}]*[A-Za-z]+[^",\[\]{}]*)\s*([,\]])/g, ', "$1"$2');
 
   // Step 5: Try parsing the cleaned content
   try {
@@ -86,7 +95,10 @@ function cleanAndParseJSON(rawContent) {
     return ensureValidStructure(parsed);
   } catch (error) {
     console.error('All JSON parsing attempts failed:', error);
-    console.log('Final content attempted:', content.substring(0, 500));
+    console.log('Original raw content (first 500 chars):', rawContent.substring(0, 500));
+    console.log('Final cleaned content attempted:', content.substring(0, 500));
+    console.log('Content length:', content.length);
+    console.log('Problematic characters found:', content.match(/[^\x00-\x7F]/g) || 'None');
     
     // Return fallback structure
     console.log('Returning fallback structure');
