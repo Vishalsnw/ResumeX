@@ -21,34 +21,66 @@ document.addEventListener('DOMContentLoaded', function() {
     setupManualCreation();
 });
 
-// Show specific step
+// Show specific step with enhanced animations
 function showStep(step) {
     // Hide all steps
     document.querySelectorAll('.step-content').forEach(el => {
         el.classList.add('hidden');
+        el.classList.remove('animate-fade-in');
     });
 
     // Show current step
-    document.getElementById(`step${step}`).classList.remove('hidden');
+    const currentStepEl = document.getElementById(`step${step}`);
+    currentStepEl.classList.remove('hidden');
+    currentStepEl.classList.add('animate-fade-in');
     currentStep = step;
+    
+    // Update step indicators
+    updateStepIndicators(step);
+    updateProgressBar(step);
 }
 
-// Setup drag and drop functionality
+// Update step indicators
+function updateStepIndicators(activeStep) {
+    document.querySelectorAll('.step-indicator').forEach((btn, index) => {
+        btn.classList.remove('active');
+        if (index + 1 <= activeStep) {
+            btn.classList.add('active');
+        }
+    });
+    
+    document.getElementById('current-step-number').textContent = activeStep;
+}
+
+// Update progress bar
+function updateProgressBar(step) {
+    const progress = (step / 3) * 100;
+    document.getElementById('progress-fill').style.width = `${progress}%`;
+}
+
+// Setup drag and drop functionality with enhanced animations
 function setupDragAndDrop() {
-    const dropZone = document.querySelector('.border-dashed');
+    const dropZone = document.querySelector('.upload-zone');
+    
+    if (!dropZone) return;
 
     dropZone.addEventListener('dragover', (e) => {
         e.preventDefault();
-        dropZone.classList.add('border-blue-400');
+        dropZone.classList.add('drag-over');
+        dropZone.querySelector('.bg-gradient-to-br').style.opacity = '1';
     });
 
-    dropZone.addEventListener('dragleave', () => {
-        dropZone.classList.remove('border-blue-400');
+    dropZone.addEventListener('dragleave', (e) => {
+        if (!dropZone.contains(e.relatedTarget)) {
+            dropZone.classList.remove('drag-over');
+            dropZone.querySelector('.bg-gradient-to-br').style.opacity = '0';
+        }
     });
 
     dropZone.addEventListener('drop', (e) => {
         e.preventDefault();
-        dropZone.classList.remove('border-blue-400');
+        dropZone.classList.remove('drag-over');
+        dropZone.querySelector('.bg-gradient-to-br').style.opacity = '0';
 
         const files = e.dataTransfer.files;
         if (files.length > 0) {
@@ -251,71 +283,145 @@ function populateForm(data) {
     }
 }
 
-// Add experience item
+// Add experience item with modern styling
 function addExperience() {
     const container = document.getElementById('experienceContainer');
     const expDiv = document.createElement('div');
-    expDiv.className = 'experience-item bg-white bg-opacity-5 rounded-lg p-4 mb-4';
+    expDiv.className = 'experience-item glass-card-dark rounded-xl p-6 animate-scale-in';
     expDiv.innerHTML = `
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-            <input type="text" name="company" placeholder="Company Name" class="w-full p-3 rounded bg-white bg-opacity-20 text-white placeholder-gray-300 border border-white border-opacity-30">
-            <input type="text" name="position" placeholder="Job Title" class="w-full p-3 rounded bg-white bg-opacity-20 text-white placeholder-gray-300 border border-white border-opacity-30">
-            <select name="employmentType" class="w-full p-3 rounded bg-white bg-opacity-20 text-white border border-white border-opacity-30">
-                <option value="" class="text-gray-800">Employment Type</option>
-                <option value="full-time" class="text-gray-800">Full-time</option>
-                <option value="part-time" class="text-gray-800">Part-time</option>
-                <option value="contract" class="text-gray-800">Contract</option>
-                <option value="internship" class="text-gray-800">Internship</option>
-                <option value="freelance" class="text-gray-800">Freelance</option>
-            </select>
-            <select name="workLocation" class="w-full p-3 rounded bg-white bg-opacity-20 text-white border border-white border-opacity-30">
-                <option value="" class="text-gray-800">Work Location</option>
-                <option value="onsite" class="text-gray-800">On-site</option>
-                <option value="remote" class="text-gray-800">Remote</option>
-                <option value="hybrid" class="text-gray-800">Hybrid</option>
-            </select>
-            <input type="month" name="startDate" placeholder="Start Date" class="w-full p-3 rounded bg-white bg-opacity-20 text-white placeholder-gray-300 border border-white border-opacity-30">
-            <input type="month" name="endDate" placeholder="End Date" class="w-full p-3 rounded bg-white bg-opacity-20 text-white placeholder-gray-300 border border-white border-opacity-30">
+        <div class="flex justify-between items-start mb-4">
+            <h4 class="text-lg font-semibold text-white flex items-center">
+                <i class="fas fa-briefcase text-purple-400 mr-2"></i>
+                Work Experience
+            </h4>
+            <button type="button" onclick="removeExperience(this)" class="text-red-400 hover:text-red-300 p-2 rounded-lg hover:bg-red-500 hover:bg-opacity-20 transition-all">
+                <i class="fas fa-trash"></i>
+            </button>
         </div>
-        <textarea name="description" rows="3" placeholder="Job description and achievements..." class="w-full p-3 rounded bg-white bg-opacity-20 text-white placeholder-gray-300 border border-white border-opacity-30 mb-3"></textarea>
-        <button type="button" onclick="this.parentElement.remove()" class="bg-red-500 text-white px-3 py-1 rounded text-sm hover:bg-red-600">Remove</button>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <div class="space-y-2">
+                <label class="text-white text-sm font-medium">Company Name</label>
+                <input type="text" name="company" placeholder="Google, Microsoft, etc." class="w-full p-3 rounded-lg input-modern text-white placeholder-gray-300">
+            </div>
+            <div class="space-y-2">
+                <label class="text-white text-sm font-medium">Job Title</label>
+                <input type="text" name="position" placeholder="Software Engineer, Product Manager, etc." class="w-full p-3 rounded-lg input-modern text-white placeholder-gray-300">
+            </div>
+            <div class="space-y-2">
+                <label class="text-white text-sm font-medium">Employment Type</label>
+                <select name="employmentType" class="w-full p-3 rounded-lg input-modern text-white">
+                    <option value="" class="text-gray-800">Select Type</option>
+                    <option value="full-time" class="text-gray-800">Full-time</option>
+                    <option value="part-time" class="text-gray-800">Part-time</option>
+                    <option value="contract" class="text-gray-800">Contract</option>
+                    <option value="internship" class="text-gray-800">Internship</option>
+                    <option value="freelance" class="text-gray-800">Freelance</option>
+                </select>
+            </div>
+            <div class="space-y-2">
+                <label class="text-white text-sm font-medium">Work Location</label>
+                <select name="workLocation" class="w-full p-3 rounded-lg input-modern text-white">
+                    <option value="" class="text-gray-800">Select Location</option>
+                    <option value="onsite" class="text-gray-800">On-site</option>
+                    <option value="remote" class="text-gray-800">Remote</option>
+                    <option value="hybrid" class="text-gray-800">Hybrid</option>
+                </select>
+            </div>
+            <div class="space-y-2">
+                <label class="text-white text-sm font-medium">Start Date</label>
+                <input type="month" name="startDate" class="w-full p-3 rounded-lg input-modern text-white">
+            </div>
+            <div class="space-y-2">
+                <label class="text-white text-sm font-medium">End Date</label>
+                <input type="month" name="endDate" class="w-full p-3 rounded-lg input-modern text-white">
+            </div>
+        </div>
+        <div class="space-y-2">
+            <label class="text-white text-sm font-medium">Job Description & Achievements</label>
+            <textarea name="description" rows="4" placeholder="• Led a team of 5 developers to build scalable web applications\n• Increased application performance by 40% through optimization\n• Implemented CI/CD pipeline reducing deployment time by 60%" class="w-full p-3 rounded-lg input-modern text-white placeholder-gray-300 resize-none"></textarea>
+        </div>
     `;
     container.appendChild(expDiv);
 }
 
-// Add education item
+// Remove experience with animation
+function removeExperience(button) {
+    const expDiv = button.closest('.experience-item');
+    expDiv.style.transform = 'scale(0.9)';
+    expDiv.style.opacity = '0';
+    setTimeout(() => expDiv.remove(), 200);
+}
+
+// Add education item with modern styling
 function addEducation() {
     const container = document.getElementById('educationContainer');
     const eduDiv = document.createElement('div');
-    eduDiv.className = 'education-item bg-white bg-opacity-5 rounded-lg p-4 mb-4';
+    eduDiv.className = 'education-item glass-card-dark rounded-xl p-6 animate-scale-in';
     eduDiv.innerHTML = `
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-            <input type="text" name="institution" placeholder="Institution Name" class="w-full p-3 rounded bg-white bg-opacity-20 text-white placeholder-gray-300 border border-white border-opacity-30">
-            <select name="degree" class="w-full p-3 rounded bg-white bg-opacity-20 text-white border border-white border-opacity-30">
-                <option value="" class="text-gray-800">Degree Type</option>
-                <option value="High School" class="text-gray-800">High School</option>
-                <option value="Associate" class="text-gray-800">Associate Degree</option>
-                <option value="Bachelor" class="text-gray-800">Bachelor's Degree</option>
-                <option value="Master" class="text-gray-800">Master's Degree</option>
-                <option value="PhD" class="text-gray-800">PhD</option>
-                <option value="Certificate" class="text-gray-800">Certificate</option>
-                <option value="Diploma" class="text-gray-800">Diploma</option>
-            </select>
-            <input type="text" name="field" placeholder="Field of Study" class="w-full p-3 rounded bg-white bg-opacity-20 text-white placeholder-gray-300 border border-white border-opacity-30">
-            <select name="studyMode" class="w-full p-3 rounded bg-white bg-opacity-20 text-white border border-white border-opacity-30">
-                <option value="" class="text-gray-800">Study Mode</option>
-                <option value="full-time" class="text-gray-800">Full-time</option>
-                <option value="part-time" class="text-gray-800">Part-time</option>
-                <option value="online" class="text-gray-800">Online</option>
-                <option value="correspondence" class="text-gray-800">Correspondence</option>
-            </select>
-            <input type="month" name="startDate" placeholder="Start Date" class="w-full p-3 rounded bg-white bg-opacity-20 text-white placeholder-gray-300 border border-white border-opacity-30">
-            <input type="month" name="endDate" placeholder="End Date" class="w-full p-3 rounded bg-white bg-opacity-20 text-white placeholder-gray-300 border border-white border-opacity-30">
-            <input type="text" name="gpa" placeholder="GPA (optional)" class="w-full p-3 rounded bg-white bg-opacity-20 text-white placeholder-gray-300 border border-white border-opacity-30">
+        <div class="flex justify-between items-start mb-4">
+            <h4 class="text-lg font-semibold text-white flex items-center">
+                <i class="fas fa-graduation-cap text-yellow-400 mr-2"></i>
+                Education
+            </h4>
+            <button type="button" onclick="removeEducation(this)" class="text-red-400 hover:text-red-300 p-2 rounded-lg hover:bg-red-500 hover:bg-opacity-20 transition-all">
+                <i class="fas fa-trash"></i>
+            </button>
         </div>
-        <button type="button" onclick="this.parentElement.remove()" class="bg-red-500 text-white px-3 py-1 rounded text-sm hover:bg-red-600">Remove</button>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <div class="space-y-2">
+                <label class="text-white text-sm font-medium">Institution Name</label>
+                <input type="text" name="institution" placeholder="Harvard University, MIT, etc." class="w-full p-3 rounded-lg input-modern text-white placeholder-gray-300">
+            </div>
+            <div class="space-y-2">
+                <label class="text-white text-sm font-medium">Degree Type</label>
+                <select name="degree" class="w-full p-3 rounded-lg input-modern text-white">
+                    <option value="" class="text-gray-800">Select Degree</option>
+                    <option value="High School" class="text-gray-800">High School</option>
+                    <option value="Associate" class="text-gray-800">Associate Degree</option>
+                    <option value="Bachelor" class="text-gray-800">Bachelor's Degree</option>
+                    <option value="Master" class="text-gray-800">Master's Degree</option>
+                    <option value="PhD" class="text-gray-800">PhD</option>
+                    <option value="Certificate" class="text-gray-800">Certificate</option>
+                    <option value="Diploma" class="text-gray-800">Diploma</option>
+                </select>
+            </div>
+            <div class="space-y-2">
+                <label class="text-white text-sm font-medium">Field of Study</label>
+                <input type="text" name="field" placeholder="Computer Science, Business, etc." class="w-full p-3 rounded-lg input-modern text-white placeholder-gray-300">
+            </div>
+            <div class="space-y-2">
+                <label class="text-white text-sm font-medium">Study Mode</label>
+                <select name="studyMode" class="w-full p-3 rounded-lg input-modern text-white">
+                    <option value="" class="text-gray-800">Select Mode</option>
+                    <option value="full-time" class="text-gray-800">Full-time</option>
+                    <option value="part-time" class="text-gray-800">Part-time</option>
+                    <option value="online" class="text-gray-800">Online</option>
+                    <option value="correspondence" class="text-gray-800">Correspondence</option>
+                </select>
+            </div>
+            <div class="space-y-2">
+                <label class="text-white text-sm font-medium">Start Date</label>
+                <input type="month" name="startDate" class="w-full p-3 rounded-lg input-modern text-white">
+            </div>
+            <div class="space-y-2">
+                <label class="text-white text-sm font-medium">End Date</label>
+                <input type="month" name="endDate" class="w-full p-3 rounded-lg input-modern text-white">
+            </div>
+            <div class="space-y-2 md:col-span-2">
+                <label class="text-white text-sm font-medium">GPA / Grade (Optional)</label>
+                <input type="text" name="gpa" placeholder="3.8/4.0, First Class, etc." class="w-full p-3 rounded-lg input-modern text-white placeholder-gray-300">
+            </div>
+        </div>
     `;
     container.appendChild(eduDiv);
+}
+
+// Remove education with animation
+function removeEducation(button) {
+    const eduDiv = button.closest('.education-item');
+    eduDiv.style.transform = 'scale(0.9)';
+    eduDiv.style.opacity = '0';
+    setTimeout(() => eduDiv.remove(), 200);
 }
 
 // Collect form data
@@ -588,7 +694,7 @@ async function verifyPayment(paymentData) {
     }
 }
 
-// Select template
+// Select template with enhanced animations
 function selectTemplate(template, event) {
     // Check if premium template and user doesn't have access
     if (config.premiumTemplates.includes(template) && !localStorage.getItem('premiumAccess')) {
@@ -598,36 +704,53 @@ function selectTemplate(template, event) {
 
     selectedTemplate = template;
 
-    // Update UI
-    document.querySelectorAll('.template-option').forEach(el => {
-        el.classList.remove('border-white');
+    // Update UI with animations
+    document.querySelectorAll('.template-card').forEach(el => {
+        el.classList.remove('selected', 'border-white');
         el.classList.add('border-transparent');
     });
 
     if (event && event.target) {
-        const templateOption = event.target.closest('.template-option');
-        if (templateOption) {
-            templateOption.classList.remove('border-transparent');
-            templateOption.classList.add('border-white');
+        const templateCard = event.target.closest('.template-card');
+        if (templateCard) {
+            templateCard.classList.remove('border-transparent');
+            templateCard.classList.add('border-white', 'selected');
+            
+            // Add success animation
+            const icon = templateCard.querySelector('i') || document.createElement('i');
+            icon.className = 'fas fa-check-circle text-green-400 absolute top-2 right-2 text-xl';
+            if (!templateCard.querySelector('i.fa-check-circle')) {
+                templateCard.style.position = 'relative';
+                templateCard.appendChild(icon);
+            }
+            
+            showToast(`${template.charAt(0).toUpperCase() + template.slice(1)} template selected!`, 'success');
         }
     }
 }
 
-// Show toast notification
+// Show toast notification with modern styling
 function showToast(message, type = 'success') {
     const toast = document.getElementById('toast');
     const toastMessage = document.getElementById('toast-message');
+    const toastIcon = document.getElementById('toast-icon');
 
     toastMessage.textContent = message;
 
-    // Set toast color based on type
-    toast.className = `toast ${type === 'success' ? 'bg-green-500' : 'bg-red-500'} text-white px-6 py-3 rounded-lg shadow-lg`;
+    // Set toast styling based on type
+    if (type === 'success') {
+        toast.className = 'toast-modern bg-white text-gray-800 px-6 py-4 rounded-xl shadow-2xl';
+        toastIcon.className = 'fas fa-check-circle text-green-500';
+    } else {
+        toast.className = 'toast-modern bg-red-500 text-white px-6 py-4 rounded-xl shadow-2xl';
+        toastIcon.className = 'fas fa-exclamation-circle text-white';
+    }
 
-    // Show toast
+    // Show toast with animation
     toast.classList.add('show');
 
-    // Hide toast after 3 seconds
+    // Hide toast after 4 seconds
     setTimeout(() => {
         toast.classList.remove('show');
-    }, 3000);
+    }, 4000);
 }
