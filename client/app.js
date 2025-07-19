@@ -308,6 +308,14 @@ function collectFormData() {
     return data;
 }
 
+// Generate preview and show step 3
+function generatePreview() {
+    const formData = collectFormData();
+    const previewHtml = generatePreviewHtml(formData);
+    document.getElementById('resumePreview').innerHTML = previewHtml;
+    showStep(3);
+}
+
 // Generate preview HTML
 function generatePreviewHtml(data) {
     return `
@@ -520,6 +528,26 @@ async function verifyPayment(paymentData) {
         console.error('Verification error:', error);
         showToast('Payment verification failed', 'error');
     }
+}
+
+// Select template
+function selectTemplate(template) {
+    // Check if premium template and user doesn't have access
+    if (config.premiumTemplates.includes(template) && !localStorage.getItem('premiumAccess')) {
+        showPaymentModal();
+        return;
+    }
+    
+    selectedTemplate = template;
+    
+    // Update UI
+    document.querySelectorAll('.template-option').forEach(el => {
+        el.classList.remove('border-white');
+        el.classList.add('border-transparent');
+    });
+    
+    event.target.closest('.template-option').classList.remove('border-transparent');
+    event.target.closest('.template-option').classList.add('border-white');
 }
 
 // Show toast notification

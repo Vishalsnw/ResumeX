@@ -27,7 +27,9 @@ async function extractText(filePath, fileType) {
 // Parse resume using AI
 async function parseResumeWithAI(text) {
   try {
-    const prompt = `Extract the following information from this resume text and return ONLY a valid JSON object:
+    console.log('Starting AI parsing...');
+    
+    const prompt = `Extract the following information from this resume text and return ONLY a valid JSON object with no additional text:
 
 {
   "personalInfo": {
@@ -81,48 +83,112 @@ ${text}`;
 
     // Try OpenAI first
     if (process.env.OPENAI_API_KEY) {
-      const response = await axios.post('https://api.openai.com/v1/chat/completions', {
-        model: 'gpt-3.5-turbo',
-        messages: [
-          { role: 'system', content: 'You are a resume parser. Return only valid JSON.' },
-          { role: 'user', content: prompt }
-        ],
-        temperature: 0.1
-      }, {
-        headers: {
-          'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
-          'Content-Type': 'application/json'
-        }
-      });
+      console.log('Using OpenAI API...');
+      try {
+        const response = await axios.post('https://api.openai.com/v1/chat/completions', {
+          model: 'gpt-3.5-turbo',
+          messages: [
+            { role: 'system', content: 'You are a resume parser. Return only valid JSON with no additional text or formatting.' },
+            { role: 'user', content: prompt }
+          ],
+          temperature: 0.1,
+          max_tokens: 2000
+        }, {
+          headers: {
+            'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
+            'Content-Type': 'application/json'
+          },
+          timeout: 30000
+        });
 
-      return JSON.parse(response.data.choices[0].message.content);
+        let content = response.data.choices[0].message.content.trim();
+        
+        // Clean up response - remove any markdown formatting
+        content = content.replace(/```json/g, '').replace(/```/g, '').trim();
+        
+        const parsed = JSON.parse(content);
+        console.log('OpenAI parsing successful');
+        return parsed;
+        
+      } catch (openaiError) {
+        console.error('OpenAI failed:', openaiError.message);
+      }
+    }
+
+    // Try DeepSeek API if available
+    if (process.env.DEEPSEEK_API_KEY) {
+      console.log('Using DeepSeek API...');
+      try {
+        const response = await axios.post('https://api.deepseek.com/v1/chat/completions', {
+          model: 'deepseek-chat',
+          messages: [
+            { role: 'system', content: 'You are a resume parser. Return only valid JSON with no additional text.' },
+            { role: 'user', content: prompt }
+          ],
+          temperature: 0.1
+        }, {
+          headers: {
+            'Authorization': `Bearer ${process.env.DEEPSEEK_API_KEY}`,
+            'Content-Type': 'application/json'
+          },
+          timeout: 30000
+        });
+
+        let content = response.data.choices[0].message.content.trim();
+        content = content.replace(/```json/g, '').replace(/```/g, '').trim();
+        
+        const parsed = JSON.parse(content);
+        console.log('DeepSeek parsing successful');
+        return parsed;
+        
+      } catch (deepseekError) {
+        console.error('DeepSeek failed:', deepseekError.message);
+      }
     }
 
     // Fallback to HuggingFace
     if (process.env.HUGGINGFACE_API_KEY) {
-      const response = await axios.post('https://api-inference.huggingface.co/models/microsoft/DialoGPT-medium', {
-        inputs: prompt
-      }, {
-        headers: {
-          'Authorization': `Bearer ${process.env.HUGGINGFACE_API_KEY}`
-        }
-      });
+      console.log('Using HuggingFace API...');
+      try {
+        const response = await axios.post('https://api-inference.huggingface.co/models/mistralai/Mixtral-8x7B-Instruct-v0.1', {
+          inputs: prompt,
+          parameters: {
+            max_new_tokens: 2000,
+            temperature: 0.1
+          }
+        }, {
+          headers: {
+            'Authorization': `Bearer ${process.env.HUGGINGFACE_API_KEY}`,
+            'Content-Type': 'application/json'
+          },
+          timeout: 30000
+        });
 
-      // Simple fallback parsing if AI fails
-      return parseResumeManually(text);
+        if (response.data && response.data[0] && response.data[0].generated_text) {
+          let content = response.data[0].generated_text.replace(prompt, '').trim();
+          content = content.replace(/```json/g, '').replace(/```/g, '').trim();
+          
+          const parsed = JSON.parse(content);
+          console.log('HuggingFace parsing successful');
+          return parsed;
+        }
+      } catch (hfError) {
+        console.error('HuggingFace failed:', hfError.message);
+      }
     }
 
-    // Manual parsing as last resort
+    console.log('All AI services failed, using manual parsing');
     return parseResumeManually(text);
 
   } catch (error) {
-    console.error('AI parsing failed:', error.message);
+    console.error('AI parsing completely failed:', error.message);
     return parseResumeManually(text);
   }
 }
 
 // Manual parsing fallback
 function parseResumeManually(text) {
+  console.log('Using manual parsing fallback');
   const lines = text.split('\n').map(line => line.trim()).filter(line => line);
   
   const data = {
@@ -146,21 +212,81 @@ function parseResumeManually(text) {
   const emailMatch = text.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/);
   if (emailMatch) data.personalInfo.email = emailMatch[0];
 
-  // Extract phone
-  const phoneMatch = text.match(/[\+]?[1-9]?[\d\s\-\(\)]{10,}/);
+  // Extract phone - improved regex
+  const phoneMatch = text.match(/(?:\+?1[-.\s]?)?\(?[0-9]{3}\)?[-.\s]?[0-9]{3}[-.\s]?[0-9]{4}/);
   if (phoneMatch) data.personalInfo.phone = phoneMatch[0];
 
-  // Extract name (assume first line or line before email)
-  if (lines.length > 0) {
-    data.personalInfo.name = lines[0];
+  // Extract LinkedIn
+  const linkedinMatch = text.match(/(?:linkedin\.com\/in\/[\w-]+|linkedin\.com\/profile\/[\w-]+)/i);
+  if (linkedinMatch) data.personalInfo.linkedin = 'https://' + linkedinMatch[0];
+
+  // Extract GitHub
+  const githubMatch = text.match(/(?:github\.com\/[\w-]+)/i);
+  if (githubMatch) data.personalInfo.github = 'https://' + githubMatch[0];
+
+  // Extract name (first meaningful line, not email or phone)
+  for (let line of lines) {
+    if (line.length > 2 && !line.includes('@') && !line.match(/\d{3}/)) {
+      data.personalInfo.name = line;
+      break;
+    }
   }
 
-  // Extract skills (look for common skill section headers)
-  const skillsSection = text.match(/(?:skills|technical skills|technologies)[:\s]*([^]*?)(?:\n\s*\n|$)/i);
+  // Extract skills
+  const skillsSection = text.match(/(?:skills|technical skills|technologies|competencies)[:\s]*([^]*?)(?:\n\s*\n|experience|education|$)/i);
   if (skillsSection) {
-    data.skills = skillsSection[1].split(/[,\n]/).map(skill => skill.trim()).filter(skill => skill);
+    const skillsText = skillsSection[1];
+    data.skills = skillsText.split(/[,\n•·\-\|]/)
+      .map(skill => skill.trim())
+      .filter(skill => skill && skill.length > 1 && skill.length < 50);
   }
 
+  // Extract summary/objective
+  const summarySection = text.match(/(?:summary|objective|profile|about)[:\s]*([^]*?)(?:\n\s*\n|experience|education|skills|$)/i);
+  if (summarySection) {
+    data.summary = summarySection[1].trim().replace(/\n/g, ' ').substring(0, 500);
+  }
+
+  // Extract basic experience info
+  const expMatches = text.match(/(?:experience|employment|work history)[:\s]*([^]*?)(?:\n\s*\n|education|skills|$)/i);
+  if (expMatches) {
+    const expText = expMatches[1];
+    const companies = expText.match(/[A-Z][a-zA-Z\s&.,]+(?=\s*\n|\s*\d{4}|\s*present|\s*current)/g);
+    
+    if (companies && companies.length > 0) {
+      companies.slice(0, 3).forEach(company => {
+        data.experience.push({
+          company: company.trim(),
+          position: 'Position',
+          startDate: '',
+          endDate: '',
+          description: ''
+        });
+      });
+    }
+  }
+
+  // Extract basic education info
+  const eduMatches = text.match(/(?:education|academic)[:\s]*([^]*?)(?:\n\s*\n|experience|skills|$)/i);
+  if (eduMatches) {
+    const eduText = eduMatches[1];
+    const institutions = eduText.match(/[A-Z][a-zA-Z\s&.,]+(?:university|college|institute|school)/gi);
+    
+    if (institutions && institutions.length > 0) {
+      institutions.slice(0, 2).forEach(institution => {
+        data.education.push({
+          institution: institution.trim(),
+          degree: 'Degree',
+          field: '',
+          startDate: '',
+          endDate: '',
+          gpa: ''
+        });
+      });
+    }
+  }
+
+  console.log('Manual parsing completed');
   return data;
 }
 
