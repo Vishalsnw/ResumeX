@@ -77,6 +77,17 @@ function cleanAndParseJSON(rawContent) {
     }
   }
 
+  // Step 3.6: Emergency extraction - if AI returns pure prose, create JSON from text analysis
+  if (rawContent.includes('The page') || rawContent.includes('This resume') || rawContent.includes('Based on')) {
+    console.log('AI returned prose instead of JSON, attempting text extraction...');
+    try {
+      const emergencyData = extractDataFromProse(rawContent);
+      return ensureValidStructure(emergencyData);
+    } catch (error) {
+      console.log('Emergency extraction failed, continuing to repairs...');
+    }
+  }
+
   // Step 4: Fix common JSON issues
   content = content
     // Fix unquoted keys
@@ -138,6 +149,33 @@ function ensureValidStructure(data) {
     projects: Array.isArray(data.projects) ? data.projects : [],
     certifications: Array.isArray(data.certifications) ? data.certifications : []
   };
+}
+
+// Extract data from prose response when AI doesn't return JSON
+function extractDataFromProse(proseText) {
+  const data = {
+    personalInfo: { name: '', email: '', phone: '', address: '', linkedin: '', github: '' },
+    summary: '',
+    experience: [],
+    education: [],
+    skills: [],
+    projects: [],
+    certifications: []
+  };
+
+  // Extract email
+  const emailMatch = proseText.match(/[\w\.-]+@[\w\.-]+\.\w+/);
+  if (emailMatch) data.personalInfo.email = emailMatch[0];
+
+  // Extract phone
+  const phoneMatch = proseText.match(/[\+]?[1-9]?[\d\s\-\(\)]{8,15}/);
+  if (phoneMatch) data.personalInfo.phone = phoneMatch[0];
+
+  // Extract name (often appears after "Name:" or at the beginning)
+  const nameMatch = proseText.match(/(?:Name[:\s]+)([A-Z][a-z]+\s+[A-Z][a-z]+)/i);
+  if (nameMatch) data.personalInfo.name = nameMatch[1];
+
+  return data;
 }
 
 // Get fallback structure when all parsing fails
