@@ -17,6 +17,3 @@ args = "npm install"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "node server/index.js"
-
-[nix]
-packages = ["tree"]
