@@ -1,4 +1,3 @@
-
 // Global variables
 let currentStep = 1;
 let resumeData = null;
@@ -27,7 +26,7 @@ function showStep(step) {
     document.querySelectorAll('.step-content').forEach(el => {
         el.classList.add('hidden');
     });
-    
+
     // Show current step
     document.getElementById(`step${step}`).classList.remove('hidden');
     currentStep = step;
@@ -36,20 +35,20 @@ function showStep(step) {
 // Setup drag and drop functionality
 function setupDragAndDrop() {
     const dropZone = document.querySelector('.border-dashed');
-    
+
     dropZone.addEventListener('dragover', (e) => {
         e.preventDefault();
         dropZone.classList.add('border-blue-400');
     });
-    
+
     dropZone.addEventListener('dragleave', () => {
         dropZone.classList.remove('border-blue-400');
     });
-    
+
     dropZone.addEventListener('drop', (e) => {
         e.preventDefault();
         dropZone.classList.remove('border-blue-400');
-        
+
         const files = e.dataTransfer.files;
         if (files.length > 0) {
             handleFileUpload({ target: { files } });
@@ -194,95 +193,71 @@ function populateForm(data) {
     }
 }
 
-// Add experience entry
+// Add experience item
 function addExperience() {
     const container = document.getElementById('experienceContainer');
     const expDiv = document.createElement('div');
-    expDiv.className = 'experience-item bg-white bg-opacity-5 rounded p-4 mb-4';
+    expDiv.className = 'experience-item bg-white bg-opacity-5 rounded-lg p-4 mb-4';
     expDiv.innerHTML = `
-        <div class="flex justify-between items-center mb-3">
-            <h4 class="text-white font-semibold">Experience Entry</h4>
-            <button type="button" onclick="this.parentElement.parentElement.remove()" class="text-red-400 hover:text-red-300">
-                <i class="fas fa-trash"></i>
-            </button>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <input type="text" name="company" placeholder="Company Name" class="w-full p-3 rounded bg-white bg-opacity-20 text-white placeholder-gray-300 border border-white border-opacity-30">
+            <input type="text" name="position" placeholder="Job Title" class="w-full p-3 rounded bg-white bg-opacity-20 text-white placeholder-gray-300 border border-white border-opacity-30">
+            <select name="employmentType" class="w-full p-3 rounded bg-white bg-opacity-20 text-white border border-white border-opacity-30">
+                <option value="" class="text-gray-800">Employment Type</option>
+                <option value="full-time" class="text-gray-800">Full-time</option>
+                <option value="part-time" class="text-gray-800">Part-time</option>
+                <option value="contract" class="text-gray-800">Contract</option>
+                <option value="internship" class="text-gray-800">Internship</option>
+                <option value="freelance" class="text-gray-800">Freelance</option>
+            </select>
+            <select name="workLocation" class="w-full p-3 rounded bg-white bg-opacity-20 text-white border border-white border-opacity-30">
+                <option value="" class="text-gray-800">Work Location</option>
+                <option value="onsite" class="text-gray-800">On-site</option>
+                <option value="remote" class="text-gray-800">Remote</option>
+                <option value="hybrid" class="text-gray-800">Hybrid</option>
+            </select>
+            <input type="month" name="startDate" placeholder="Start Date" class="w-full p-3 rounded bg-white bg-opacity-20 text-white placeholder-gray-300 border border-white border-opacity-30">
+            <input type="month" name="endDate" placeholder="End Date" class="w-full p-3 rounded bg-white bg-opacity-20 text-white placeholder-gray-300 border border-white border-opacity-30">
         </div>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
-            <input type="text" name="company" placeholder="Company" class="w-full p-2 rounded bg-white bg-opacity-20 text-white placeholder-gray-300 border border-white border-opacity-30">
-            <input type="text" name="position" placeholder="Position" class="w-full p-2 rounded bg-white bg-opacity-20 text-white placeholder-gray-300 border border-white border-opacity-30">
-            <input type="text" name="startDate" placeholder="Start Date" class="w-full p-2 rounded bg-white bg-opacity-20 text-white placeholder-gray-300 border border-white border-opacity-30">
-            <input type="text" name="endDate" placeholder="End Date" class="w-full p-2 rounded bg-white bg-opacity-20 text-white placeholder-gray-300 border border-white border-opacity-30">
-        </div>
-        <textarea name="description" rows="3" placeholder="Job description..." class="w-full p-2 rounded bg-white bg-opacity-20 text-white placeholder-gray-300 border border-white border-opacity-30"></textarea>
+        <textarea name="description" rows="3" placeholder="Job description and achievements..." class="w-full p-3 rounded bg-white bg-opacity-20 text-white placeholder-gray-300 border border-white border-opacity-30 mb-3"></textarea>
+        <button type="button" onclick="this.parentElement.remove()" class="bg-red-500 text-white px-3 py-1 rounded text-sm hover:bg-red-600">Remove</button>
     `;
     container.appendChild(expDiv);
 }
 
-// Add education entry
+// Add education item
 function addEducation() {
     const container = document.getElementById('educationContainer');
     const eduDiv = document.createElement('div');
-    eduDiv.className = 'education-item bg-white bg-opacity-5 rounded p-4 mb-4';
+    eduDiv.className = 'education-item bg-white bg-opacity-5 rounded-lg p-4 mb-4';
     eduDiv.innerHTML = `
-        <div class="flex justify-between items-center mb-3">
-            <h4 class="text-white font-semibold">Education Entry</h4>
-            <button type="button" onclick="this.parentElement.parentElement.remove()" class="text-red-400 hover:text-red-300">
-                <i class="fas fa-trash"></i>
-            </button>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <input type="text" name="institution" placeholder="Institution Name" class="w-full p-3 rounded bg-white bg-opacity-20 text-white placeholder-gray-300 border border-white border-opacity-30">
+            <select name="degree" class="w-full p-3 rounded bg-white bg-opacity-20 text-white border border-white border-opacity-30">
+                <option value="" class="text-gray-800">Degree Type</option>
+                <option value="High School" class="text-gray-800">High School</option>
+                <option value="Associate" class="text-gray-800">Associate Degree</option>
+                <option value="Bachelor" class="text-gray-800">Bachelor's Degree</option>
+                <option value="Master" class="text-gray-800">Master's Degree</option>
+                <option value="PhD" class="text-gray-800">PhD</option>
+                <option value="Certificate" class="text-gray-800">Certificate</option>
+                <option value="Diploma" class="text-gray-800">Diploma</option>
+            </select>
+            <input type="text" name="field" placeholder="Field of Study" class="w-full p-3 rounded bg-white bg-opacity-20 text-white placeholder-gray-300 border border-white border-opacity-30">
+            <select name="studyMode" class="w-full p-3 rounded bg-white bg-opacity-20 text-white border border-white border-opacity-30">
+                <option value="" class="text-gray-800">Study Mode</option>
+                <option value="full-time" class="text-gray-800">Full-time</option>
+                <option value="part-time" class="text-gray-800">Part-time</option>
+                <option value="online" class="text-gray-800">Online</option>
+                <option value="correspondence" class="text-gray-800">Correspondence</option>
+            </select>
+            <input type="month" name="startDate" placeholder="Start Date" class="w-full p-3 rounded bg-white bg-opacity-20 text-white placeholder-gray-300 border border-white border-opacity-30">
+            <input type="month" name="endDate" placeholder="End Date" class="w-full p-3 rounded bg-white bg-opacity-20 text-white placeholder-gray-300 border border-white border-opacity-30">
+            <input type="text" name="gpa" placeholder="GPA (optional)" class="w-full p-3 rounded bg-white bg-opacity-20 text-white placeholder-gray-300 border border-white border-opacity-30">
         </div>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
-            <input type="text" name="institution" placeholder="Institution" class="w-full p-2 rounded bg-white bg-opacity-20 text-white placeholder-gray-300 border border-white border-opacity-30">
-            <input type="text" name="degree" placeholder="Degree" class="w-full p-2 rounded bg-white bg-opacity-20 text-white placeholder-gray-300 border border-white border-opacity-30">
-            <input type="text" name="field" placeholder="Field of Study" class="w-full p-2 rounded bg-white bg-opacity-20 text-white placeholder-gray-300 border border-white border-opacity-30">
-            <input type="text" name="gpa" placeholder="GPA" class="w-full p-2 rounded bg-white bg-opacity-20 text-white placeholder-gray-300 border border-white border-opacity-30">
-        </div>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <input type="text" name="startDate" placeholder="Start Date" class="w-full p-2 rounded bg-white bg-opacity-20 text-white placeholder-gray-300 border border-white border-opacity-30">
-            <input type="text" name="endDate" placeholder="End Date" class="w-full p-2 rounded bg-white bg-opacity-20 text-white placeholder-gray-300 border border-white border-opacity-30">
-        </div>
+        <button type="button" onclick="this.parentElement.remove()" class="bg-red-500 text-white px-3 py-1 rounded text-sm hover:bg-red-600">Remove</button>
     `;
     container.appendChild(eduDiv);
-}
-
-// Select template
-function selectTemplate(template) {
-    selectedTemplate = template;
-    
-    // Update UI
-    document.querySelectorAll('.template-option').forEach(el => {
-        el.classList.remove('border-white');
-        el.classList.add('border-transparent');
-    });
-    
-    event.target.closest('.template-option').classList.remove('border-transparent');
-    event.target.closest('.template-option').classList.add('border-white');
-    
-    // Check if premium template
-    if (config.premiumTemplates.includes(template)) {
-        showPaymentModal();
-    }
-}
-
-// Generate preview
-async function generatePreview() {
-    try {
-        showProgress(true);
-        
-        // Collect form data
-        const formData = collectFormData();
-        
-        // Generate preview HTML
-        const previewHtml = generatePreviewHtml(formData);
-        document.getElementById('resumePreview').innerHTML = previewHtml;
-        
-        showStep(3);
-        showToast('Preview generated successfully!', 'success');
-        
-    } catch (error) {
-        console.error('Preview error:', error);
-        showToast('Failed to generate preview', 'error');
-    } finally {
-        showProgress(false);
-    }
 }
 
 // Collect form data
@@ -294,10 +269,12 @@ function collectFormData() {
             phone: document.getElementById('phone').value,
             address: document.getElementById('address').value,
             linkedin: document.getElementById('linkedin').value,
-            github: document.getElementById('github').value
+            github: document.getElementById('github').value,
+            experienceLevel: document.getElementById('experienceLevel').value,
+            jobType: document.getElementById('jobType').value
         },
         summary: document.getElementById('summary').value,
-        skills: document.getElementById('skills').value.split(',').map(skill => skill.trim()).filter(skill => skill),
+        skills: document.getElementById('skills').value.split(',').map(s => s.trim()).filter(s => s),
         experience: [],
         education: []
     };
@@ -307,6 +284,8 @@ function collectFormData() {
         data.experience.push({
             company: item.querySelector('[name="company"]').value,
             position: item.querySelector('[name="position"]').value,
+            employmentType: item.querySelector('[name="employmentType"]').value,
+            workLocation: item.querySelector('[name="workLocation"]').value,
             startDate: item.querySelector('[name="startDate"]').value,
             endDate: item.querySelector('[name="endDate"]').value,
             description: item.querySelector('[name="description"]').value
@@ -319,6 +298,7 @@ function collectFormData() {
             institution: item.querySelector('[name="institution"]').value,
             degree: item.querySelector('[name="degree"]').value,
             field: item.querySelector('[name="field"]').value,
+            studyMode: item.querySelector('[name="studyMode"]').value,
             startDate: item.querySelector('[name="startDate"]').value,
             endDate: item.querySelector('[name="endDate"]').value,
             gpa: item.querySelector('[name="gpa"]').value
@@ -407,9 +387,9 @@ function generatePreviewHtml(data) {
 async function downloadPDF() {
     try {
         showProgress(true);
-        
+
         const formData = collectFormData();
-        
+
         const response = await fetch(`${config.apiUrl}/api/pdf/generate`, {
             method: 'POST',
             headers: {
@@ -449,14 +429,14 @@ async function downloadPDF() {
 function showPaymentModal() {
     document.getElementById('paymentModal').classList.remove('hidden');
     document.getElementById('paymentModal').classList.add('flex');
-    
+
     document.getElementById('payButton').onclick = initializePayment;
 }
 
 function closePaymentModal() {
     document.getElementById('paymentModal').classList.add('hidden');
     document.getElementById('paymentModal').classList.remove('flex');
-    
+
     // Reset to free template
     selectedTemplate = 'modern';
     document.querySelectorAll('.template-option').forEach(el => {
@@ -529,7 +509,7 @@ async function verifyPayment(paymentData) {
         if (result.success) {
             showToast('Payment successful! Premium template unlocked', 'success');
             closePaymentModal();
-            
+
             // Store premium access in localStorage
             localStorage.setItem('premiumAccess', 'true');
         } else {
@@ -546,15 +526,15 @@ async function verifyPayment(paymentData) {
 function showToast(message, type = 'success') {
     const toast = document.getElementById('toast');
     const toastMessage = document.getElementById('toast-message');
-    
+
     toastMessage.textContent = message;
-    
+
     // Set toast color based on type
     toast.className = `toast ${type === 'success' ? 'bg-green-500' : 'bg-red-500'} text-white px-6 py-3 rounded-lg shadow-lg`;
-    
+
     // Show toast
     toast.classList.add('show');
-    
+
     // Hide toast after 3 seconds
     setTimeout(() => {
         toast.classList.remove('show');
