@@ -97,32 +97,12 @@ ${text}`;
           throw new Error('Invalid response structure from OpenAI');
         }
 
-        let content = response.data.choices[0].message.content.trim();
+        const rawContent = response.data.choices[0].message.content.trim();
+        console.log('OpenAI raw response:', rawContent.substring(0, 200) + '...');
 
-        // Remove any markdown code blocks
-        content = content.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
-
-        // Try to parse the JSON
-        let parsedData;
-        try {
-          parsedData = JSON.parse(content);
-        } catch (jsonError) {
-          console.error('JSON parse error:', jsonError);
-          console.log('Raw content:', content);
-          throw new Error('Invalid JSON response from AI');
-        }
-
-        // Add fallback structure
-        parsedData = {
-          personalInfo: parsedData.personalInfo || {},
-          summary: parsedData.summary || '',
-          experience: parsedData.experience || [],
-          education: parsedData.education || [],
-          skills: parsedData.skills || [],
-          projects: parsedData.projects || [],
-          certifications: parsedData.certifications || []
-        };
-
+        // Use robust JSON cleaning and validation
+        const parsedData = cleanAndValidateJSON(rawContent);
+        console.log('OpenAI parsing successful');
         return parsedData;
 
       } catch (error) {
@@ -154,32 +134,12 @@ ${text}`;
           timeout: 30000
         });
 
-        let content = response.data.choices[0].message.content.trim();
+        const rawContent = response.data.choices[0].message.content.trim();
+        console.log('DeepSeek raw response:', rawContent.substring(0, 200) + '...');
 
-        // Remove any markdown code blocks
-        content = content.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
-
-        // Try to parse the JSON
-        let parsedData;
-        try {
-          parsedData = JSON.parse(content);
-        } catch (jsonError) {
-          console.error('JSON parse error:', jsonError);
-          console.log('Raw content:', content);
-          throw new Error('Invalid JSON response from AI');
-        }
-
-        // Add fallback structure
-        parsedData = {
-          personalInfo: parsedData.personalInfo || {},
-          summary: parsedData.summary || '',
-          experience: parsedData.experience || [],
-          education: parsedData.education || [],
-          skills: parsedData.skills || [],
-          projects: parsedData.projects || [],
-          certifications: parsedData.certifications || []
-        };
-
+        // Use robust JSON cleaning and validation
+        const parsedData = cleanAndValidateJSON(rawContent);
+        console.log('DeepSeek parsing successful');
         return parsedData;
 
       } catch (error) {
@@ -334,6 +294,54 @@ function parseResumeManually(text) {
 
   console.log('Manual parsing completed');
   return data;
+}
+
+// Utility function to clean and validate JSON
+function cleanAndValidateJSON(jsonString) {
+  // Remove markdown code blocks
+  let content = jsonString.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+
+  // Attempt to parse the JSON
+  try {
+    return JSON.parse(content);
+  } catch (jsonError) {
+    console.error('JSON parse error:', jsonError);
+    console.log('Raw content:', content);
+
+    // Attempt to extract the largest valid JSON object
+    try {
+      const jsonStart = content.indexOf('{');
+      const jsonEnd = content.lastIndexOf('}');
+      if (jsonStart !== -1 && jsonEnd !== -1 && jsonStart < jsonEnd) {
+        content = content.substring(jsonStart, jsonEnd + 1);
+        return JSON.parse(content);
+      }
+    } catch (extractError) {
+      console.error('JSON extract error:', extractError);
+    }
+
+    // Handle strings like "C++" or "C" that break the parser
+    content = content.replace(/(['"])C(\+{1,2})?(['"])/g, '$1C$3');
+
+    // Attempt parsing again after cleaning
+    try {
+      return JSON.parse(content);
+    } catch (retryError) {
+      console.error('JSON retry parse error:', retryError);
+    }
+
+    // Fallback structure in case parsing completely fails
+    console.warn('Returning fallback JSON structure due to parsing failures');
+    return {
+      personalInfo: {},
+      summary: '',
+      experience: [],
+      education: [],
+      skills: [],
+      projects: [],
+      certifications: []
+    };
+  }
 }
 
 // Parse resume endpoint
