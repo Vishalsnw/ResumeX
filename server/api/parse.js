@@ -37,8 +37,9 @@ function cleanAndParseJSON(rawContent) {
   let content = rawContent
     .replace(/```json\s*/g, '')
     .replace(/```\s*/g, '')
-    .replace(/^[^{]*/, '') // Remove everything before first {
-    .replace(/[^}]*$/, '') // Remove everything after last }
+    // More aggressive removal of prose text before JSON
+    .replace(/^.*?(?=\{)/s, '') // Remove everything before first { (including newlines)
+    .replace(/\}[^}]*$/s, '}') // Remove everything after last }
     .trim();
 
   // Step 2: Try basic JSON parse first
@@ -60,6 +61,19 @@ function cleanAndParseJSON(rawContent) {
       return ensureValidStructure(parsed);
     } catch (error) {
       console.log('Parse failed after extraction, attempting repairs...');
+    }
+  }
+
+  // Step 3.5: Try to find JSON pattern more aggressively
+  const aggressiveMatch = rawContent.match(/\{[^{}]*"personalInfo"[\s\S]*\}/);
+  if (aggressiveMatch) {
+    content = aggressiveMatch[0];
+    try {
+      const parsed = JSON.parse(content);
+      console.log('JSON parsed successfully with aggressive extraction');
+      return ensureValidStructure(parsed);
+    } catch (error) {
+      console.log('Aggressive extraction also failed, continuing...');
     }
   }
 
@@ -153,7 +167,7 @@ async function parseWithOpenAI(text) {
       model: 'gpt-3.5-turbo',
       messages: [{
         role: 'user',
-        content: `Parse this resume text and return ONLY a valid JSON object with no additional text, markdown, or formatting. The JSON must have this exact structure:
+        content: `You must return ONLY valid JSON. Do not include any explanatory text, comments, or markdown. Start your response with { and end with }. Parse this resume text and return the JSON with this exact structure:
 
 {
   "personalInfo": {
@@ -204,7 +218,7 @@ async function parseWithDeepSeek(text) {
       model: 'deepseek-chat',
       messages: [{
         role: 'user',
-        content: `Parse this resume and return ONLY valid JSON with no markdown or extra text:
+        content: `Return ONLY JSON. No text before or after. Start with { and end with }. Parse this resume:
 
 {
   "personalInfo": {"name": "", "email": "", "phone": "", "address": "", "linkedin": "", "github": ""},
