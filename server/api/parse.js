@@ -28,7 +28,9 @@ async function parseResumeWithAI(text) {
   try {
     console.log('Starting AI parsing...');
 
-    const prompt = `Extract the following information from this resume text and return it as valid JSON:
+    const prompt = `CRITICAL: Your response must be ONLY valid JSON with no additional text, explanations, or formatting.
+
+Extract resume information and return ONLY this JSON structure:
 
 {
   "personalInfo": {
@@ -71,7 +73,9 @@ async function parseResumeWithAI(text) {
 }
 
 Resume text:
-${text}`;
+${text}
+
+RETURN ONLY THE JSON OBJECT WITH NO OTHER TEXT OR MARKDOWN FORMATTING.`;
 
     // Try OpenAI first
     if (process.env.OPENAI_API_KEY) {
@@ -80,7 +84,7 @@ ${text}`;
         const response = await axios.post('https://api.openai.com/v1/chat/completions', {
           model: 'gpt-3.5-turbo',
           messages: [
-            { role: 'system', content: 'You are a resume parser. Return only valid JSON with no additional text or formatting.' },
+            { role: 'system', content: 'You are a resume parser. You MUST return ONLY valid JSON with absolutely no additional text, explanations, markdown formatting, or code blocks. Your entire response should be parseable JSON starting with { and ending with }.' },
             { role: 'user', content: prompt }
           ],
           temperature: 0.1,
@@ -122,7 +126,7 @@ ${text}`;
         const response = await axios.post('https://api.deepseek.com/v1/chat/completions', {
           model: 'deepseek-chat',
           messages: [
-            { role: 'system', content: 'You are a resume parser. Return only valid JSON with no additional text.' },
+            { role: 'system', content: 'You are a resume parser. You MUST return ONLY valid JSON with absolutely no additional text, explanations, markdown formatting, or code blocks. Your entire response should be parseable JSON starting with { and ending with }.' },
             { role: 'user', content: prompt }
           ],
           temperature: 0.1
@@ -298,50 +302,137 @@ function parseResumeManually(text) {
 
 // Utility function to clean and validate JSON
 function cleanAndValidateJSON(jsonString) {
-  // Remove markdown code blocks
-  let content = jsonString.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+  console.log('Starting JSON cleaning for content:', jsonString.substring(0, 100) + '...');
+  
+  // Step 1: Remove markdown code blocks and common prefixes
+  let content = jsonString
+    .replace(/```json\n?/gi, '')
+    .replace(/```\n?/g, '')
+    .replace(/^(here|the|this|json|response|result|data)[\s:]*\n?/gi, '') // Remove common AI prefixes
+    .trim();
 
-  // Attempt to parse the JSON
+  // Step 2: Try direct parsing first
   try {
-    return JSON.parse(content);
+    const parsed = JSON.parse(content);
+    console.log('Direct JSON parsing successful');
+    return addFallbackStructure(parsed);
   } catch (jsonError) {
-    console.error('JSON parse error:', jsonError);
-    console.log('Raw content:', content);
-
-    // Attempt to extract the largest valid JSON object
-    try {
-      const jsonStart = content.indexOf('{');
-      const jsonEnd = content.lastIndexOf('}');
-      if (jsonStart !== -1 && jsonEnd !== -1 && jsonStart < jsonEnd) {
-        content = content.substring(jsonStart, jsonEnd + 1);
-        return JSON.parse(content);
-      }
-    } catch (extractError) {
-      console.error('JSON extract error:', extractError);
-    }
-
-    // Handle strings like "C++" or "C" that break the parser
-    content = content.replace(/(['"])C(\+{1,2})?(['"])/g, '$1C$3');
-
-    // Attempt parsing again after cleaning
-    try {
-      return JSON.parse(content);
-    } catch (retryError) {
-      console.error('JSON retry parse error:', retryError);
-    }
-
-    // Fallback structure in case parsing completely fails
-    console.warn('Returning fallback JSON structure due to parsing failures');
-    return {
-      personalInfo: {},
-      summary: '',
-      experience: [],
-      education: [],
-      skills: [],
-      projects: [],
-      certifications: []
-    };
+    console.warn('Direct JSON parse failed:', jsonError.message);
   }
+
+  // Step 3: Extract JSON object from text
+  try {
+    const jsonStart = content.indexOf('{');
+    const jsonEnd = content.lastIndexOf('}');
+    
+    if (jsonStart !== -1 && jsonEnd !== -1 && jsonStart < jsonEnd) {
+      content = content.substring(jsonStart, jsonEnd + 1);
+      console.log('Extracted JSON content:', content.substring(0, 100) + '...');
+      
+      // Try parsing extracted content
+      const parsed = JSON.parse(content);
+      console.log('Extracted JSON parsing successful');
+      return addFallbackStructure(parsed);
+    }
+  } catch (extractError) {
+    console.warn('JSON extraction failed:', extractError.message);
+  }
+
+  // Step 4: Advanced cleaning for common issues
+  try {
+    // Fix common JSON issues
+    content = content
+      .replace(/,\s*}/g, '}') // Remove trailing commas
+      .replace(/,\s*]/g, ']') // Remove trailing commas in arrays
+      .replace(/([{,]\s*)([a-zA-Z_][a-zA-Z0-9_]*)\s*:/g, '$1"$2":') // Quote unquoted keys
+      .replace(/:\s*'([^']*)'/g, ':"$1"') // Convert single quotes to double quotes
+      .replace(/(['"])C(\+{1,2})?(['"])/g, '"C$2"') // Handle C++ safely
+      .replace(/\n/g, ' ') // Remove newlines
+      .replace(/\t/g, ' ') // Remove tabs
+      .replace(/\s+/g, ' ') // Normalize whitespace
+      .trim();
+
+    const parsed = JSON.parse(content);
+    console.log('Advanced cleaning successful');
+    return addFallbackStructure(parsed);
+  } catch (cleanError) {
+    console.warn('Advanced cleaning failed:', cleanError.message);
+  }
+
+  // Step 5: Try to extract individual fields using regex
+  try {
+    console.log('Attempting field-by-field extraction...');
+    const fallbackData = {
+      personalInfo: extractFieldFromText(jsonString, 'personalInfo') || {},
+      summary: extractFieldFromText(jsonString, 'summary') || '',
+      experience: extractFieldFromText(jsonString, 'experience') || [],
+      education: extractFieldFromText(jsonString, 'education') || [],
+      skills: extractFieldFromText(jsonString, 'skills') || [],
+      projects: extractFieldFromText(jsonString, 'projects') || [],
+      certifications: extractFieldFromText(jsonString, 'certifications') || []
+    };
+    
+    console.log('Field extraction completed');
+    return addFallbackStructure(fallbackData);
+  } catch (fieldError) {
+    console.warn('Field extraction failed:', fieldError.message);
+  }
+
+  // Step 6: Complete fallback
+  console.warn('All JSON parsing attempts failed, returning empty structure');
+  return {
+    personalInfo: {
+      name: '',
+      email: '',
+      phone: '',
+      address: '',
+      linkedin: '',
+      github: ''
+    },
+    summary: '',
+    experience: [],
+    education: [],
+    skills: [],
+    projects: [],
+    certifications: []
+  };
+}
+
+// Helper function to extract individual fields from malformed JSON text
+function extractFieldFromText(text, fieldName) {
+  try {
+    const fieldRegex = new RegExp(`["']${fieldName}["']\\s*:\\s*([\\s\\S]*?)(?=,\\s*["'][^"']*["']\\s*:|$)`, 'i');
+    const match = text.match(fieldRegex);
+    
+    if (match && match[1]) {
+      const fieldValue = match[1].trim().replace(/,$/, '');
+      return JSON.parse(fieldValue);
+    }
+  } catch (error) {
+    console.warn(`Failed to extract field ${fieldName}:`, error.message);
+  }
+  return null;
+}
+
+// Helper function to ensure all required fields exist
+function addFallbackStructure(data) {
+  return {
+    personalInfo: {
+      name: data.personalInfo?.name || '',
+      email: data.personalInfo?.email || '',
+      phone: data.personalInfo?.phone || '',
+      address: data.personalInfo?.address || '',
+      linkedin: data.personalInfo?.linkedin || '',
+      github: data.personalInfo?.github || '',
+      ...data.personalInfo
+    },
+    summary: data.summary || '',
+    experience: Array.isArray(data.experience) ? data.experience : [],
+    education: Array.isArray(data.education) ? data.education : [],
+    skills: Array.isArray(data.skills) ? data.skills : [],
+    projects: Array.isArray(data.projects) ? data.projects : [],
+    certifications: Array.isArray(data.certifications) ? data.certifications : []
+  };
 }
 
 // Parse resume endpoint
