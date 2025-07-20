@@ -39,6 +39,33 @@ if (process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET) {
   console.warn('Razorpay not initialized - Missing or invalid credentials');
 }
 
+// PDF text extraction endpoint
+app.post('/api/extract-pdf', async (req, res) => {
+  try {
+    const { fileData } = req.body;
+    
+    if (!fileData) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'PDF file data is required' 
+      });
+    }
+
+    // For now, return an error message suggesting client-side processing
+    // This can be enhanced with server-side PDF libraries if needed
+    res.status(400).json({ 
+      success: false, 
+      error: 'Server-side PDF processing not implemented. Please use client-side extraction.' 
+    });
+  } catch (error) {
+    console.error('PDF Extraction Error:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Failed to process PDF file' 
+    });
+  }
+});
+
 // Enhanced AI Resume Generation with multiple features
 app.post('/api/generate-resume', async (req, res) => {
   try {

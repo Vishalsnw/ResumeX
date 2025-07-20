@@ -167,7 +167,12 @@ function handleFileUpload(file) {
     fileName.textContent = file.name;
     enhanceBtn.style.display = 'inline-block';
 
-    showToast('Resume uploaded successfully!', 'success');
+    // Show specific message for PDF files
+    if (file.type === 'application/pdf') {
+        showToast('PDF uploaded! AI will extract and enhance the text content.', 'success');
+    } else {
+        showToast('Resume uploaded successfully!', 'success');
+    }
 }
 
 function removeUploadedFile() {
@@ -266,6 +271,15 @@ async function enhanceExistingResume() {
 
 function readFileAsText(file) {
     return new Promise((resolve, reject) => {
+        // Handle PDF files specially
+        if (file.type === 'application/pdf') {
+            extractPDFText(file)
+                .then(resolve)
+                .catch(reject);
+            return;
+        }
+
+        // Handle other file types
         const reader = new FileReader();
         reader.onload = function(e) {
             const result = e.target.result;
@@ -280,14 +294,70 @@ function readFileAsText(file) {
             reject(new Error('Failed to read file - please try a different file format'));
         };
         
-        // Handle different file types
-        if (file.type === 'application/pdf') {
-            showToast('PDF files require special processing. Please use DOC, DOCX, or TXT files for now.', 'info');
-            reject(new Error('PDF files are not supported in this version'));
+        reader.readAsText(file);
+    });
+}
+
+// Function to extract text from PDF files
+async function extractPDFText(file) {
+    try {
+        // Load PDF.js if not already loaded
+        if (typeof pdfjsLib === 'undefined') {
+            await loadPDFJS();
+        }
+
+        const arrayBuffer = await file.arrayBuffer();
+        const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+        
+        let fullText = '';
+        
+        // Extract text from each page
+        for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+            const page = await pdf.getPage(pageNum);
+            const textContent = await page.getTextContent();
+            
+            const pageText = textContent.items
+                .map(item => item.str)
+                .join(' ')
+                .replace(/\s+/g, ' ')
+                .trim();
+            
+            fullText += pageText + '\n';
+        }
+
+        if (!fullText || fullText.trim().length === 0) {
+            throw new Error('No text content found in PDF');
+        }
+
+        return fullText.trim();
+    } catch (error) {
+        console.error('PDF extraction error:', error);
+        throw new Error('Failed to extract text from PDF. Please ensure the PDF contains selectable text.');
+    }
+}
+
+// Load PDF.js library dynamically
+function loadPDFJS() {
+    return new Promise((resolve, reject) => {
+        // Check if already loaded
+        if (typeof pdfjsLib !== 'undefined') {
+            resolve();
             return;
         }
+
+        // Load PDF.js from CDN
+        const script = document.createElement('script');
+        script.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+        script.onload = function() {
+            // Configure PDF.js worker
+            pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+            resolve();
+        };
+        script.onerror = function() {
+            reject(new Error('Failed to load PDF processing library'));
+        };
         
-        reader.readAsText(file);
+        document.head.appendChild(script);
     });
 }
 
