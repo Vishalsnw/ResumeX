@@ -8,17 +8,17 @@ const router = express.Router();
 
 const razorpay = new Razorpay({
   key_id: process.env.RAZORPAY_KEY_ID,
-  key_secret: process.env.RAZORPAY_KEY_SECRET
+  key_secret: process.env.RAZORPAY_KEY_SECRET,
 });
 
-// Create order for premium subscription
+// Create payment order
 router.post('/create-order', auth, async (req, res) => {
   try {
-    const { amount, currency = 'INR' } = req.body;
+    const { amount, plan } = req.body;
     
     const options = {
-      amount: amount * 100, // Razorpay expects amount in paise
-      currency,
+      amount: amount * 100, // Amount in paise
+      currency: 'INR',
       receipt: `receipt_${Date.now()}`,
       payment_capture: 1
     };
@@ -26,10 +26,10 @@ router.post('/create-order', auth, async (req, res) => {
     const order = await razorpay.orders.create(options);
     
     res.json({
-      id: order.id,
+      orderId: order.id,
       amount: order.amount,
       currency: order.currency,
-      key_id: process.env.RAZORPAY_KEY_ID
+      plan
     });
   } catch (error) {
     console.error('Payment order creation error:', error);
@@ -37,30 +37,31 @@ router.post('/create-order', auth, async (req, res) => {
   }
 });
 
-// Verify payment and upgrade subscription
-router.post('/verify-payment', auth, async (req, res) => {
+// Verify payment
+router.post('/verify', auth, async (req, res) => {
   try {
-    const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
+    const { orderId, paymentId, signature, plan } = req.body;
     
-    const sign = razorpay_order_id + '|' + razorpay_payment_id;
-    const expectedSign = crypto
+    const body = orderId + "|" + paymentId;
+    const expectedSignature = crypto
       .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET)
-      .update(sign)
+      .update(body.toString())
       .digest('hex');
 
-    if (razorpay_signature === expectedSign) {
-      // Payment verified, upgrade user to premium
+    if (expectedSignature === signature) {
+      // Update user subscription
       await User.findByIdAndUpdate(req.user._id, {
-        subscription: 'premium',
+        subscription: plan,
         subscriptionDate: new Date()
       });
-
+      
       res.json({ 
+        success: true, 
         message: 'Payment verified successfully',
-        subscription: 'premium'
+        subscription: plan
       });
     } else {
-      res.status(400).json({ message: 'Invalid payment signature' });
+      res.status(400).json({ success: false, message: 'Payment verification failed' });
     }
   } catch (error) {
     console.error('Payment verification error:', error);
@@ -69,7 +70,7 @@ router.post('/verify-payment', auth, async (req, res) => {
 });
 
 // Get subscription status
-router.get('/subscription-status', auth, async (req, res) => {
+router.get('/subscription', auth, async (req, res) => {
   try {
     const user = await User.findById(req.user._id);
     res.json({
@@ -77,7 +78,7 @@ router.get('/subscription-status', auth, async (req, res) => {
       subscriptionDate: user.subscriptionDate
     });
   } catch (error) {
-    res.status(500).json({ message: 'Failed to get subscription status' });
+    res.status(500).json({ message: 'Failed to fetch subscription status' });
   }
 });
 

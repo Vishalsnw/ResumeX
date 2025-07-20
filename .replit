@@ -1,4 +1,5 @@
 modules = ["nodejs-20"]
+
 [workflows]
 runButton = "ResumeX Server"
 
@@ -6,10 +7,6 @@ runButton = "ResumeX Server"
 name = "ResumeX Server"
 author = 43564906
 mode = "sequential"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "npm install"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
