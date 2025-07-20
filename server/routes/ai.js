@@ -1,12 +1,11 @@
 
 const express = require('express');
-const OpenAI = require('openai');
+const axios = require('axios');
 const auth = require('../middleware/auth');
 const router = express.Router();
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY
-});
+const DEEPSEEK_API_URL = 'https://api.deepseek.com/v1/chat/completions';
+const DEEPSEEK_API_KEY = process.env.DEEPSEEK_API_KEY;
 
 // Generate resume content suggestions
 router.post('/generate-content', auth, async (req, res) => {
@@ -29,14 +28,19 @@ router.post('/generate-content', auth, async (req, res) => {
         return res.status(400).json({ message: 'Invalid content type' });
     }
 
-    const completion = await openai.chat.completions.create({
-      model: "gpt-3.5-turbo",
+    const response = await axios.post(DEEPSEEK_API_URL, {
+      model: "deepseek-chat",
       messages: [{ role: "user", content: prompt }],
       max_tokens: 300,
       temperature: 0.7
+    }, {
+      headers: {
+        'Authorization': `Bearer ${DEEPSEEK_API_KEY}`,
+        'Content-Type': 'application/json'
+      }
     });
 
-    res.json({ content: completion.choices[0].message.content });
+    res.json({ content: response.data.choices[0].message.content });
   } catch (error) {
     console.error('AI generation error:', error);
     res.status(500).json({ message: 'AI service error', error: error.message });
@@ -55,14 +59,19 @@ router.post('/optimize-ats', auth, async (req, res) => {
     
     Provide specific suggestions for improvement.`;
 
-    const completion = await openai.chat.completions.create({
-      model: "gpt-3.5-turbo",
+    const response = await axios.post(DEEPSEEK_API_URL, {
+      model: "deepseek-chat",
       messages: [{ role: "user", content: prompt }],
       max_tokens: 400,
       temperature: 0.5
+    }, {
+      headers: {
+        'Authorization': `Bearer ${DEEPSEEK_API_KEY}`,
+        'Content-Type': 'application/json'
+      }
     });
 
-    res.json({ suggestions: completion.choices[0].message.content });
+    res.json({ suggestions: response.data.choices[0].message.content });
   } catch (error) {
     console.error('ATS optimization error:', error);
     res.status(500).json({ message: 'ATS optimization error', error: error.message });

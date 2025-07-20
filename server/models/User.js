@@ -28,6 +28,9 @@ const userSchema = new mongoose.Schema({
     enum: ['free', 'premium'],
     default: 'free'
   },
+  subscriptionDate: {
+    type: Date
+  },
   createdAt: {
     type: Date,
     default: Date.now

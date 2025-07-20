@@ -29,6 +29,7 @@ app.use('/api/auth', require('./routes/auth'));
 app.use('/api/resumes', require('./routes/resumes'));
 app.use('/api/ai', require('./routes/ai'));
 app.use('/api/templates', require('./routes/templates'));
+app.use('/api/payment', require('./routes/payment'));
 
 // Serve React app for any non-API routes
 app.get('*', (req, res) => {
