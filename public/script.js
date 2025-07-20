@@ -1,23 +1,25 @@
 // Global variables (initialize only once)
-window.currentStep = window.currentStep || 1;
-window.resumeData = window.resumeData || {
-    personalInfo: {},
-    experience: [],
-    skills: [],
-    jobTitle: '',
-    targetJobDescription: ''
-};
-window.uploadedResumeFile = window.uploadedResumeFile || null;
-window.enhancedResumeData = window.enhancedResumeData || null;
-window.isProcessing = window.isProcessing || false;
-window.selectedTemplate = window.selectedTemplate || 'modern';
-window.jobAnalysisData = window.jobAnalysisData || null;
-window.hasUsedAI = window.hasUsedAI || false;
-
-// DOM elements
-window.modal = window.modal || null;
-window.previewModal = window.previewModal || null;
-window.loadingOverlay = window.loadingOverlay || null;
+if (typeof window.currentStep === 'undefined') {
+    window.currentStep = 1;
+    window.resumeData = {
+        personalInfo: {},
+        experience: [],
+        skills: [],
+        jobTitle: '',
+        targetJobDescription: ''
+    };
+    window.uploadedResumeFile = null;
+    window.enhancedResumeData = null;
+    window.isProcessing = false;
+    window.selectedTemplate = 'modern';
+    window.jobAnalysisData = null;
+    window.hasUsedAI = false;
+    
+    // DOM elements
+    window.modal = null;
+    window.previewModal = null;
+    window.loadingOverlay = null;
+}
 
 // Initialize the application
 document.addEventListener('DOMContentLoaded', function() {
@@ -413,46 +415,52 @@ function loadPDFJS() {
 
 function populateFormWithEnhancedData(data) {
     try {
+        // Clean and validate data first
+        const cleanedData = cleanResumeData(data);
+        
         // Populate personal info
-        if (data.personalInfo) {
-            if (data.personalInfo.name) document.getElementById('fullName').value = data.personalInfo.name;
-            if (data.personalInfo.email) document.getElementById('email').value = data.personalInfo.email;
-            if (data.personalInfo.phone) document.getElementById('phone').value = data.personalInfo.phone;
-            if (data.personalInfo.location) document.getElementById('location').value = data.personalInfo.location;
+        if (cleanedData.personalInfo) {
+            const fields = ['fullName', 'email', 'phone', 'location'];
+            const dataKeys = ['name', 'email', 'phone', 'location'];
+            
+            fields.forEach((field, index) => {
+                const element = document.getElementById(field);
+                const value = cleanedData.personalInfo[dataKeys[index]];
+                if (element && value) {
+                    element.value = value;
+                }
+            });
         }
 
         // Populate job title
-        if (data.jobTitle) {
-            document.getElementById('jobTitle').value = data.jobTitle;
+        if (cleanedData.jobTitle) {
+            const jobTitleElement = document.getElementById('jobTitle');
+            if (jobTitleElement) {
+                jobTitleElement.value = cleanedData.jobTitle;
+            }
         }
 
-        // Clear and populate experience properly - only add non-empty experiences
+        // Clear and populate experience with better structure
         const container = document.getElementById('experienceContainer');
-        container.innerHTML = '';
+        if (container) {
+            container.innerHTML = '';
 
-        if (data.experience && data.experience.length > 0) {
-            // Filter out empty experiences
-            const validExperiences = data.experience.filter(exp => 
-                exp && 
-                (exp.company || exp.position || exp.description) && 
-                exp.company !== 'NA' && 
-                exp.position !== 'NA' &&
-                exp.company?.trim() !== '' &&
-                exp.position?.trim() !== ''
-            );
-
-            if (validExperiences.length > 0) {
-                validExperiences.forEach((exp, index) => {
+            if (cleanedData.experience && cleanedData.experience.length > 0) {
+                cleanedData.experience.forEach((exp, index) => {
                     const experienceItem = document.createElement('div');
                     experienceItem.className = 'experience-item';
+                    
+                    // Clean and format description
+                    const formattedDescription = formatExperienceDescription(exp.description || '');
+                    
                     experienceItem.innerHTML = `
                         <div class="form-group">
                             <label>Company</label>
-                            <input type="text" class="company" value="${exp.company || ''}" required>
+                            <input type="text" class="company" value="${escapeHtml(exp.company || '')}" required>
                         </div>
                         <div class="form-group">
                             <label>Position</label>
-                            <input type="text" class="position" value="${exp.position || ''}" required>
+                            <input type="text" class="position" value="${escapeHtml(exp.position || '')}" required>
                         </div>
                         <div class="form-row">
                             <div class="form-group">
@@ -466,19 +474,15 @@ function populateFormWithEnhancedData(data) {
                         </div>
                         <div class="form-group">
                             <label>Description</label>
-                            <textarea class="description" rows="3" placeholder="Describe your responsibilities and achievements">${exp.description || ''}</textarea>
+                            <textarea class="description" rows="4" placeholder="Describe your responsibilities and achievements">${escapeHtml(formattedDescription)}</textarea>
                         </div>
                         ${index > 0 ? '<button type="button" class="btn-secondary btn-small" onclick="removeExperience(this)">Remove</button>' : ''}
                     `;
                     container.appendChild(experienceItem);
                 });
             } else {
-                // Add default experience if no valid experiences found
                 addDefaultExperience();
             }
-        } else {
-            // Add default experience if no experiences provided
-            addDefaultExperience();
         }
 
         // Populate skills
@@ -497,29 +501,14 @@ function populateFormWithEnhancedData(data) {
             document.getElementById('certifications').value = data.certifications;
         }
 
-        // Update global resumeData with filtered experiences
-        const validExperiences = data.experience ? data.experience.filter(exp => 
-            exp && 
-            (exp.company || exp.position || exp.description) && 
-            exp.company !== 'NA' && 
-            exp.position !== 'NA' &&
-            exp.company?.trim() !== '' &&
-            exp.position?.trim() !== ''
-        ) : [];
-
+        // Update global resumeData
         window.resumeData = {
-            personalInfo: data.personalInfo || window.resumeData.personalInfo,
-            jobTitle: data.jobTitle || window.resumeData.jobTitle,
-            experience: validExperiences.length > 0 ? validExperiences : [{
-                company: 'Your Company',
-                position: data.jobTitle || 'Professional',
-                startDate: '2023-01-01',
-                endDate: '',
-                description: 'Key responsibilities and achievements'
-            }],
-            skills: data.skills || window.resumeData.skills,
-            education: data.education || window.resumeData.education,
-            certifications: data.certifications || window.resumeData.certifications,
+            personalInfo: cleanedData.personalInfo || window.resumeData.personalInfo,
+            jobTitle: cleanedData.jobTitle || window.resumeData.jobTitle,
+            experience: cleanedData.experience || window.resumeData.experience,
+            skills: cleanedData.skills || window.resumeData.skills,
+            education: cleanedData.education || window.resumeData.education,
+            certifications: cleanedData.certifications || window.resumeData.certifications,
             selectedTemplate: window.selectedTemplate,
             targetJobDescription: window.resumeData.targetJobDescription
         };
@@ -560,6 +549,97 @@ function addDefaultExperience() {
         </div>
     `;
     container.appendChild(experienceItem);
+}
+
+// Helper function to clean and validate resume data
+function cleanResumeData(data) {
+    if (!data) return {};
+    
+    const cleaned = {
+        personalInfo: {},
+        experience: [],
+        skills: [],
+        jobTitle: '',
+        education: '',
+        certifications: ''
+    };
+    
+    // Clean personal info
+    if (data.personalInfo) {
+        cleaned.personalInfo = {
+            name: cleanString(data.personalInfo.name),
+            email: cleanString(data.personalInfo.email),
+            phone: cleanString(data.personalInfo.phone),
+            location: cleanString(data.personalInfo.location)
+        };
+    }
+    
+    // Clean job title
+    cleaned.jobTitle = cleanString(data.jobTitle) || 'Professional';
+    
+    // Clean experience array
+    if (Array.isArray(data.experience)) {
+        cleaned.experience = data.experience
+            .filter(exp => exp && typeof exp === 'object')
+            .map(exp => ({
+                company: cleanString(exp.company),
+                position: cleanString(exp.position),
+                startDate: exp.startDate || '',
+                endDate: exp.endDate || '',
+                description: cleanString(exp.description)
+            }))
+            .filter(exp => exp.company && exp.position); // Only keep if has company and position
+    }
+    
+    // Clean skills
+    if (Array.isArray(data.skills)) {
+        cleaned.skills = data.skills.filter(skill => skill && typeof skill === 'string' && skill.trim() !== '');
+    } else if (typeof data.skills === 'string') {
+        cleaned.skills = data.skills.split(',').map(skill => skill.trim()).filter(skill => skill !== '');
+    }
+    
+    // Clean education and certifications
+    cleaned.education = cleanString(data.education);
+    cleaned.certifications = cleanString(data.certifications);
+    
+    return cleaned;
+}
+
+// Helper function to clean strings
+function cleanString(str) {
+    if (!str || typeof str !== 'string') return '';
+    return str.trim().replace(/\s+/g, ' ').replace(/^(NA|N\/A|null|undefined)$/i, '');
+}
+
+// Helper function to format experience descriptions
+function formatExperienceDescription(description) {
+    if (!description || typeof description !== 'string') return '';
+    
+    // Clean the description
+    let cleaned = description.trim();
+    
+    // If it's a very long single sentence, try to split it into bullet points
+    if (cleaned.length > 200 && !cleaned.includes('\n') && !cleaned.includes('•')) {
+        // Split by periods and create bullet points
+        const sentences = cleaned.split(/\.(?=\s+[A-Z])/);
+        if (sentences.length > 1) {
+            cleaned = sentences
+                .filter(sentence => sentence.trim().length > 10)
+                .map(sentence => sentence.trim())
+                .join('.\n• ');
+            cleaned = '• ' + cleaned + (cleaned.endsWith('.') ? '' : '.');
+        }
+    }
+    
+    return cleaned;
+}
+
+// Helper function to escape HTML
+function escapeHtml(text) {
+    if (!text) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
 }
 
 function closeModal() {
@@ -955,30 +1035,64 @@ function createModernTemplate() {
         exp.company !== 'Company Name' && exp.position !== 'Position Title'
     );
     
-    // Format description properly with bullet points
+    // Format description properly with bullet points and better structure
     function formatDescription(description) {
         if (!description || description.trim() === '') {
             return '<p>• Key responsibilities and achievements</p>';
         }
         
-        // Split by sentences or periods and create bullet points
-        const sentences = description.split(/[.!?]+/).filter(s => s.trim().length > 10);
-        if (sentences.length > 1) {
-            return sentences.map(sentence => `<p>• ${sentence.trim()}</p>`).join('');
-        } else {
-            // Split long text into logical chunks
-            const words = description.trim().split(' ');
-            if (words.length > 20) {
-                const chunks = [];
-                for (let i = 0; i < words.length; i += 15) {
-                    const chunk = words.slice(i, i + 15).join(' ');
-                    if (chunk.trim()) chunks.push(chunk.trim());
-                }
-                return chunks.map(chunk => `<p>• ${chunk}</p>`).join('');
-            } else {
-                return `<p>• ${description.trim()}</p>`;
-            }
+        let formatted = description.trim();
+        
+        // If already has bullet points, preserve them
+        if (formatted.includes('•') || formatted.includes('\n•')) {
+            return formatted.split('\n')
+                .filter(line => line.trim())
+                .map(line => {
+                    line = line.trim();
+                    if (!line.startsWith('•')) {
+                        line = '• ' + line;
+                    }
+                    return `<p>${line}</p>`;
+                })
+                .join('');
         }
+        
+        // Split into logical bullet points
+        let bulletPoints = [];
+        
+        // Try splitting by line breaks first
+        if (formatted.includes('\n')) {
+            bulletPoints = formatted.split('\n').filter(line => line.trim().length > 5);
+        }
+        // Split by sentences if no line breaks
+        else if (formatted.includes('. ')) {
+            bulletPoints = formatted.split(/\.\s+/).filter(sentence => sentence.trim().length > 10);
+        }
+        // Split very long single sentences into chunks
+        else if (formatted.length > 150) {
+            const words = formatted.split(' ');
+            const chunks = [];
+            for (let i = 0; i < words.length; i += 20) {
+                const chunk = words.slice(i, i + 20).join(' ');
+                if (chunk.trim()) chunks.push(chunk.trim());
+            }
+            bulletPoints = chunks;
+        }
+        else {
+            bulletPoints = [formatted];
+        }
+        
+        // Format as bullet points
+        return bulletPoints
+            .filter(point => point.trim().length > 5)
+            .map(point => {
+                point = point.trim();
+                if (!point.endsWith('.') && !point.endsWith('!') && !point.endsWith('?')) {
+                    point += '.';
+                }
+                return `<p>• ${point}</p>`;
+            })
+            .join('');
     }
     
     return `
