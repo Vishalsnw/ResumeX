@@ -87,6 +87,13 @@ app.post('/api/generate-resume', async (req, res) => {
     Target Job: ${targetJobDescription || 'Not specified'}
     Industry Focus: ${industryFocus || 'General'}
 
+    REFERENCE STRUCTURE (follow this professional format):
+    - Use strong action verbs (Developed, Implemented, Led, Managed, etc.)
+    - Include quantifiable achievements with numbers and percentages
+    - Structure experience with: Company | Position | Dates, then bullet points
+    - Professional summary should be 3-4 lines highlighting key qualifications
+    - Skills should be categorized and relevant to the target role
+
     REQUIREMENTS:
     1. Create an ATS-optimized professional summary with power words
     2. Enhance job descriptions with quantified achievements and action verbs

@@ -1,33 +1,32 @@
-// Global variables - prevent redeclaration
-let currentStep = window.currentStep || 1;
-let resumeData = window.resumeData || {
+// Global variables - Initialize only if not already defined
+window.currentStep = window.currentStep || 1;
+window.resumeData = window.resumeData || {
     personalInfo: {},
     experience: [],
     skills: [],
     jobTitle: '',
     targetJobDescription: ''
 };
-let uploadedResumeFile = window.uploadedResumeFile || null;
-let enhancedResumeData = window.enhancedResumeData || null;
-let isProcessing = window.isProcessing || false;
-let selectedTemplate = window.selectedTemplate || 'modern';
-let jobAnalysisData = window.jobAnalysisData || null;
-let hasUsedAI = window.hasUsedAI || false;
+window.uploadedResumeFile = window.uploadedResumeFile || null;
+window.enhancedResumeData = window.enhancedResumeData || null;
+window.isProcessing = window.isProcessing || false;
+window.selectedTemplate = window.selectedTemplate || 'modern';
+window.jobAnalysisData = window.jobAnalysisData || null;
+window.hasUsedAI = window.hasUsedAI || false;
+
+// Local references to global variables
+let currentStep = window.currentStep;
+let resumeData = window.resumeData;
+let uploadedResumeFile = window.uploadedResumeFile;
+let enhancedResumeData = window.enhancedResumeData;
+let isProcessing = window.isProcessing;
+let selectedTemplate = window.selectedTemplate;
+let jobAnalysisData = window.jobAnalysisData;
+let hasUsedAI = window.hasUsedAI;
+
+let modal, previewModal, loadingOverlay;
 
 // DOM elements
-let modal = window.modal || null;
-let previewModal = window.previewModal || null;
-let loadingOverlay = window.loadingOverlay || null;
-
-// Update window references
-window.currentStep = currentStep;
-window.resumeData = resumeData;
-window.uploadedResumeFile = uploadedResumeFile;
-window.enhancedResumeData = enhancedResumeData;
-window.isProcessing = isProcessing;
-window.selectedTemplate = selectedTemplate;
-window.jobAnalysisData = jobAnalysisData;
-window.hasUsedAI = hasUsedAI;
 
 // Initialize the application
 document.addEventListener('DOMContentLoaded', function() {
@@ -425,12 +424,12 @@ function populateFormWithEnhancedData(data) {
     try {
         // Clean and validate data first
         const cleanedData = cleanResumeData(data);
-        
+
         // Populate personal info
         if (cleanedData.personalInfo) {
             const fields = ['fullName', 'email', 'phone', 'location'];
             const dataKeys = ['name', 'email', 'phone', 'location'];
-            
+
             fields.forEach((field, index) => {
                 const element = document.getElementById(field);
                 const value = cleanedData.personalInfo[dataKeys[index]];
@@ -457,10 +456,10 @@ function populateFormWithEnhancedData(data) {
                 cleanedData.experience.forEach((exp, index) => {
                     const experienceItem = document.createElement('div');
                     experienceItem.className = 'experience-item';
-                    
+
                     // Clean and format description
                     const formattedDescription = formatExperienceDescription(exp.description || '');
-                    
+
                     experienceItem.innerHTML = `
                         <div class="form-group">
                             <label>Company</label>
@@ -562,7 +561,7 @@ function addDefaultExperience() {
 // Helper function to clean and validate resume data
 function cleanResumeData(data) {
     if (!data) return {};
-    
+
     const cleaned = {
         personalInfo: {},
         experience: [],
@@ -571,7 +570,7 @@ function cleanResumeData(data) {
         education: '',
         certifications: ''
     };
-    
+
     // Clean personal info
     if (data.personalInfo) {
         cleaned.personalInfo = {
@@ -581,10 +580,10 @@ function cleanResumeData(data) {
             location: cleanString(data.personalInfo.location)
         };
     }
-    
+
     // Clean job title
     cleaned.jobTitle = cleanString(data.jobTitle) || 'Professional';
-    
+
     // Clean experience array
     if (Array.isArray(data.experience)) {
         cleaned.experience = data.experience
@@ -598,18 +597,18 @@ function cleanResumeData(data) {
             }))
             .filter(exp => exp.company && exp.position); // Only keep if has company and position
     }
-    
+
     // Clean skills
     if (Array.isArray(data.skills)) {
         cleaned.skills = data.skills.filter(skill => skill && typeof skill === 'string' && skill.trim() !== '');
     } else if (typeof data.skills === 'string') {
         cleaned.skills = data.skills.split(',').map(skill => skill.trim()).filter(skill => skill !== '');
     }
-    
+
     // Clean education and certifications
     cleaned.education = cleanString(data.education);
     cleaned.certifications = cleanString(data.certifications);
-    
+
     return cleaned;
 }
 
@@ -622,10 +621,10 @@ function cleanString(str) {
 // Helper function to format experience descriptions
 function formatExperienceDescription(description) {
     if (!description || typeof description !== 'string') return '';
-    
+
     // Clean the description
     let cleaned = description.trim();
-    
+
     // If it's a very long single sentence, try to split it into bullet points
     if (cleaned.length > 200 && !cleaned.includes('\n') && !cleaned.includes('•')) {
         // Split by periods and create bullet points
@@ -638,7 +637,7 @@ function formatExperienceDescription(description) {
             cleaned = '• ' + cleaned + (cleaned.endsWith('.') ? '' : '.');
         }
     }
-    
+
     return cleaned;
 }
 
@@ -922,7 +921,7 @@ async function generateResume(type) {
         // If we already have enhanced data from upload, use it directly
         if (window.enhancedResumeData && localStorage.getItem('usedAIEnhancement') === 'true') {
             console.log('Using previously enhanced data');
-            
+
             // Merge enhanced data with current form data
             const mergedData = {
                 ...window.enhancedResumeData,
@@ -932,9 +931,9 @@ async function generateResume(type) {
                     ...window.resumeData.personalInfo
                 }
             };
-            
+
             window.resumeData = mergedData;
-            
+
             // Generate resume using basic template with enhanced data
             const resumeHTML = createBasicResumeHTML();
             showResumePreview(resumeHTML);
@@ -1035,22 +1034,22 @@ function createModernTemplate() {
     const personalInfo = window.resumeData.personalInfo || {};
     const experience = window.resumeData.experience || [];
     const skills = window.resumeData.skills || [];
-    
+
     // Filter out empty experiences and ensure proper structure
     const validExperiences = experience.filter(exp => 
         exp && exp.company && exp.position && 
         exp.company.trim() !== '' && exp.position.trim() !== '' &&
         exp.company !== 'Company Name' && exp.position !== 'Position Title'
     );
-    
+
     // Format description properly with bullet points and better structure
     function formatDescription(description) {
         if (!description || description.trim() === '') {
             return '<p>• Key responsibilities and achievements</p>';
         }
-        
+
         let formatted = description.trim();
-        
+
         // If already has bullet points, preserve them
         if (formatted.includes('•') || formatted.includes('\n•')) {
             return formatted.split('\n')
@@ -1064,10 +1063,10 @@ function createModernTemplate() {
                 })
                 .join('');
         }
-        
+
         // Split into logical bullet points
         let bulletPoints = [];
-        
+
         // Try splitting by line breaks first
         if (formatted.includes('\n')) {
             bulletPoints = formatted.split('\n').filter(line => line.trim().length > 5);
@@ -1089,7 +1088,7 @@ function createModernTemplate() {
         else {
             bulletPoints = [formatted];
         }
-        
+
         // Format as bullet points
         return bulletPoints
             .filter(point => point.trim().length > 5)
@@ -1102,7 +1101,7 @@ function createModernTemplate() {
             })
             .join('');
     }
-    
+
     return `
         <div class="resume-container modern-template">
             <div class="resume-header modern-header">
@@ -1122,7 +1121,7 @@ function createModernTemplate() {
                         ${validExperiences.length > 0 ? validExperiences.map(exp => {
                             const startDate = exp.startDate ? formatDate(exp.startDate) : 'Present';
                             const endDate = exp.endDate ? formatDate(exp.endDate) : 'Present';
-                            
+
                             return `
                                 <div class="experience-item modern-experience">
                                     <div class="experience-header">
@@ -1616,7 +1615,7 @@ function showEnhancedResumePreview() {
     try {
         // Collect current form data in case user made edits
         const currentFormData = collectFormData();
-        
+
         // Use enhanced data as base but allow form overrides
         const dataToUse = {
             ...window.enhancedResumeData,
@@ -1626,15 +1625,15 @@ function showEnhancedResumePreview() {
                 ...currentFormData.personalInfo
             }
         };
-        
+
         window.resumeData = dataToUse;
-        
+
         // Generate HTML using the selected template
         const resumeHTML = createBasicResumeHTML();
-        
+
         // Show the preview
         showResumePreview(resumeHTML);
-        
+
         showToast('Resume preview ready for download!', 'success');
     } catch (error) {
         console.error('Preview generation error:', error);
@@ -1721,9 +1720,9 @@ function getResumeStyles() {
             padding: 15px; 
             background: white;
         }
-        
+
         .resume-container { max-width: 800px; margin: 0 auto; background: white; }
-        
+
         .resume-header { 
             text-align: center; 
             border-bottom: 2px solid #4f46e5; 
@@ -1750,7 +1749,7 @@ function getResumeStyles() {
             margin: 0 10px; 
             display: inline-block;
         }
-        
+
         .resume-body { 
             display: flex; 
             gap: 20px; 
@@ -1765,7 +1764,7 @@ function getResumeStyles() {
             padding: 15px; 
             border-radius: 5px;
         }
-        
+
         .resume-section { 
             margin-bottom: 20px; 
         }
@@ -1776,7 +1775,7 @@ function getResumeStyles() {
             padding-bottom: 5px; 
             margin-bottom: 10px; 
         }
-        
+
         .experience-item { 
             margin-bottom: 15px; 
             page-break-inside: avoid;
@@ -1806,7 +1805,7 @@ function getResumeStyles() {
             margin-bottom: 3px; 
             line-height: 1.3;
         }
-        
+
         .skills-grid { 
             display: flex; 
             flex-wrap: wrap; 
@@ -1820,12 +1819,12 @@ function getResumeStyles() {
             font-size: 11px; 
             font-weight: 500;
         }
-        
+
         .education-item, .certifications-item { 
             font-size: 12px; 
             line-height: 1.3;
         }
-        
+
         @media print { 
             body { 
                 margin: 0; 
@@ -1954,7 +1953,7 @@ async function verifyPayment(paymentResponse) {
         if (result.success) {
             localStorage.setItem('premiumAccess', 'true');
             showToast('Payment successful! Download access activated.', 'success');
-            setTimeout(() => {
+            setTimeout(() =>{
                 performDownload();
             }, 1000);
         } else {
@@ -2052,7 +2051,6 @@ if (!document.querySelector('style[data-animations]')) {
 window.startBuilding = startBuilding;
 window.viewTemplates = viewTemplates;
 window.enhanceExistingResume = enhanceExistingResume;
-window.enhanceUploadedResume = enhanceExistingResume; // Alias for compatibility
 window.showEnhancedResumePreview = showEnhancedResumePreview;
 window.removeUploadedFile = removeUploadedFile;
 window.nextStep = nextStep;
@@ -2065,3 +2063,4 @@ window.selectTemplate = selectTemplate;
 window.addExperience = addExperience;
 window.removeExperience = removeExperience;
 window.analyzeJobDescription = analyzeJobDescription;
+window.enhanceUploadedResume = enhanceExistingResume; //Alias for compatibility
