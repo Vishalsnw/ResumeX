@@ -127,7 +127,7 @@ const ResumeEditor = () => {
       } catch (fetchError) {
         console.error('Analysis fetch error:', fetchError);
         
-        setError('Failed to analyze resume. Please upload a different file or fill the form manually.');
+        setError(`❌ ${fetchError.message || 'Resume analysis failed. Please ensure your DeepSeek API is configured properly.'}`);
       }
     } catch (error) {
       console.error('Upload error:', error);

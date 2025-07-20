@@ -12,6 +12,8 @@ class APIService {
   // Real AI content generation using backend API
   async generateContent(type, personalInfo, context = '') {
     try {
+      console.log('Making AI request to:', `${this.baseURL}/api/ai/generate-content`);
+      
       const response = await fetch(`${this.baseURL}/api/ai/generate-content`, {
         method: 'POST',
         headers: {
@@ -26,16 +28,16 @@ class APIService {
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || `Server error: ${response.status}`);
+        console.error('AI API Error:', response.status, errorData);
+        throw new Error(errorData.message || `AI service unavailable. Please ensure DeepSeek API is configured.`);
       }
 
       const data = await response.json();
+      console.log('AI response received successfully');
       return { content: data.content };
     } catch (error) {
       console.error('AI generation error:', error);
-
-      // Enhanced fallback with more professional content
-      return this.generateEnhancedContent(type, personalInfo, context);
+      throw new Error(`AI service failed: ${error.message}. Please check your API configuration.`);
     }
   }
 
@@ -104,70 +106,28 @@ class APIService {
   // Analyze uploaded resume file
   async analyzeResume(file) {
     try {
+      console.log('Analyzing resume file:', file.name, 'Size:', file.size);
+      
       const formData = new FormData();
       formData.append('resume', file);
 
-      // Try multiple endpoints for better reliability
-      const endpoints = [
-        `${this.baseURL}/api/ai/analyze-resume`,
-        '/api/ai/analyze-resume'
-      ];
+      const response = await fetch(`${this.baseURL}/api/ai/analyze-resume`, {
+        method: 'POST',
+        body: formData
+      });
 
-      let lastError;
-      
-      for (const endpoint of endpoints) {
-        try {
-          console.log('Trying endpoint:', endpoint);
-          const response = await fetch(endpoint, {
-            method: 'POST',
-            body: formData
-          });
-
-          if (response.ok) {
-            const data = await response.json();
-            console.log('Resume analysis successful');
-            return data;
-          } else {
-            const errorData = await response.json().catch(() => ({}));
-            lastError = new Error(errorData.message || `Server error: ${response.status}`);
-          }
-        } catch (fetchError) {
-          lastError = fetchError;
-          console.log('Endpoint failed:', endpoint, fetchError.message);
-        }
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        console.error('Resume analysis failed:', response.status, errorData);
+        throw new Error(errorData.message || `Resume analysis failed. Please ensure your API is properly configured.`);
       }
 
-      throw lastError;
+      const data = await response.json();
+      console.log('Resume analysis completed successfully');
+      return data;
     } catch (error) {
       console.error('Resume analysis error:', error);
-
-      // Fallback analysis for demo purposes
-      return {
-        personalInfo: {
-          fullName: 'John Doe',
-          email: 'john.doe@email.com',
-          phone: '+1 (555) 123-4567',
-          location: 'New York, NY',
-          summary: 'Experienced professional with a strong background in technology and innovation.'
-        },
-        experience: [
-          {
-            title: 'Senior Software Engineer',
-            company: 'Tech Solutions Inc.',
-            startDate: '2020-01',
-            endDate: '2023-12',
-            description: 'Led development of scalable web applications using modern technologies. Managed a team of 5 developers and improved system performance by 40%.'
-          }
-        ],
-        skills: ['JavaScript', 'React', 'Node.js', 'Python', 'SQL', 'Project Management'],
-        education: [
-          {
-            degree: 'Bachelor of Science in Computer Science',
-            school: 'University of Technology',
-            year: '2018'
-          }
-        ]
-      };
+      throw new Error(`Resume analysis failed: ${error.message}. Please check your API configuration and try again.`);
     }
   }
 
