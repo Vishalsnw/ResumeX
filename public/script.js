@@ -1007,7 +1007,7 @@ function createAIResumeHTML(aiContent) {
     `;
 }
 
-// Preview and export functions
+//// Preview and export functions
 function showResumePreview(htmlContent) {
     document.getElementById('resumeContent').innerHTML = htmlContent;
     modal.style.display = 'none';
