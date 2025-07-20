@@ -1,7 +1,7 @@
 modules = ["nodejs-20"]
 
 [workflows]
-runButton = "ResumeX Server"
+runButton = "Development Server"
 
 [[workflows.workflow]]
 name = "ResumeX Server"
@@ -11,6 +11,19 @@ mode = "sequential"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "node server/index.js"
+
+[[workflows.workflow]]
+name = "Development Server"
+author = 43564906
+mode = "parallel"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "npm install && node server/index.js"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "cd client && npm start"
 
 [nix]
 channel = "stable-24_05"
