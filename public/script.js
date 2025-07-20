@@ -197,16 +197,22 @@ async function enhanceExistingResume() {
     showLoading();
     
     try {
-        // Convert file to text (simplified - in production you'd use proper parsing)
-        const fileText = await readFileAsText(uploadedResumeFile);
+        console.log('Starting resume enhancement...');
         
-        const jobDescription = document.getElementById('targetJobDescription').value;
+        // Convert file to text
+        const fileText = await readFileAsText(uploadedResumeFile);
+        console.log('File text extracted, length:', fileText.length);
+        
+        const jobDescription = document.getElementById('targetJobDescription').value || '';
         const jobTitle = document.getElementById('jobTitle').value || 'Professional';
+
+        console.log('Sending enhancement request...');
 
         const response = await fetch('/api/enhance-resume', {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
             },
             body: JSON.stringify({
                 resumeText: fileText,
@@ -215,22 +221,44 @@ async function enhanceExistingResume() {
             })
         });
 
+        console.log('Response status:', response.status);
+
         if (!response.ok) {
-            throw new Error('Failed to enhance resume');
+            let errorText;
+            try {
+                const errorData = await response.json();
+                errorText = errorData.error || `Server error ${response.status}`;
+            } catch (e) {
+                errorText = await response.text() || `Server error ${response.status}`;
+            }
+            throw new Error(errorText);
         }
 
         const result = await response.json();
+        console.log('Enhancement result:', result);
 
-        if (result.success) {
+        if (result.success && result.enhancedData) {
             enhancedResumeData = result.enhancedData;
             populateFormWithEnhancedData(result.enhancedData);
             showToast('Resume enhanced successfully! Review and edit as needed.', 'success');
         } else {
-            throw new Error(result.error || 'Enhancement failed');
+            throw new Error(result.error || 'Enhancement failed - no data returned');
         }
     } catch (error) {
         console.error('Resume enhancement error:', error);
-        showToast('Failed to enhance resume. Please try again.', 'error');
+        let errorMessage = 'Failed to enhance resume. Please try again.';
+        
+        if (error.name === 'TypeError' && error.message.includes('Failed to fetch')) {
+            errorMessage = 'Network error - Unable to connect to server';
+        } else if (error.message.includes('Invalid API key')) {
+            errorMessage = 'AI service temporarily unavailable - Please try again later';
+        } else if (error.message.includes('Rate limit')) {
+            errorMessage = 'Service temporarily busy - Please wait a moment and try again';
+        } else if (error.message) {
+            errorMessage = error.message;
+        }
+
+        showToast(errorMessage, 'error');
     } finally {
         hideLoading();
     }
@@ -240,11 +268,25 @@ function readFileAsText(file) {
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
         reader.onload = function(e) {
-            resolve(e.target.result);
+            const result = e.target.result;
+            if (!result || result.trim().length === 0) {
+                reject(new Error('File appears to be empty or unreadable'));
+                return;
+            }
+            resolve(result);
         };
-        reader.onerror = function() {
-            reject(new Error('Failed to read file'));
+        reader.onerror = function(e) {
+            console.error('FileReader error:', e);
+            reject(new Error('Failed to read file - please try a different file format'));
         };
+        
+        // Handle different file types
+        if (file.type === 'application/pdf') {
+            showToast('PDF files require special processing. Please use DOC, DOCX, or TXT files for now.', 'info');
+            reject(new Error('PDF files are not supported in this version'));
+            return;
+        }
+        
         reader.readAsText(file);
     });
 }
