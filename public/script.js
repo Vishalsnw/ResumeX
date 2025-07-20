@@ -1,4 +1,3 @@
-
 // Global variables
 let currentStep = 1;
 let resumeData = {
@@ -18,10 +17,27 @@ let hasUsedAI = false;
 // DOM elements
 let modal, previewModal, loadingOverlay;
 
+// Initialize the application
+document.addEventListener('DOMContentLoaded', function() {
+    modal = document.getElementById('resumeBuilder');
+    previewModal = document.getElementById('resumePreview');
+    loadingOverlay = document.getElementById('loadingOverlay');
+
+    initializeEventListeners();
+    initializeMobileMenu();
+    initializeFileUpload();
+
+    // Close modal when clicking outside
+    window.addEventListener('click', function(event) {
+        if (event.target === modal || event.target === previewModal) {
+            closeModal();
+        }
+    });
+});
+
 // Start building function - opens the resume builder modal
 function startBuilding() {
     console.log('Starting resume building process...');
-    const modal = document.getElementById('resumeBuilder');
     if (modal) {
         modal.style.display = 'block';
         document.body.style.overflow = 'hidden';
@@ -33,33 +49,9 @@ function startBuilding() {
     }
 }
 
-// Initialize the application
-document.addEventListener('DOMContentLoaded', function() {
-    initializeEventListeners();
-    initializeMobileMenu();
-
-    modal = document.getElementById('resumeBuilder');
-    previewModal = document.getElementById('resumePreview');
-    loadingOverlay = document.getElementById('loadingOverlay');
-
-    // Close modal when clicking outside
-    window.addEventListener('click', function(event) {
-        if (event.target === modal || event.target === previewModal) {
-            closeModal();
-        }
-    });
-
-    // File upload handler
-    const fileUpload = document.getElementById('existingResume');
-    if (fileUpload) {
-        fileUpload.addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (file) {
-                handleFileUpload(file);
-            }
-        });
-    }
-});
+function viewTemplates() {
+    alert('Template gallery coming soon! For now, you can create resumes with our AI-powered builder.');
+}
 
 function initializeEventListeners() {
     // Modal close buttons
@@ -78,14 +70,10 @@ function initializeEventListeners() {
             navMenu.style.display = navMenu.style.display === 'flex' ? 'none' : 'flex';
         };
     }
-
-    // File upload functionality
-    initializeFileUpload();
 }
 
 function initializeMobileMenu() {
     const navMenu = document.querySelector('.nav-menu');
-    const mobileToggle = document.querySelector('.mobile-menu-toggle');
 
     // Close mobile menu when clicking on nav items
     document.querySelectorAll('.nav-menu a').forEach(link => {
@@ -178,11 +166,7 @@ function handleFileUpload(file) {
     fileName.textContent = file.name;
     enhanceBtn.style.display = 'inline-block';
 
-    if (file.type === 'application/pdf') {
-        showToast('PDF uploaded! AI will extract and enhance the text content.', 'success');
-    } else {
-        showToast('Resume uploaded successfully!', 'success');
-    }
+    showToast('Resume uploaded successfully!', 'success');
 }
 
 function removeUploadedFile() {
@@ -212,15 +196,9 @@ async function enhanceExistingResume() {
     showLoading();
 
     try {
-        console.log('Starting resume enhancement...');
-
         const fileText = await readFileAsText(uploadedResumeFile);
-        console.log('File text extracted, length:', fileText.length);
-
         const jobDescription = document.getElementById('targetJobDescription').value || '';
         const jobTitle = document.getElementById('jobTitle').value || 'Professional';
-
-        console.log('Sending enhancement request...');
 
         const response = await fetch('/api/enhance-resume', {
             method: 'POST',
@@ -235,8 +213,6 @@ async function enhanceExistingResume() {
             })
         });
 
-        console.log('Response status:', response.status);
-
         if (!response.ok) {
             let errorText;
             try {
@@ -249,7 +225,6 @@ async function enhanceExistingResume() {
         }
 
         const result = await response.json();
-        console.log('Enhancement result:', result);
 
         if (result.success && result.enhancedData) {
             populateFormWithEnhancedData(result.enhancedData);
@@ -313,7 +288,6 @@ async function extractPDFText(file) {
 
         const arrayBuffer = await file.arrayBuffer();
         const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-
         let fullText = '';
 
         for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
@@ -1330,7 +1304,7 @@ function createAIResumeHTML(aiContent) {
     `;
 }
 
-function showResumePreview(htmlContent) {
+function showResumePreview(htmlContent, aiContent) {
     document.getElementById('resumeContent').innerHTML = htmlContent;
 
     const hasUsedAI = localStorage.getItem('usedAIEnhancement') === 'true';
