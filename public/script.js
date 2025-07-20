@@ -8,6 +8,8 @@ let resumeData = {
     jobTitle: '',
     targetJobDescription: ''
 };
+let uploadedResumeFile = null;
+let enhancedResumeData = null;
 
 // Start building function - opens the resume builder modal
 function startBuilding() {
@@ -64,6 +66,9 @@ function initializeEventListeners() {
             navMenu.style.display = navMenu.style.display === 'flex' ? 'none' : 'flex';
         };
     }
+
+    // File upload functionality
+    initializeFileUpload();
 }
 
 function initializeMobileMenu() {
@@ -87,6 +92,212 @@ function initializeMobileMenu() {
             navMenu.style.display = 'none';
         }
     });
+}
+
+function initializeFileUpload() {
+    const uploadArea = document.getElementById('resumeUploadArea');
+    const fileInput = document.getElementById('existingResume');
+
+    if (!uploadArea || !fileInput) return;
+
+    // Click to upload
+    uploadArea.addEventListener('click', function(e) {
+        if (e.target.classList.contains('btn-remove')) return;
+        fileInput.click();
+    });
+
+    // File selection
+    fileInput.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            handleFileUpload(file);
+        }
+    });
+
+    // Drag and drop
+    uploadArea.addEventListener('dragover', function(e) {
+        e.preventDefault();
+        uploadArea.classList.add('dragover');
+    });
+
+    uploadArea.addEventListener('dragleave', function(e) {
+        e.preventDefault();
+        uploadArea.classList.remove('dragover');
+    });
+
+    uploadArea.addEventListener('drop', function(e) {
+        e.preventDefault();
+        uploadArea.classList.remove('dragover');
+        const file = e.dataTransfer.files[0];
+        if (file) {
+            handleFileUpload(file);
+        }
+    });
+}
+
+function handleFileUpload(file) {
+    const allowedTypes = [
+        'application/pdf',
+        'application/msword',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'text/plain'
+    ];
+
+    if (!allowedTypes.includes(file.type)) {
+        showToast('Please upload a PDF, DOC, DOCX, or TXT file', 'error');
+        return;
+    }
+
+    if (file.size > 10 * 1024 * 1024) { // 10MB limit
+        showToast('File size must be less than 10MB', 'error');
+        return;
+    }
+
+    uploadedResumeFile = file;
+    
+    // Show uploaded file info
+    const uploadArea = document.getElementById('resumeUploadArea');
+    const placeholder = uploadArea.querySelector('.upload-placeholder');
+    const uploadedInfo = document.getElementById('uploadedFileInfo');
+    const fileName = document.getElementById('fileName');
+    const enhanceBtn = document.getElementById('enhanceBtn');
+
+    placeholder.style.display = 'none';
+    uploadedInfo.style.display = 'flex';
+    fileName.textContent = file.name;
+    enhanceBtn.style.display = 'inline-block';
+
+    showToast('Resume uploaded successfully!', 'success');
+}
+
+function removeUploadedFile() {
+    uploadedResumeFile = null;
+    enhancedResumeData = null;
+    
+    const uploadArea = document.getElementById('resumeUploadArea');
+    const placeholder = uploadArea.querySelector('.upload-placeholder');
+    const uploadedInfo = document.getElementById('uploadedFileInfo');
+    const enhanceBtn = document.getElementById('enhanceBtn');
+    const fileInput = document.getElementById('existingResume');
+
+    placeholder.style.display = 'block';
+    uploadedInfo.style.display = 'none';
+    enhanceBtn.style.display = 'none';
+    fileInput.value = '';
+
+    showToast('File removed', 'info');
+}
+
+async function enhanceExistingResume() {
+    if (!uploadedResumeFile) {
+        showToast('Please upload a resume first', 'error');
+        return;
+    }
+
+    showLoading();
+    
+    try {
+        // Convert file to text (simplified - in production you'd use proper parsing)
+        const fileText = await readFileAsText(uploadedResumeFile);
+        
+        const jobDescription = document.getElementById('targetJobDescription').value;
+        const jobTitle = document.getElementById('jobTitle').value || 'Professional';
+
+        const response = await fetch('/api/enhance-resume', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                resumeText: fileText,
+                jobDescription,
+                jobTitle
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to enhance resume');
+        }
+
+        const result = await response.json();
+
+        if (result.success) {
+            enhancedResumeData = result.enhancedData;
+            populateFormWithEnhancedData(result.enhancedData);
+            showToast('Resume enhanced successfully! Review and edit as needed.', 'success');
+        } else {
+            throw new Error(result.error || 'Enhancement failed');
+        }
+    } catch (error) {
+        console.error('Resume enhancement error:', error);
+        showToast('Failed to enhance resume. Please try again.', 'error');
+    } finally {
+        hideLoading();
+    }
+}
+
+function readFileAsText(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            resolve(e.target.result);
+        };
+        reader.onerror = function() {
+            reject(new Error('Failed to read file'));
+        };
+        reader.readAsText(file);
+    });
+}
+
+function populateFormWithEnhancedData(data) {
+    // Populate personal info
+    if (data.personalInfo) {
+        if (data.personalInfo.name) document.getElementById('fullName').value = data.personalInfo.name;
+        if (data.personalInfo.email) document.getElementById('email').value = data.personalInfo.email;
+        if (data.personalInfo.phone) document.getElementById('phone').value = data.personalInfo.phone;
+        if (data.personalInfo.location) document.getElementById('location').value = data.personalInfo.location;
+    }
+
+    // Populate job title
+    if (data.jobTitle && !document.getElementById('jobTitle').value) {
+        document.getElementById('jobTitle').value = data.jobTitle;
+    }
+
+    // Populate experience
+    if (data.experience && data.experience.length > 0) {
+        const container = document.getElementById('experienceContainer');
+        container.innerHTML = ''; // Clear existing
+
+        data.experience.forEach((exp, index) => {
+            if (index > 0) addExperience(); // Add new experience item if needed
+            
+            const items = container.querySelectorAll('.experience-item');
+            const currentItem = items[index];
+            
+            if (currentItem) {
+                currentItem.querySelector('.company').value = exp.company || '';
+                currentItem.querySelector('.position').value = exp.position || '';
+                currentItem.querySelector('.startDate').value = exp.startDate || '';
+                currentItem.querySelector('.endDate').value = exp.endDate || '';
+                currentItem.querySelector('.description').value = exp.description || '';
+            }
+        });
+    }
+
+    // Populate skills
+    if (data.skills) {
+        document.getElementById('skills').value = Array.isArray(data.skills) ? data.skills.join(', ') : data.skills;
+    }
+
+    // Populate education
+    if (data.education) {
+        document.getElementById('education').value = data.education;
+    }
+
+    // Populate certifications
+    if (data.certifications) {
+        document.getElementById('certifications').value = data.certifications;
+    }
 }
 
 // Navigation functions
