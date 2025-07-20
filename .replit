@@ -19,10 +19,6 @@ mode = "parallel"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "npm install && node server/index.js"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
 args = "cd client && npm start"
 
 [nix]

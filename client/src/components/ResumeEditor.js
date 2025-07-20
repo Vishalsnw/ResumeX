@@ -1,7 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import axios from 'axios';
 import './ResumeEditor.css';
 
 const ResumeEditor = () => {
@@ -35,14 +34,19 @@ const ResumeEditor = () => {
     }
   }, [id]);
 
-  const fetchResume = async () => {
+  const fetchResume = () => {
     setLoading(true);
     try {
-      const token = localStorage.getItem('token');
-      const response = await axios.get(`/api/resumes/${id}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      setResume(response.data);
+      const savedResumes = localStorage.getItem('resumex_resumes');
+      if (savedResumes) {
+        const resumes = JSON.parse(savedResumes);
+        const foundResume = resumes.find(r => r.id === parseInt(id));
+        if (foundResume) {
+          setResume(foundResume);
+        } else {
+          setError('Resume not found');
+        }
+      }
     } catch (error) {
       setError('Failed to load resume');
     } finally {
@@ -50,20 +54,31 @@ const ResumeEditor = () => {
     }
   };
 
-  const saveResume = async () => {
+  const saveResume = () => {
     setSaving(true);
     try {
-      const token = localStorage.getItem('token');
+      const savedResumes = localStorage.getItem('resumex_resumes');
+      let resumes = savedResumes ? JSON.parse(savedResumes) : [];
+      
       if (id) {
-        await axios.put(`/api/resumes/${id}`, resume, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
+        // Update existing resume
+        const index = resumes.findIndex(r => r.id === parseInt(id));
+        if (index !== -1) {
+          resumes[index] = { ...resume, updatedAt: new Date().toISOString() };
+        }
       } else {
-        const response = await axios.post('/api/resumes', resume, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        navigate(`/resume/${response.data._id}`);
+        // Create new resume
+        const newResume = {
+          ...resume,
+          id: Date.now(),
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        };
+        resumes.push(newResume);
+        navigate(`/resume/${newResume.id}`);
       }
+      
+      localStorage.setItem('resumex_resumes', JSON.stringify(resumes));
     } catch (error) {
       setError('Failed to save resume');
     } finally {
@@ -73,22 +88,23 @@ const ResumeEditor = () => {
 
   const generateAIContent = async (type) => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await axios.post('/api/ai/generate-content', {
-        type,
-        context: resume.personalInfo.summary,
-        jobTitle: 'Software Developer',
-        experience: '2'
-      }, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      // Mock AI content generation for demo
+      let content = '';
+      
+      switch (type) {
+        case 'summary':
+          content = 'Experienced professional with a strong background in delivering high-quality results. Proven track record of success in collaborative environments with excellent communication and problem-solving skills.';
+          break;
+        default:
+          content = 'AI-generated content';
+      }
       
       if (type === 'summary') {
         setResume({
           ...resume,
           personalInfo: {
             ...resume.personalInfo,
-            summary: response.data.content
+            summary: content
           }
         });
       }

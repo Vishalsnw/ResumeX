@@ -1,43 +1,38 @@
 
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import axios from 'axios';
 import './Dashboard.css';
 
 const Dashboard = () => {
   const [resumes, setResumes] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
 
   useEffect(() => {
     fetchResumes();
   }, []);
 
-  const fetchResumes = async () => {
+  const fetchResumes = () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await axios.get('/api/resumes', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      setResumes(response.data);
+      const savedResumes = localStorage.getItem('resumex_resumes');
+      if (savedResumes) {
+        setResumes(JSON.parse(savedResumes));
+      }
     } catch (error) {
-      setError('Failed to load resumes');
+      console.error('Failed to load resumes:', error);
     } finally {
       setLoading(false);
     }
   };
 
-  const deleteResume = async (id) => {
+  const deleteResume = (id) => {
     if (!window.confirm('Are you sure you want to delete this resume?')) return;
 
     try {
-      const token = localStorage.getItem('token');
-      await axios.delete(`/api/resumes/${id}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      setResumes(resumes.filter(resume => resume._id !== id));
+      const updatedResumes = resumes.filter(resume => resume.id !== id);
+      setResumes(updatedResumes);
+      localStorage.setItem('resumex_resumes', JSON.stringify(updatedResumes));
     } catch (error) {
-      setError('Failed to delete resume');
+      console.error('Failed to delete resume:', error);
     }
   };
 
@@ -52,8 +47,6 @@ const Dashboard = () => {
         </Link>
       </div>
 
-      {error && <div className="error">{error}</div>}
-
       {resumes.length === 0 ? (
         <div className="empty-state">
           <h3>No resumes yet</h3>
@@ -65,16 +58,16 @@ const Dashboard = () => {
       ) : (
         <div className="resume-grid">
           {resumes.map(resume => (
-            <div key={resume._id} className="resume-card">
+            <div key={resume.id} className="resume-card">
               <h3>{resume.title}</h3>
               <p>Template: {resume.template}</p>
               <p>Last updated: {new Date(resume.updatedAt).toLocaleDateString()}</p>
               <div className="resume-actions">
-                <Link to={`/resume/${resume._id}`} className="btn">
+                <Link to={`/resume/${resume.id}`} className="btn">
                   Edit
                 </Link>
                 <button 
-                  onClick={() => deleteResume(resume._id)}
+                  onClick={() => deleteResume(resume.id)}
                   className="btn btn-secondary"
                 >
                   Delete
