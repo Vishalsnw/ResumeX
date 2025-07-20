@@ -1,20 +1,18 @@
-// Global variables (check if already declared to prevent errors)
-if (typeof currentStep === 'undefined') {
-    var currentStep = 1;
-    var resumeData = {
-        personalInfo: {},
-        experience: [],
-        skills: [],
-        jobTitle: '',
-        targetJobDescription: ''
-    };
-    var uploadedResumeFile = null;
-    var enhancedResumeData = null;
-    var isProcessing = false;
-    var selectedTemplate = 'modern';
-    var jobAnalysisData = null;
-    var hasUsedAI = false;
-}
+// Global variables
+let currentStep = 1;
+let resumeData = {
+    personalInfo: {},
+    experience: [],
+    skills: [],
+    jobTitle: '',
+    targetJobDescription: ''
+};
+let uploadedResumeFile = null;
+let enhancedResumeData = null;
+let isProcessing = false;
+let selectedTemplate = 'modern';
+let jobAnalysisData = null;
+let hasUsedAI = false;
 
 // DOM elements
 let modal, previewModal, loadingOverlay;
@@ -169,7 +167,12 @@ function handleFileUpload(file) {
     enhanceBtn.style.display = 'block';
     enhanceBtn.style.marginTop = '10px';
 
-    showToast('Resume uploaded successfully! Click "Enhance with AI" to improve it.', 'success');
+    showToast('Resume uploaded successfully! AI enhancement starting...', 'success');
+    
+    // Auto-start AI enhancement
+    setTimeout(() => {
+        enhanceExistingResume();
+    }, 1000);
 }
 
 function removeUploadedFile() {
@@ -203,6 +206,8 @@ async function enhanceExistingResume() {
         const jobDescription = document.getElementById('targetJobDescription').value || '';
         const jobTitle = document.getElementById('jobTitle').value || 'Professional';
 
+        console.log('Starting resume enhancement...');
+
         const response = await fetch('/api/enhance-resume', {
             method: 'POST',
             headers: {
@@ -233,27 +238,87 @@ async function enhanceExistingResume() {
             populateFormWithEnhancedData(result.enhancedData);
             localStorage.setItem('usedAIEnhancement', 'true');
             showToast('Resume enhanced successfully!', 'success');
+            
+            // Hide enhance button and show success indicator
+            const enhanceBtn = document.getElementById('enhanceBtn');
+            if (enhanceBtn) {
+                enhanceBtn.innerHTML = '<i class="fas fa-check"></i> Enhanced';
+                enhanceBtn.disabled = true;
+                enhanceBtn.classList.add('btn-success');
+            }
         } else {
             throw new Error(result.error || 'Enhancement failed - no data returned');
         }
     } catch (error) {
         console.error('Resume enhancement error:', error);
-        let errorMessage = 'Failed to enhance resume. Please try again.';
-
-        if (error.name === 'TypeError' && error.message.includes('Failed to fetch')) {
-            errorMessage = 'Network error - Unable to connect to server';
-        } else if (error.message.includes('Invalid API key')) {
-            errorMessage = 'AI service temporarily unavailable - Please try again later';
-        } else if (error.message.includes('Rate limit')) {
-            errorMessage = 'Service temporarily busy - Please wait a moment and try again';
-        } else if (error.message) {
-            errorMessage = error.message;
+        
+        // Try basic extraction as fallback
+        try {
+            const fileText = await readFileAsText(uploadedResumeFile);
+            const basicData = extractBasicResumeInfo(fileText);
+            populateFormWithEnhancedData(basicData);
+            showToast('Resume processed (AI enhancement unavailable)', 'info');
+            
+            const enhanceBtn = document.getElementById('enhanceBtn');
+            if (enhanceBtn) {
+                enhanceBtn.innerHTML = '<i class="fas fa-info"></i> Basic Processing';
+                enhanceBtn.disabled = true;
+            }
+        } catch (fallbackError) {
+            console.error('Basic extraction failed:', fallbackError);
+            showToast('Failed to process resume. Please check the file and try again.', 'error');
         }
-
-        showToast(errorMessage, 'error');
     } finally {
         hideLoading();
     }
+}
+
+// Helper function for basic resume info extraction
+function extractBasicResumeInfo(resumeText) {
+    const lines = resumeText.split('\n').filter(line => line.trim().length > 0);
+    
+    // Extract email
+    const emailMatch = resumeText.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/);
+    const email = emailMatch ? emailMatch[0] : '';
+    
+    // Extract phone
+    const phoneMatch = resumeText.match(/[\+]?[(]?[\d\s\-\(\)]{10,}/);
+    const phone = phoneMatch ? phoneMatch[0].trim() : '';
+    
+    // Extract name (first meaningful line)
+    let name = '';
+    for (const line of lines.slice(0, 5)) {
+        if (!line.includes('@') && !line.match(/[\d\-\(\)]{6,}/) && line.length > 2 && line.length < 60) {
+            name = line.trim();
+            break;
+        }
+    }
+    
+    // Extract skills
+    const skillKeywords = ['javascript', 'python', 'java', 'react', 'node', 'html', 'css', 'sql'];
+    const foundSkills = skillKeywords.filter(skill => 
+        resumeText.toLowerCase().includes(skill)
+    ).map(skill => skill.charAt(0).toUpperCase() + skill.slice(1));
+    
+    return {
+        personalInfo: {
+            name: name || 'Your Name',
+            email: email || 'your.email@example.com',
+            phone: phone || '+1234567890',
+            location: 'Your Location'
+        },
+        jobTitle: 'Professional',
+        experience: [{
+            company: 'Previous Company',
+            position: 'Professional',
+            startDate: '2023-01-01',
+            endDate: '',
+            description: 'Key responsibilities and achievements'
+        }],
+        skills: foundSkills.length > 0 ? foundSkills : ['Communication', 'Problem Solving', 'Teamwork'],
+        education: 'Your Education',
+        certifications: ''
+    };
 }
 
 function readFileAsText(file) {
@@ -692,15 +757,31 @@ async function generateAIResume() {
         if (result.success) {
             localStorage.setItem('usedAIEnhancement', 'true');
 
-            const resumeHTML = createAIResumeHTML(result.content);
-            showResumePreview(resumeHTML, result.content);
-            showToast('AI resume generated successfully!', 'success');
+            // Check if we have AI content or need to use basic template
+            if (result.content && typeof result.content === 'object') {
+                const resumeHTML = createAIResumeHTML(result.content);
+                showResumePreview(resumeHTML, result.content);
+            } else {
+                // Fallback to basic resume if AI content is not available
+                const basicHTML = createBasicResumeHTML();
+                showResumePreview(basicHTML);
+            }
+            showToast('Resume generated successfully!', 'success');
         } else {
             throw new Error(result.error || 'AI generation failed');
         }
     } catch (error) {
         console.error('AI Resume generation error:', error);
-        showToast('Failed to generate AI resume. Please try again.', 'error');
+        
+        // Always show a resume even if AI fails
+        try {
+            const basicHTML = createBasicResumeHTML();
+            showResumePreview(basicHTML);
+            showToast('Resume generated using basic template (AI unavailable)', 'info');
+        } catch (fallbackError) {
+            console.error('Fallback generation error:', fallbackError);
+            showToast('Failed to generate resume. Please check your information and try again.', 'error');
+        }
     }
 }
 
