@@ -1,4 +1,3 @@
-
 // Global variables
 let currentStep = 1;
 let resumeData = {
@@ -30,9 +29,9 @@ function startBuilding() {
 let isProcessing = false;
 let selectedTemplate = 'modern';
 let jobAnalysisData = null;
+let hasUsedAI = false;
 
 // DOM elements
-const modal = document.getElementById('resumeBuilder');
 const previewModal = document.getElementById('resumePreview');
 const loadingOverlay = document.getElementById('loadingOverlay');
 
@@ -40,6 +39,27 @@ const loadingOverlay = document.getElementById('loadingOverlay');
 document.addEventListener('DOMContentLoaded', function() {
     initializeEventListeners();
     initializeMobileMenu();
+    
+    modal = document.getElementById('resumeBuilder');
+    loadingOverlay = document.getElementById('loadingOverlay');
+
+    // Close modal when clicking outside
+    window.addEventListener('click', function(event) {
+        if (event.target === modal) {
+            closeModal();
+        }
+    });
+
+    // File upload handler
+    const fileUpload = document.getElementById('existingResume');
+    if (fileUpload) {
+        fileUpload.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                handleFileUpload(file);
+            }
+        });
+    }
 });
 
 function initializeEventListeners() {
@@ -243,7 +263,6 @@ async function enhanceExistingResume() {
         console.log('Enhancement result:', result);
 
         if (result.success && result.enhancedData) {
-            enhancedResumeData = result.enhancedData;
             populateFormWithEnhancedData(result.enhancedData);
             
             // Mark that user has used AI enhancement
@@ -1676,6 +1695,621 @@ style.textContent = `
             transform: translateX(0);
             opacity: 1;
         }
+    }
+`;
+document.head.appendChild(style);
+
+// Global variables
+let modal, loadingOverlay, isProcessing = false;
+let resumeData = {};
+let jobAnalysisData = null;
+let hasUsedAI = false;
+
+// Initialize when DOM is loaded
+document.addEventListener('DOMContentLoaded', function() {
+    modal = document.getElementById('resumeBuilder');
+    loadingOverlay = document.getElementById('loadingOverlay');
+
+    // Close modal when clicking outside
+    window.addEventListener('click', function(event) {
+        if (event.target === modal) {
+            closeModal();
+        }
+    });
+
+    // File upload handler
+    const fileUpload = document.getElementById('existingResume');
+    if (fileUpload) {
+        fileUpload.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                handleFileUpload(file);
+            }
+        });
+    }
+});
+
+// Main function to start building resume
+function startBuilding() {
+    if (modal) {
+        modal.style.display = 'block';
+        document.getElementById('step1').style.display = 'block';
+        document.getElementById('step2').style.display = 'none';
+        document.getElementById('step3').style.display = 'none';
+    }
+}
+
+// Template gallery function
+function viewTemplates() {
+    alert('Template gallery coming soon! For now, you can create resumes with our AI-powered builder.');
+}
+
+// Navigation functions
+function nextStep() {
+    const currentStep = document.querySelector('.step-content[style*="block"]');
+    const stepNumber = currentStep.id.replace('step', '');
+
+    if (stepNumber === '1') {
+        document.getElementById('step1').style.display = 'none';
+        document.getElementById('step2').style.display = 'block';
+    } else if (stepNumber === '2') {
+        document.getElementById('step2').style.display = 'none';
+        document.getElementById('step3').style.display = 'block';
+    }
+}
+
+function prevStep() {
+    const currentStep = document.querySelector('.step-content[style*="block"]');
+    const stepNumber = currentStep.id.replace('step', '');
+
+    if (stepNumber === '2') {
+        document.getElementById('step2').style.display = 'none';
+        document.getElementById('step1').style.display = 'block';
+    } else if (stepNumber === '3') {
+        document.getElementById('step3').style.display = 'none';
+        document.getElementById('step2').style.display = 'block';
+    }
+}
+
+function closeModal() {
+    if (modal) {
+        modal.style.display = 'none';
+    }
+}
+
+// Loading functions
+function showLoading() {
+    if (loadingOverlay) {
+        loadingOverlay.style.display = 'flex';
+    }
+}
+
+function hideLoading() {
+    if (loadingOverlay) {
+        loadingOverlay.style.display = 'none';
+    }
+}
+
+// Toast notification
+function showToast(message, type = 'info') {
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${type}`;
+    toast.textContent = message;
+
+    toast.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 15px 20px;
+        background: ${type === 'error' ? '#f44336' : type === 'success' ? '#4CAF50' : '#2196F3'};
+        color: white;
+        border-radius: 5px;
+        z-index: 10000;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    `;
+
+    document.body.appendChild(toast);
+
+    setTimeout(() => {
+        if (toast.parentNode) {
+            toast.parentNode.removeChild(toast);
+        }
+    }, 3000);
+}
+
+// File upload handler
+async function handleFileUpload(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const allowedTypes = [
+        'application/pdf',
+        'application/msword',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'text/plain'
+    ];
+
+    if (!allowedTypes.includes(file.type)) {
+        showToast('Please upload a PDF, DOC, DOCX, or TXT file', 'error');
+        return;
+    }
+
+    showLoading();
+
+    try {
+        let text = '';
+
+        if (file.type === 'text/plain') {
+            text = await file.text();
+        } else if (file.type === 'application/pdf') {
+            text = await extractPDFText(file);
+        } else {
+            showToast('Document processing not supported for this file type yet', 'error');
+            hideLoading();
+            return;
+        }
+
+        if (text.trim().length === 0) {
+            showToast('Could not extract text from the file', 'error');
+            hideLoading();
+            return;
+        }
+
+        document.getElementById('uploadStatus').innerHTML = `
+            <div class="upload-success">
+                <i class="fas fa-check-circle"></i>
+                File uploaded successfully: ${file.name}
+                <button onclick="removeUploadedFile()" class="remove-file-btn">Remove</button>
+            </div>
+        `;
+
+        document.getElementById('enhanceButton').style.display = 'inline-block';
+        document.getElementById('enhanceButton').setAttribute('data-resume-text', text);
+
+    } catch (error) {
+        console.error('File processing error:', error);
+        showToast('Error processing file', 'error');
+    } finally {
+        hideLoading();
+    }
+}
+
+// PDF text extraction
+async function extractPDFText(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                const arrayBuffer = e.target.result;
+                const uint8Array = new Uint8Array(arrayBuffer);
+                let text = '';
+
+                for (let i = 0; i < uint8Array.length; i++) {
+                    const char = String.fromCharCode(uint8Array[i]);
+                    if (char.match(/[a-zA-Z0-9\s.,!?@-]/)) {
+                        text += char;
+                    }
+                }
+
+                text = text.replace(/\s+/g, ' ').trim();
+
+                if (text.length < 50) {
+                    reject(new Error('Could not extract meaningful text from PDF'));
+                } else {
+                    resolve(text);
+                }
+            } catch (error) {
+                reject(error);
+            }
+        };
+        reader.onerror = () => reject(new Error('Failed to read file'));
+        reader.readAsArrayBuffer(file);
+    });
+}
+
+// Remove uploaded file
+function removeUploadedFile() {
+    document.getElementById('resumeUpload').value = '';
+    document.getElementById('uploadStatus').innerHTML = '';
+    document.getElementById('enhanceButton').style.display = 'none';
+    showToast('File removed', 'info');
+}
+
+// Enhance existing resume
+async function enhanceExistingResume() {
+    const enhanceButton = document.getElementById('enhanceButton');
+    const resumeText = enhanceButton.getAttribute('data-resume-text');
+
+    if (!resumeText) {
+        showToast('No resume text found', 'error');
+        return;
+    }
+
+    showLoading();
+
+    try {
+        const jobTitle = document.getElementById('jobTitle')?.value || 'Professional';
+        const jobDescription = document.getElementById('jobDescription')?.value || '';
+
+        const response = await fetch('/api/enhance-resume', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                resumeText,
+                jobTitle,
+                jobDescription
+            })
+        });
+
+        const result = await response.json();
+
+        if (result.success && result.enhancedData) {
+            populateFormWithEnhancedData(result.enhancedData);
+            hasUsedAI = true;
+            showToast('Resume enhanced successfully!', 'success');
+            nextStep();
+        } else {
+            throw new Error(result.error || 'Failed to enhance resume');
+        }
+    } catch (error) {
+        console.error('Enhancement error:', error);
+        showToast('Failed to enhance resume. Please try again.', 'error');
+    } finally {
+        hideLoading();
+    }
+}
+
+// Populate form with enhanced data
+function populateFormWithEnhancedData(data) {
+    if (data.personalInfo) {
+        document.getElementById('fullName').value = data.personalInfo.name || '';
+        document.getElementById('email').value = data.personalInfo.email || '';
+        document.getElementById('phone').value = data.personalInfo.phone || '';
+        document.getElementById('location').value = data.personalInfo.location || '';
+    }
+
+    if (data.jobTitle) {
+        document.getElementById('jobTitle').value = data.jobTitle;
+    }
+
+    if (data.skills && Array.isArray(data.skills)) {
+        document.getElementById('skills').value = data.skills.join(', ');
+    }
+
+    if (data.education) {
+        document.getElementById('education').value = data.education;
+    }
+
+    if (data.certifications) {
+        document.getElementById('certifications').value = data.certifications;
+    }
+}
+
+//// Collect form data
+function collectFormData() {
+    const personalInfo = {
+        name: document.getElementById('fullName')?.value || 'Your Name',
+        email: document.getElementById('email')?.value || 'your.email@example.com',
+        phone: document.getElementById('phone')?.value || '+91 9999999999',
+        location: document.getElementById('location')?.value || 'Your Location'
+    };
+
+    const jobTitle = document.getElementById('jobTitle')?.value || 'Professional';
+    const industryFocus = document.getElementById('industryFocus')?.value || '';
+    const targetJobDescription = document.getElementById('jobDescription')?.value || '';
+
+    const experienceElements = document.querySelectorAll('.experience-item');
+    const experiences = Array.from(experienceElements).map(item => ({
+        company: item.querySelector('.company')?.value || 'Your Company',
+        position: item.querySelector('.position')?.value || jobTitle,
+        startDate: item.querySelector('.start-date')?.value || '2023-01-01',
+        endDate: item.querySelector('.end-date')?.value || '',
+        description: item.querySelector('.description')?.value || 'Key responsibilities and achievements'
+    }));
+
+    const skillsInput = document.getElementById('skills')?.value || 'JavaScript, Python, React, Node.js';
+    const skills = skillsInput.split(',').map(skill => skill.trim()).filter(skill => skill.length > 0);
+
+    const education = document.getElementById('education')?.value || 'Bachelor of Technology in Computer Science';
+    const certifications = document.getElementById('certifications')?.value || '';
+
+    return {
+        personalInfo,
+        jobTitle,
+        industryFocus,
+        targetJobDescription,
+        experience: experiences.length > 0 ? experiences : [{
+            company: 'Your Company',
+            position: jobTitle,
+            startDate: '2023-01-01',
+            endDate: '',
+            description: 'Key responsibilities and achievements in your role'
+        }],
+        skills: skills.length > 0 ? skills : ['JavaScript', 'Python', 'React', 'Node.js'],
+        education,
+        certifications,
+        selectedTemplate: 'modern',
+        jobAnalysis: jobAnalysisData
+    };
+}
+
+// Resume generation
+async function generateResume(type) {
+    if (isProcessing) return;
+
+    console.log('Starting resume building process...');
+    isProcessing = true;
+    resumeData = collectFormData();
+
+    showLoading();
+
+    try {
+        if (type === 'basic') {
+            await generateBasicResume();
+        } else if (type === 'ai') {
+            if (hasUsedAI) {
+                await upgradeToPremium();
+                return;
+            }
+            await upgradeToPremium();
+        } else if (type === 'ai-plus') {
+            if (hasUsedAI) {
+                await upgradeToPremium();
+                return;
+            }
+            await upgradeToPremium();
+        }
+    } catch (error) {
+        console.error('Resume generation error:', error);
+        showToast('Failed to generate resume. Please try again.', 'error');
+    } finally {
+        hideLoading();
+        isProcessing = false;
+    }
+}
+
+// Generate basic resume
+async function generateBasicResume() {
+    const htmlContent = createModernTemplate();
+    showResumePreview(htmlContent);
+}
+
+// Premium upgrade function
+async function upgradeToPremium() {
+    try {
+        const response = await fetch('/api/create-order', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ amount: 99, currency: 'INR' })
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            const options = {
+                key: 'rzp_live_2YfLlrYZSdA2Oc',
+                amount: result.order.amount,
+                currency: result.order.currency,
+                name: 'AI Resume Builder',
+                description: 'Premium Resume Download',
+                order_id: result.order.id,
+                handler: function(response) {
+                    verifyPayment(response);
+                },
+                theme: { color: '#007bff' }
+            };
+
+            const rzp1 = new Razorpay(options);
+            rzp1.open();
+        } else {
+            showToast('Payment setup failed', 'error');
+        }
+    } catch (error) {
+        console.error('Payment error:', error);
+        showToast('Payment setup failed', 'error');
+    }
+}
+
+// Verify payment
+async function verifyPayment(response) {
+    try {
+        const verification = await fetch('/api/verify-payment', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(response)
+        });
+
+        const result = await verification.json();
+
+        if (result.success) {
+            showToast('Payment successful! Generating your resume...', 'success');
+            const htmlContent = createModernTemplate();
+            showResumePreview(htmlContent);
+        } else {
+            showToast('Payment verification failed', 'error');
+        }
+    } catch (error) {
+        console.error('Verification error:', error);
+        showToast('Payment verification failed', 'error');
+    }
+}
+
+// Show resume preview
+function showResumePreview(htmlContent) {
+    document.getElementById('resumeContent').innerHTML = htmlContent;
+    modal.style.display = 'none';
+
+    document.getElementById('resumePreview').style.display = 'block';
+    document.getElementById('downloadBtn').style.display = 'inline-block';
+}
+
+// Download resume
+function downloadResume() {
+    try {
+        const element = document.getElementById('resumeContent');
+        const opt = {
+            margin: 0.5,
+            filename: `${resumeData.personalInfo.name.replace(/\s+/g, '_')}_Resume.pdf`,
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 2 },
+            jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+        };
+
+        html2pdf().set(opt).from(element).save();
+        showToast('Resume downloaded successfully!', 'success');
+    } catch (error) {
+        console.error('Download error:', error);
+        showToast('Download failed. Please try again.', 'error');
+    }
+}
+
+// Template creation functions
+function createModernTemplate() {
+    return `
+        <div class="resume-container modern-template">
+            <div class="resume-header modern-header">
+                <h1>${resumeData.personalInfo.name}</h1>
+                <div class="subtitle">${resumeData.jobTitle}</div>
+                <div class="contact-info">
+                    <span><i class="fas fa-envelope"></i> ${resumeData.personalInfo.email}</span>
+                    <span><i class="fas fa-phone"></i> ${resumeData.personalInfo.phone}</span>
+                    <span><i class="fas fa-map-marker-alt"></i> ${resumeData.personalInfo.location}</span>
+                </div>
+            </div>
+
+            <div class="resume-section">
+                <h2><i class="fas fa-briefcase"></i> Experience</h2>
+                ${resumeData.experience.map(exp => `
+                    <div class="experience-item">
+                        <div class="experience-header">
+                            <div><strong>${exp.position}</strong> at ${exp.company}</div>
+                            <div class="dates">${exp.startDate} - ${exp.endDate || 'Present'}</div>
+                        </div>
+                        <p>${exp.description}</p>
+                    </div>
+                `).join('')}
+            </div>
+
+            <div class="resume-section">
+                <h2><i class="fas fa-cogs"></i> Skills</h2>
+                <div class="skills-grid">
+                    ${resumeData.skills.map(skill => `<span class="skill-tag">${skill}</span>`).join('')}
+                </div>
+            </div>
+
+            ${resumeData.education ? `
+                <div class="resume-section">
+                    <h2><i class="fas fa-graduation-cap"></i> Education</h2>
+                    <p>${resumeData.education}</p>
+                </div>
+            ` : ''}
+
+            ${resumeData.certifications ? `
+                <div class="resume-section">
+                    <h2><i class="fas fa-certificate"></i> Certifications</h2>
+                    <p>${resumeData.certifications}</p>
+                </div>
+            ` : ''}
+        </div>
+    `;
+}
+
+// Make functions globally available
+window.startBuilding = startBuilding;
+window.viewTemplates = viewTemplates;
+window.nextStep = nextStep;
+window.prevStep = prevStep;
+window.closeModal = closeModal;
+window.generateResume = generateResume;
+window.downloadResume = downloadResume;
+window.enhanceExistingResume = enhanceExistingResume;
+window.removeUploadedFile = removeUploadedFile;
+
+// Add necessary styles
+const style = document.createElement('style');
+style.textContent = `
+    .modern-template { 
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+        max-width: 800px; 
+        margin: 0 auto; 
+        background: white; 
+        padding: 40px;
+        line-height: 1.6;
+    }
+    .modern-header { 
+        text-align: center; 
+        border-bottom: 2px solid #007bff; 
+        padding-bottom: 20px; 
+        margin-bottom: 30px;
+    }
+    .modern-header h1 { 
+        font-size: 2.5rem; 
+        margin: 0; 
+        color: #333;
+    }
+    .subtitle { 
+        font-size: 1.2rem; 
+        color: #666; 
+        margin: 10px 0;
+    }
+    .contact-info { 
+        display: flex; 
+        justify-content: center; 
+        gap: 20px; 
+        flex-wrap: wrap; 
+        margin-top: 15px;
+    }
+    .contact-info span { 
+        color: #555;
+    }
+    .resume-section { 
+        margin-bottom: 30px;
+    }
+    .resume-section h2 { 
+        color: #007bff; 
+        border-bottom: 1px solid #eee; 
+        padding-bottom: 5px;
+    }
+    .experience-item { 
+        margin-bottom: 20px;
+    }
+    .experience-header { 
+        display: flex; 
+        justify-content: space-between; 
+        align-items: center; 
+        margin-bottom: 10px;
+    }
+    .dates { 
+        color: #666; 
+        font-style: italic;
+    }
+    .skills-grid { 
+        display: flex; 
+        flex-wrap: wrap; 
+        gap: 10px;
+    }
+    .skill-tag { 
+        background: #f8f9fa; 
+        padding: 5px 12px; 
+        border-radius: 15px; 
+        border: 1px solid #dee2e6; 
+        font-size: 0.9rem;
+    }
+    .upload-success {
+        background: #d4edda;
+        color: #155724;
+        padding: 10px;
+        border-radius: 5px;
+        margin-top: 10px;
+    }
+    .remove-file-btn {
+        background: #dc3545;
+        color: white;
+        border: none;
+        padding: 5px 10px;
+        border-radius: 3px;
+        margin-left: 10px;
+        cursor: pointer;
     }
 `;
 document.head.appendChild(style);
