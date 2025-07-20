@@ -33,7 +33,7 @@ class APIService {
       return { content: data.content };
     } catch (error) {
       console.error('AI generation error:', error);
-      
+
       // Enhanced fallback with more professional content
       return this.generateEnhancedContent(type, personalInfo, context);
     }
@@ -49,7 +49,7 @@ class APIService {
         Current Summary: ${personalInfo.summary || 'None provided'}
 
         Write a compelling 2-3 sentence professional summary that highlights their expertise and value proposition.`;
-      
+
       case 'skills':
         return `Based on the following information, suggest relevant skills:
         Name: ${personalInfo.fullName}
@@ -57,7 +57,7 @@ class APIService {
         Current Skills: ${personalInfo.skills || 'None listed'}
 
         Provide a well-organized list of skills relevant to their field.`;
-      
+
       default:
         return `Help improve this ${type} section for ${personalInfo.fullName} in the ${context || 'general'} field.`;
     }
@@ -66,7 +66,7 @@ class APIService {
   generateEnhancedContent(type, personalInfo, context) {
     const name = personalInfo.fullName || 'Professional';
     const field = context || 'technology';
-    
+
     switch (type) {
       case 'summary':
         const summaryTemplates = [
@@ -77,7 +77,7 @@ class APIService {
         return {
           content: summaryTemplates[Math.floor(Math.random() * summaryTemplates.length)]
         };
-      
+
       case 'skills':
         const skillsByField = {
           technology: 'JavaScript, React, Node.js, Python, HTML/CSS, Git, REST APIs, Database Management, Cloud Computing, Agile Methodologies',
@@ -86,14 +86,14 @@ class APIService {
           design: 'UI/UX Design, Adobe Creative Suite, Figma, Prototyping, User Research, Visual Design, Wireframing, Design Systems',
           default: 'Leadership, Problem Solving, Communication, Project Management, Analytical Thinking, Team Collaboration, Strategic Planning'
         };
-        
+
         const technicalSkills = skillsByField[field.toLowerCase()] || skillsByField.default;
         const softSkills = 'Leadership, Problem Solving, Communication, Team Collaboration, Adaptability, Critical Thinking, Time Management, Attention to Detail';
-        
+
         return {
           content: `Technical Skills: ${technicalSkills}\n\nSoft Skills: ${softSkills}`
         };
-      
+
       default:
         return {
           content: `Professional ${type} content tailored for ${name} in the ${field} industry, emphasizing relevant experience and achievements that demonstrate value and expertise.`
@@ -120,7 +120,7 @@ class APIService {
       return data;
     } catch (error) {
       console.error('Resume analysis error:', error);
-      
+
       // Fallback analysis for demo purposes
       return {
         personalInfo: {
@@ -170,7 +170,7 @@ class APIService {
       return data;
     } catch (error) {
       console.error('Resume enhancement error:', error);
-      
+
       // Enhanced fallback for better user experience
       return {
         enhancedSummary: `${resumeData.personalInfo.summary} Enhanced with industry-specific keywords and compelling achievements that demonstrate measurable impact and leadership capabilities.`,
@@ -211,12 +211,12 @@ class APIService {
       }
 
       const data = await response.json();
-      
+
       if (data.success) {
         localStorage.setItem('resumex_payment_verified', 'true');
         localStorage.setItem('resumex_payment_id', paymentId);
       }
-      
+
       return data;
     } catch (error) {
       console.error('Payment verification error:', error);
@@ -258,6 +258,64 @@ class APIService {
     } catch (error) {
       console.error('PDF generation error:', error);
       throw error;
+    }
+  }
+
+  // Generate AI content for resume sections
+  async generateContent(type, personalInfo, context) {
+    try {
+      // Simulate AI processing time
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+      const name = personalInfo.fullName || 'Professional';
+      const field = context || 'your field';
+
+      // Enhanced content generation based on type and context
+      switch (type) {
+        case 'summary':
+          const summaryTemplates = [
+            `Results-driven ${field} professional with proven expertise in strategic leadership and innovation. Combines analytical thinking with creative problem-solving to deliver exceptional outcomes and drive organizational growth.`,
+            `Accomplished ${field} specialist with demonstrated success in project management and team leadership. Expert in leveraging technology and data-driven insights to optimize performance and exceed business objectives.`,
+            `Dynamic ${field} leader with extensive experience in cross-functional collaboration and process optimization. Passionate about mentoring teams and implementing innovative solutions that create measurable business impact.`
+          ];
+          return summaryTemplates[Math.floor(Math.random() * summaryTemplates.length)];
+
+        case 'skills':
+          const skillSets = {
+            'Technical Skills': [
+              'Strategic Planning', 'Data Analysis', 'Project Management', 'Process Optimization',
+              'Performance Metrics', 'Quality Assurance', 'Risk Management', 'Business Intelligence'
+            ],
+            'Leadership Skills': [
+              'Team Leadership', 'Stakeholder Management', 'Change Management', 'Mentoring',
+              'Cross-functional Collaboration', 'Conflict Resolution', 'Performance Coaching'
+            ],
+            'Core Competencies': [
+              'Problem Solving', 'Critical Thinking', 'Communication', 'Adaptability',
+              'Innovation', 'Customer Focus', 'Time Management', 'Decision Making'
+            ]
+          };
+
+          return Object.entries(skillSets)
+            .map(([category, skills]) => `${category}:\n${skills.slice(0, 5).join(' • ')}\n`)
+            .join('\n');
+
+        case 'experience':
+          const bulletPoints = [
+            `Spearheaded ${field}-focused initiatives that resulted in 25% improvement in operational efficiency and enhanced team productivity`,
+            `Led cross-functional teams of 8+ members to deliver complex projects on time and 15% under budget`,
+            `Implemented innovative solutions and best practices that streamlined workflows and reduced processing time by 30%`,
+            `Mentored 12+ junior professionals and established training programs that improved team retention by 40%`,
+            `Collaborated with senior leadership to develop strategic roadmaps and achieve key business objectives`
+          ];
+          return bulletPoints.slice(0, 4).map(point => `• ${point}`).join('\n');
+
+        default:
+          return `Professional ${type} content tailored for ${field} expertise and industry best practices.`;
+      }
+    } catch (error) {
+      console.error('Content generation error:', error);
+      throw new Error('Failed to generate AI content. Please try again.');
     }
   }
 }
