@@ -230,7 +230,7 @@ async function enhanceExistingResume() {
         if (result.success && result.enhancedData) {
             populateFormWithEnhancedData(result.enhancedData);
             localStorage.setItem('usedAIEnhancement', 'true');
-            showToast('Resume enhanced successfully! Download now requires payment.', 'success');
+            showToast('Resume enhanced successfully!', 'success');
         } else {
             throw new Error(result.error || 'Enhancement failed - no data returned');
         }
@@ -644,11 +644,8 @@ async function generateResume(type) {
     showLoading();
 
     try {
-        // Check if user has paid access
-        if (!checkPremiumAccess()) {
-            await upgradeToPremium();
-            return;
-        }
+        // Payment check disabled for testing
+        console.log('Payment check disabled for testing');
         
         // Generate AI-enhanced resume
         await generateAIResume();
@@ -695,7 +692,7 @@ async function generateAIResume() {
 
             const resumeHTML = createAIResumeHTML(result.content);
             showResumePreview(resumeHTML, result.content);
-            showToast('AI resume generated! Download requires payment.', 'info');
+            showToast('AI resume generated successfully!', 'success');
         } else {
             throw new Error(result.error || 'AI generation failed');
         }
@@ -1204,17 +1201,8 @@ function createAIResumeHTML(aiContent) {
 function showResumePreview(htmlContent, aiContent) {
     document.getElementById('resumeContent').innerHTML = htmlContent;
 
-    const hasUsedAI = localStorage.getItem('usedAIEnhancement') === 'true';
-    if (hasUsedAI && !checkPremiumAccess()) {
-        const indicator = document.createElement('div');
-        indicator.className = 'ai-usage-indicator';
-        indicator.innerHTML = `
-            <div style="background: #fef3c7; border: 1px solid #f59e0b; padding: 10px; margin: 10px 0; border-radius: 5px; color: #92400e;">
-                <i class="fas fa-robot"></i> <strong>AI Enhanced Resume</strong> - Download requires payment (₹99)
-            </div>
-        `;
-        document.getElementById('resumeContent').insertBefore(indicator, document.getElementById('resumeContent').firstChild);
-    }
+    // Payment indicator disabled for testing
+    console.log('Payment indicator disabled for testing');
 
     if (modal) modal.style.display = 'none';
     if (previewModal) previewModal.style.display = 'block';
@@ -1226,26 +1214,9 @@ function editResume() {
 }
 
 function downloadPDF() {
-    const hasUsedAI = localStorage.getItem('usedAIEnhancement') === 'true';
-
-    if (hasUsedAI && !checkPremiumAccess()) {
-        showToast('You used AI enhancement. Download requires payment of ₹99!', 'info');
-        upgradeToDownload();
-        return;
-    }
-
-    if (!hasUsedAI && !checkPremiumAccess()) {
-        performDownload();
-        return;
-    }
-
-    if (checkPremiumAccess()) {
-        performDownload();
-        return;
-    }
-
-    showToast('PDF download requires payment. Pay ₹99 to download your resume!', 'info');
-    upgradeToDownload();
+    // Temporarily disable payment requirement for testing
+    console.log('Payment check disabled for testing');
+    performDownload();
 }
 
 function performDownload() {
