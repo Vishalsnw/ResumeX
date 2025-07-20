@@ -48,9 +48,6 @@ router.get('/:id', (req, res) => {
 });
 
 module.exports = router;
-const express = require('express');
-const auth = require('../middleware/auth');
-const router = express.Router();
 
 // Get available templates
 router.get('/', async (req, res) => {
