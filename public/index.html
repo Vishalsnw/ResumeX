@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -150,7 +149,7 @@
                     <div class="step" data-step="4">Generate</div>
                 </div>
 
-                <!-- Step 1: Personal Information -->
+                <!-- Step 1: Personal Information & Job Target -->
                 <div id="step1" class="form-step active">
                     <div class="form-group">
                         <label>Full Name</label>
@@ -160,19 +159,47 @@
                         <label>Email</label>
                         <input type="email" id="email" required>
                     </div>
-                    <div class="form-group">
-                        <label>Phone</label>
-                        <input type="tel" id="phone" required>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Phone</label>
+                            <input type="tel" id="phone" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Location</label>
+                            <input type="text" id="location" required>
+                        </div>
                     </div>
                     <div class="form-group">
-                        <label>Job Title</label>
-                        <input type="text" id="jobTitle" placeholder="e.g., Software Developer" required>
+                        <label>Target Job Title</label>
+                        <input type="text" id="jobTitle" required>
                     </div>
                     <div class="form-group">
-                        <label>Location</label>
-                        <input type="text" id="location" placeholder="City, Country">
+                        <label>Industry Focus</label>
+                        <select id="industryFocus">
+                            <option value="">Select Industry</option>
+                            <option value="technology">Technology</option>
+                            <option value="healthcare">Healthcare</option>
+                            <option value="finance">Finance</option>
+                            <option value="marketing">Marketing</option>
+                            <option value="education">Education</option>
+                            <option value="manufacturing">Manufacturing</option>
+                            <option value="retail">Retail</option>
+                            <option value="other">Other</option>
+                        </select>
                     </div>
-                    <button class="btn-primary" onclick="nextStep()">Next</button>
+                    <div class="form-group">
+                        <label>Job Description (Optional - for AI optimization)</label>
+                        <textarea id="targetJobDescription" rows="4" placeholder="Paste the job description you're targeting for better AI optimization"></textarea>
+                        <button type="button" class="btn-secondary btn-small" onclick="analyzeJobDescription()">
+                            <i class="fas fa-search"></i> Analyze Job
+                        </button>
+                    </div>
+                    <div id="jobAnalysis" class="job-analysis" style="display: none;">
+                        <!-- Job analysis results will appear here -->
+                    </div>
+                    <div class="form-actions">
+                        <button class="btn-primary" onclick="nextStep()">Next</button>
+                    </div>
                 </div>
 
                 <!-- Step 2: Experience -->

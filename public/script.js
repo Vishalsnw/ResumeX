@@ -3,6 +3,8 @@
 let currentStep = 1;
 let resumeData = {};
 let isProcessing = false;
+let selectedTemplate = 'modern';
+let jobAnalysisData = null;
 
 // DOM elements
 const modal = document.getElementById('resumeBuilder');
@@ -178,6 +180,87 @@ function removeExperience(button) {
     button.parentElement.remove();
 }
 
+// Job Description Analysis
+async function analyzeJobDescription() {
+    const jobDescription = document.getElementById('targetJobDescription').value;
+    if (!jobDescription.trim()) {
+        showToast('Please enter a job description to analyze', 'error');
+        return;
+    }
+
+    showLoading();
+    try {
+        const response = await fetch('/api/analyze-job', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ jobDescription })
+        });
+
+        const result = await response.json();
+        if (result.success) {
+            jobAnalysisData = result.analysis;
+            displayJobAnalysis(result.analysis);
+            showToast('Job description analyzed successfully!', 'success');
+        } else {
+            throw new Error(result.error);
+        }
+    } catch (error) {
+        console.error('Job analysis error:', error);
+        showToast('Failed to analyze job description', 'error');
+    } finally {
+        hideLoading();
+    }
+}
+
+function displayJobAnalysis(analysis) {
+    const analysisDiv = document.getElementById('jobAnalysis');
+    analysisDiv.innerHTML = `
+        <div class="analysis-card">
+            <h4><i class="fas fa-chart-line"></i> Job Analysis Results</h4>
+            <div class="analysis-section">
+                <h5>Key Skills Required:</h5>
+                <div class="skill-tags">
+                    ${analysis.requiredSkills.map(skill => `<span class="skill-tag">${skill}</span>`).join('')}
+                </div>
+            </div>
+            <div class="analysis-section">
+                <h5>Experience Level:</h5>
+                <p>${analysis.experienceLevel}</p>
+            </div>
+            <div class="analysis-section">
+                <h5>Industry Focus:</h5>
+                <p>${analysis.industry}</p>
+            </div>
+            <div class="analysis-section">
+                <h5>Recommendations:</h5>
+                <ul>
+                    ${analysis.recommendations.map(rec => `<li>${rec}</li>`).join('')}
+                </ul>
+            </div>
+        </div>
+    `;
+    analysisDiv.style.display = 'block';
+}
+
+// Template Selection
+function selectTemplate(templateName) {
+    selectedTemplate = templateName;
+    
+    // Update UI to show selected template
+    document.querySelectorAll('.template-card').forEach(card => {
+        card.classList.remove('selected');
+    });
+    document.querySelector(`[data-template="${templateName}"]`).classList.add('selected');
+    
+    // Check if premium template
+    const isPremium = ['creative', 'executive'].includes(templateName);
+    if (isPremium && !checkPremiumAccess()) {
+        showToast('This template requires a premium subscription', 'info');
+    }
+}
+
 // Data collection
 function collectFormData() {
     const personalInfo = {
@@ -188,6 +271,8 @@ function collectFormData() {
     };
 
     const jobTitle = document.getElementById('jobTitle').value;
+    const industryFocus = document.getElementById('industryFocus').value;
+    const targetJobDescription = document.getElementById('targetJobDescription').value;
 
     const experiences = [];
     document.querySelectorAll('.experience-item').forEach(item => {
@@ -207,10 +292,14 @@ function collectFormData() {
     return {
         personalInfo,
         jobTitle,
+        industryFocus,
+        targetJobDescription,
         experience: experiences,
         skills: skills.split(',').map(skill => skill.trim()),
         education,
-        certifications
+        certifications,
+        selectedTemplate,
+        jobAnalysis: jobAnalysisData
     };
 }
 
@@ -233,6 +322,13 @@ async function generateResume(type) {
                 return;
             }
             await generateAIResume();
+        } else if (type === 'ai-plus') {
+            // Check if user has pro access
+            if (!checkProAccess()) {
+                await upgradeToPro();
+                return;
+            }
+            await generateAIPlusResume();
         }
     } catch (error) {
         console.error('Resume generation error:', error);
@@ -241,6 +337,10 @@ async function generateResume(type) {
         hideLoading();
         isProcessing = false;
     }
+}
+
+function checkProAccess() {
+    return localStorage.getItem('proAccess') === 'true';
 }
 
 async function generateBasicResume() {
@@ -266,7 +366,7 @@ async function generateAIResume() {
         
         if (result.success) {
             const resumeHTML = createAIResumeHTML(result.content);
-            showResumePreview(resumeHTML);
+            showResumePreview(resumeHTML, result.content);
         } else {
             throw new Error(result.error || 'AI generation failed');
         }
@@ -274,6 +374,108 @@ async function generateAIResume() {
         console.error('AI Resume generation error:', error);
         showToast('Failed to generate AI resume. Please try again.', 'error');
     }
+}
+
+async function generateAIPlusResume() {
+    try {
+        // First generate the AI resume
+        await generateAIResume();
+        
+        // Then get scoring and feedback if job description provided
+        if (resumeData.targetJobDescription) {
+            await scoreResume();
+        }
+    } catch (error) {
+        console.error('AI Plus generation error:', error);
+        showToast('Failed to generate AI Plus resume. Please try again.', 'error');
+    }
+}
+
+async function scoreResume() {
+    try {
+        const resumeContent = document.getElementById('resumeContent').innerText;
+        
+        const response = await fetch('/api/score-resume', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                resumeContent,
+                jobDescription: resumeData.targetJobDescription
+            })
+        });
+
+        const result = await response.json();
+        
+        if (result.success) {
+            displayResumeScoring(result.scoring);
+        }
+    } catch (error) {
+        console.error('Resume scoring error:', error);
+        showToast('Failed to score resume', 'error');
+    }
+}
+
+function displayResumeScoring(scoring) {
+    const scoringDiv = document.createElement('div');
+    scoringDiv.className = 'resume-scoring';
+    scoringDiv.innerHTML = `
+        <div class="scoring-header">
+            <h3><i class="fas fa-chart-bar"></i> Resume Analysis</h3>
+            <div class="overall-score">
+                <span class="score-number">${scoring.overallScore}/100</span>
+                <span class="score-label">Overall Match</span>
+            </div>
+        </div>
+        <div class="score-breakdown">
+            <div class="score-item">
+                <span>Keyword Match</span>
+                <div class="score-bar">
+                    <div class="score-fill" style="width: ${scoring.scores.keywordMatch}%"></div>
+                </div>
+                <span>${scoring.scores.keywordMatch}/100</span>
+            </div>
+            <div class="score-item">
+                <span>Experience Relevance</span>
+                <div class="score-bar">
+                    <div class="score-fill" style="width: ${scoring.scores.experienceRelevance}%"></div>
+                </div>
+                <span>${scoring.scores.experienceRelevance}/100</span>
+            </div>
+            <div class="score-item">
+                <span>Skills Alignment</span>
+                <div class="score-bar">
+                    <div class="score-fill" style="width: ${scoring.scores.skillsAlignment}%"></div>
+                </div>
+                <span>${scoring.scores.skillsAlignment}/100</span>
+            </div>
+            <div class="score-item">
+                <span>ATS Compatibility</span>
+                <div class="score-bar">
+                    <div class="score-fill" style="width: ${scoring.scores.atsCompatibility}%"></div>
+                </div>
+                <span>${scoring.scores.atsCompatibility}/100</span>
+            </div>
+        </div>
+        <div class="recommendations">
+            <h4>Improvement Recommendations:</h4>
+            <ul>
+                ${scoring.recommendations.map(rec => `<li>${rec}</li>`).join('')}
+            </ul>
+        </div>
+        ${scoring.missingKeywords.length > 0 ? `
+            <div class="missing-keywords">
+                <h4>Consider Adding These Keywords:</h4>
+                <div class="keyword-suggestions">
+                    ${scoring.missingKeywords.map(keyword => `<span class="keyword-suggestion">${keyword}</span>`).join('')}
+                </div>
+            </div>
+        ` : ''}
+    `;
+    
+    const previewModal = document.getElementById('resumePreview');
+    previewModal.querySelector('.modal-body').appendChild(scoringDiv);
 }
 
 function createBasicResumeHTML() {
