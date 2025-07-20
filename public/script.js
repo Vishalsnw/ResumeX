@@ -1490,3 +1490,104 @@ window.selectTemplate = selectTemplate;
 window.addExperience = addExperience;
 window.removeExperience = removeExperience;
 window.analyzeJobDescription = analyzeJobDescription;
+
+async function enhanceResume() {
+    const jobTitle = document.getElementById('jobTitle').value;
+    const currentResume = document.getElementById('extractedText').value;
+
+    if (!currentResume || !currentResume.trim()) {
+        showToast('Please upload a resume first', 'error');
+        return;
+    }
+
+    showLoading();
+
+    try {
+        const response = await fetch('/api/enhance-resume', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                resumeText: currentResume,
+                jobTitle: jobTitle || 'Professional'
+            })
+        });
+
+        const result = await response.json();
+
+        if (result.success && result.enhancedData) {
+            populateFormWithEnhancedData(result.enhancedData);
+            localStorage.setItem('usedAIEnhancement', 'true');
+            showToast('Resume enhanced successfully!', 'success');
+        } else {
+            throw new Error(result.error || 'Enhancement failed - no data returned');
+        }
+    } catch (error) {
+        console.error('Enhancement error:', error);
+        let errorMessage = 'Failed to enhance resume';
+
+        if (error.name === 'TypeError' && error.message.includes('Failed to fetch')) {
+            errorMessage = 'Network error - Unable to connect to server';
+        } else if (error.message) {
+            errorMessage = error.message;
+        }
+
+        showToast(errorMessage, 'error');
+    } finally {
+        hideLoading();
+    }
+}
+
+async function enhanceWithAI(resumeText) {
+    if (!resumeText || !resumeText.trim()) {
+        showToast('No resume text available for enhancement', 'error');
+        return;
+    }
+
+    showLoading();
+
+    try {
+        const jobTitle = document.getElementById('jobTitle')?.value || 'Professional';
+        const jobDescription = document.getElementById('jobDescription')?.value || '';
+
+        const response = await fetch('/api/enhance-resume', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                resumeText: resumeText,
+                jobTitle: jobTitle,
+                jobDescription: jobDescription
+            })
+        });
+
+        const result = await response.json();
+
+        if (result.success && result.enhancedData) {
+            populateFormWithEnhancedData(result.enhancedData);
+            localStorage.setItem('usedAIEnhancement', 'true');
+            showToast('Resume enhanced with AI successfully!', 'success');
+
+            // Hide upload section and show form
+            document.getElementById('uploadSection').style.display = 'none';
+            document.getElementById('resumeForm').style.display = 'block';
+        } else {
+            throw new Error(result.error || 'AI enhancement failed');
+        }
+    } catch (error) {
+        console.error('AI Enhancement error:', error);
+        let errorMessage = 'Failed to enhance resume with AI';
+
+        if (error.name === 'TypeError' && error.message.includes('Failed to fetch')) {
+            errorMessage = 'Network error - Unable to connect to server';
+        } else if (error.message) {
+            errorMessage = error.message;
+        }
+
+        showToast(errorMessage, 'error');
+    } finally {
+        hideLoading();
+    }
+}
