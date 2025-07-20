@@ -1,77 +1,65 @@
-
-const mongoose = require('mongoose');
-
-const resumeSchema = new mongoose.Schema({
-  user: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    required: true
-  },
-  title: {
-    type: String,
-    required: true,
-    default: 'My Resume'
-  },
-  template: {
-    type: String,
-    required: true,
-    default: 'modern'
-  },
-  personalInfo: {
-    fullName: String,
-    email: String,
-    phone: String,
-    location: String,
-    linkedin: String,
-    website: String,
-    summary: String
-  },
-  experience: [{
-    company: String,
-    position: String,
-    startDate: String,
-    endDate: String,
-    current: Boolean,
-    description: String,
-    achievements: [String]
-  }],
-  education: [{
-    institution: String,
-    degree: String,
-    field: String,
-    startDate: String,
-    endDate: String,
-    gpa: String
-  }],
-  skills: [{
-    category: String,
-    items: [String]
-  }],
-  projects: [{
-    name: String,
-    description: String,
-    technologies: [String],
-    link: String
-  }],
-  certifications: [{
-    name: String,
-    issuer: String,
-    date: String,
-    link: String
-  }],
-  createdAt: {
-    type: Date,
-    default: Date.now
-  },
-  updatedAt: {
-    type: Date,
-    default: Date.now
+class Resume {
+  constructor(resumeData) {
+    this.id = global.resumeIdCounter++;
+    this.user = resumeData.user;
+    this.title = resumeData.title || 'My Resume';
+    this.template = resumeData.template || 'modern';
+    this.personalInfo = resumeData.personalInfo || {};
+    this.experience = resumeData.experience || [];
+    this.education = resumeData.education || [];
+    this.skills = resumeData.skills || [];
+    this.projects = resumeData.projects || [];
+    this.certifications = resumeData.certifications || [];
+    this.createdAt = new Date();
+    this.updatedAt = new Date();
   }
-});
 
-resumeSchema.pre('save', function(next) {
-  this.updatedAt = Date.now();
-  next();
-});
+  static async find(query) {
+    return global.resumes.filter(resume => {
+      if (query.user) return resume.user === query.user;
+      return true;
+    }).sort((a, b) => b.updatedAt - a.updatedAt);
+  }
 
-module.exports = mongoose.model('Resume', resumeSchema);
+  static async findOne(query) {
+    return global.resumes.find(resume => {
+      if (query.id && query.user) {
+        return resume.id === parseInt(query.id) && resume.user === query.user;
+      }
+      if (query.id) return resume.id === parseInt(query.id);
+      return false;
+    });
+  }
+
+  static async findOneAndUpdate(query, updateData, options = {}) {
+    const resume = await this.findOne(query);
+    if (resume) {
+      Object.assign(resume, updateData);
+      resume.updatedAt = new Date();
+      return resume;
+    }
+    return null;
+  }
+
+  static async findOneAndDelete(query) {
+    const index = global.resumes.findIndex(resume => {
+      if (query.id && query.user) {
+        return resume.id === parseInt(query.id) && resume.user === query.user;
+      }
+      return false;
+    });
+
+    if (index > -1) {
+      return global.resumes.splice(index, 1)[0];
+    }
+    return null;
+  }
+
+  async save() {
+    this.updatedAt = new Date();
+    global.resumes.push(this);
+    return this;
+  }
+}
+
+module.exports = Resume;

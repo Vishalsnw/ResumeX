@@ -7,8 +7,7 @@ const router = express.Router();
 // Get all resumes for user
 router.get('/', auth, async (req, res) => {
   try {
-    const resumes = await Resume.find({ user: req.user._id })
-      .sort({ updatedAt: -1 });
+    const resumes = await Resume.find({ user: req.user.id });
     res.json(resumes);
   } catch (error) {
     res.status(500).json({ message: 'Failed to fetch resumes' });
@@ -19,8 +18,8 @@ router.get('/', auth, async (req, res) => {
 router.get('/:id', auth, async (req, res) => {
   try {
     const resume = await Resume.findOne({ 
-      _id: req.params.id, 
-      user: req.user._id 
+      id: req.params.id, 
+      user: req.user.id 
     });
     
     if (!resume) {
@@ -38,7 +37,7 @@ router.post('/', auth, async (req, res) => {
   try {
     const resumeData = {
       ...req.body,
-      user: req.user._id
+      user: req.user.id
     };
     
     const resume = new Resume(resumeData);
@@ -54,9 +53,8 @@ router.post('/', auth, async (req, res) => {
 router.put('/:id', auth, async (req, res) => {
   try {
     const resume = await Resume.findOneAndUpdate(
-      { _id: req.params.id, user: req.user._id },
-      req.body,
-      { new: true }
+      { id: req.params.id, user: req.user.id },
+      req.body
     );
     
     if (!resume) {
@@ -73,8 +71,8 @@ router.put('/:id', auth, async (req, res) => {
 router.delete('/:id', auth, async (req, res) => {
   try {
     const resume = await Resume.findOneAndDelete({
-      _id: req.params.id,
-      user: req.user._id
+      id: req.params.id,
+      user: req.user.id
     });
     
     if (!resume) {

@@ -1,50 +1,49 @@
 
-const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 
-const userSchema = new mongoose.Schema({
-  name: {
-    type: String,
-    required: true,
-    trim: true
-  },
-  email: {
-    type: String,
-    required: true,
-    unique: true,
-    lowercase: true
-  },
-  password: {
-    type: String,
-    required: true,
-    minlength: 6
-  },
-  resumes: [{
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Resume'
-  }],
-  subscription: {
-    type: String,
-    enum: ['free', 'premium'],
-    default: 'free'
-  },
-  subscriptionDate: {
-    type: Date
-  },
-  createdAt: {
-    type: Date,
-    default: Date.now
+class User {
+  constructor(userData) {
+    this.id = global.userIdCounter++;
+    this.name = userData.name;
+    this.email = userData.email.toLowerCase();
+    this.password = userData.password;
+    this.resumes = [];
+    this.subscription = 'free';
+    this.subscriptionDate = null;
+    this.createdAt = new Date();
   }
-});
 
-userSchema.pre('save', async function(next) {
-  if (!this.isModified('password')) return next();
-  this.password = await bcrypt.hash(this.password, 12);
-  next();
-});
+  static async findOne(query) {
+    return global.users.find(user => {
+      if (query.email) return user.email === query.email.toLowerCase();
+      if (query.id) return user.id === query.id;
+      return false;
+    });
+  }
 
-userSchema.methods.comparePassword = async function(candidatePassword) {
-  return await bcrypt.compare(candidatePassword, this.password);
-};
+  static async findById(id) {
+    return global.users.find(user => user.id === parseInt(id));
+  }
 
-module.exports = mongoose.model('User', userSchema);
+  async save() {
+    // Hash password before saving
+    if (this.password) {
+      this.password = await bcrypt.hash(this.password, 12);
+    }
+    
+    global.users.push(this);
+    return this;
+  }
+
+  async comparePassword(candidatePassword) {
+    return await bcrypt.compare(candidatePassword, this.password);
+  }
+
+  // Return user without password
+  toJSON() {
+    const { password, ...userWithoutPassword } = this;
+    return userWithoutPassword;
+  }
+}
+
+module.exports = User;

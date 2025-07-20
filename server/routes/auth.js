@@ -18,7 +18,7 @@ router.post('/register', async (req, res) => {
     await user.save();
 
     const token = jwt.sign(
-      { userId: user._id },
+      { userId: user.id },
       process.env.JWT_SECRET || 'resumex_secret',
       { expiresIn: '7d' }
     );
@@ -26,7 +26,7 @@ router.post('/register', async (req, res) => {
     res.status(201).json({
       token,
       user: {
-        id: user._id,
+        id: user.id,
         name: user.name,
         email: user.email,
         subscription: user.subscription
@@ -48,7 +48,7 @@ router.post('/login', async (req, res) => {
     }
 
     const token = jwt.sign(
-      { userId: user._id },
+      { userId: user.id },
       process.env.JWT_SECRET || 'resumex_secret',
       { expiresIn: '7d' }
     );
@@ -56,7 +56,7 @@ router.post('/login', async (req, res) => {
     res.json({
       token,
       user: {
-        id: user._id,
+        id: user.id,
         name: user.name,
         email: user.email,
         subscription: user.subscription
