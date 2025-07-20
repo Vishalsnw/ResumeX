@@ -1,23 +1,23 @@
 // Global variables (avoid redeclaration)
-if (typeof currentStep === 'undefined') {
-    var currentStep = 1;
-    var resumeData = {
-        personalInfo: {},
-        experience: [],
-        skills: [],
-        jobTitle: '',
-        targetJobDescription: ''
-    };
-    var uploadedResumeFile = null;
-    var enhancedResumeData = null;
-    var isProcessing = false;
-    var selectedTemplate = 'modern';
-    var jobAnalysisData = null;
-    var hasUsedAI = false;
-}
+window.currentStep = window.currentStep || 1;
+window.resumeData = window.resumeData || {
+    personalInfo: {},
+    experience: [],
+    skills: [],
+    jobTitle: '',
+    targetJobDescription: ''
+};
+window.uploadedResumeFile = window.uploadedResumeFile || null;
+window.enhancedResumeData = window.enhancedResumeData || null;
+window.isProcessing = window.isProcessing || false;
+window.selectedTemplate = window.selectedTemplate || 'modern';
+window.jobAnalysisData = window.jobAnalysisData || null;
+window.hasUsedAI = window.hasUsedAI || false;
 
 // DOM elements
-let modal, previewModal, loadingOverlay;
+window.modal = window.modal || null;
+window.previewModal = window.previewModal || null;
+window.loadingOverlay = window.loadingOverlay || null;
 
 // Initialize the application
 document.addEventListener('DOMContentLoaded', function() {
@@ -420,42 +420,59 @@ function populateFormWithEnhancedData(data) {
             document.getElementById('jobTitle').value = data.jobTitle;
         }
 
-        // Clear and populate experience properly
-        if (data.experience && data.experience.length > 0) {
-            const container = document.getElementById('experienceContainer');
-            container.innerHTML = '';
+        // Clear and populate experience properly - only add non-empty experiences
+        const container = document.getElementById('experienceContainer');
+        container.innerHTML = '';
 
-            data.experience.forEach((exp, index) => {
-                // Create new experience item
-                const experienceItem = document.createElement('div');
-                experienceItem.className = 'experience-item';
-                experienceItem.innerHTML = `
-                    <div class="form-group">
-                        <label>Company</label>
-                        <input type="text" class="company" value="${exp.company || ''}" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Position</label>
-                        <input type="text" class="position" value="${exp.position || ''}" required>
-                    </div>
-                    <div class="form-row">
+        if (data.experience && data.experience.length > 0) {
+            // Filter out empty experiences
+            const validExperiences = data.experience.filter(exp => 
+                exp && 
+                (exp.company || exp.position || exp.description) && 
+                exp.company !== 'NA' && 
+                exp.position !== 'NA' &&
+                exp.company?.trim() !== '' &&
+                exp.position?.trim() !== ''
+            );
+
+            if (validExperiences.length > 0) {
+                validExperiences.forEach((exp, index) => {
+                    const experienceItem = document.createElement('div');
+                    experienceItem.className = 'experience-item';
+                    experienceItem.innerHTML = `
                         <div class="form-group">
-                            <label>Start Date</label>
-                            <input type="date" class="startDate" value="${exp.startDate || ''}" required>
+                            <label>Company</label>
+                            <input type="text" class="company" value="${exp.company || ''}" required>
                         </div>
                         <div class="form-group">
-                            <label>End Date</label>
-                            <input type="date" class="endDate" value="${exp.endDate || ''}">
+                            <label>Position</label>
+                            <input type="text" class="position" value="${exp.position || ''}" required>
                         </div>
-                    </div>
-                    <div class="form-group">
-                        <label>Description</label>
-                        <textarea class="description" rows="3" placeholder="Describe your responsibilities and achievements">${exp.description || ''}</textarea>
-                    </div>
-                    ${index > 0 ? '<button type="button" class="btn-secondary btn-small" onclick="removeExperience(this)">Remove</button>' : ''}
-                `;
-                container.appendChild(experienceItem);
-            });
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Start Date</label>
+                                <input type="date" class="startDate" value="${exp.startDate || ''}" required>
+                            </div>
+                            <div class="form-group">
+                                <label>End Date</label>
+                                <input type="date" class="endDate" value="${exp.endDate || ''}">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Description</label>
+                            <textarea class="description" rows="3" placeholder="Describe your responsibilities and achievements">${exp.description || ''}</textarea>
+                        </div>
+                        ${index > 0 ? '<button type="button" class="btn-secondary btn-small" onclick="removeExperience(this)">Remove</button>' : ''}
+                    `;
+                    container.appendChild(experienceItem);
+                });
+            } else {
+                // Add default experience if no valid experiences found
+                addDefaultExperience();
+            }
+        } else {
+            // Add default experience if no experiences provided
+            addDefaultExperience();
         }
 
         // Populate skills
@@ -465,32 +482,78 @@ function populateFormWithEnhancedData(data) {
         }
 
         // Populate education
-        if (data.education) {
+        if (data.education && data.education !== 'NA') {
             document.getElementById('education').value = data.education;
         }
 
         // Populate certifications
-        if (data.certifications) {
+        if (data.certifications && data.certifications !== 'NA') {
             document.getElementById('certifications').value = data.certifications;
         }
 
-        // Update global resumeData
-        resumeData = {
-            personalInfo: data.personalInfo || resumeData.personalInfo,
-            jobTitle: data.jobTitle || resumeData.jobTitle,
-            experience: data.experience || resumeData.experience,
-            skills: data.skills || resumeData.skills,
-            education: data.education || resumeData.education,
-            certifications: data.certifications || resumeData.certifications,
-            selectedTemplate: selectedTemplate,
-            targetJobDescription: resumeData.targetJobDescription
+        // Update global resumeData with filtered experiences
+        const validExperiences = data.experience ? data.experience.filter(exp => 
+            exp && 
+            (exp.company || exp.position || exp.description) && 
+            exp.company !== 'NA' && 
+            exp.position !== 'NA' &&
+            exp.company?.trim() !== '' &&
+            exp.position?.trim() !== ''
+        ) : [];
+
+        window.resumeData = {
+            personalInfo: data.personalInfo || window.resumeData.personalInfo,
+            jobTitle: data.jobTitle || window.resumeData.jobTitle,
+            experience: validExperiences.length > 0 ? validExperiences : [{
+                company: 'Your Company',
+                position: data.jobTitle || 'Professional',
+                startDate: '2023-01-01',
+                endDate: '',
+                description: 'Key responsibilities and achievements'
+            }],
+            skills: data.skills || window.resumeData.skills,
+            education: data.education || window.resumeData.education,
+            certifications: data.certifications || window.resumeData.certifications,
+            selectedTemplate: window.selectedTemplate,
+            targetJobDescription: window.resumeData.targetJobDescription
         };
 
-        console.log('Form populated with enhanced data:', resumeData);
+        console.log('Form populated with enhanced data:', window.resumeData);
     } catch (error) {
         console.error('Error populating form:', error);
         showToast('Error loading resume data', 'error');
     }
+}
+
+function addDefaultExperience() {
+    const container = document.getElementById('experienceContainer');
+    const experienceItem = document.createElement('div');
+    experienceItem.className = 'experience-item';
+    experienceItem.innerHTML = `
+        <div class="form-group">
+            <label>Company</label>
+            <input type="text" class="company" placeholder="Company Name" required>
+        </div>
+        <div class="form-group">
+            <label>Position</label>
+            <input type="text" class="position" placeholder="Job Title" required>
+        </div>
+        <div class="form-row">
+            <div class="form-group">
+                <label>Start Date</label>
+                <input type="date" class="startDate" required>
+            </div>
+            <div class="form-group">
+                <label>End Date</label>
+                <input type="date" class="endDate">
+            </div>
+        </div>
+        <div class="form-group">
+            <label>Description</label>
+            <textarea class="description" rows="3" placeholder="Describe your responsibilities and achievements"></textarea>
+        </div>
+    `;
+    container.appendChild(experienceItem);
 }
 
 function closeModal() {
@@ -706,19 +769,22 @@ function collectFormData() {
 
     const experiences = [];
     document.querySelectorAll('.experience-item').forEach(item => {
-        const company = item.querySelector('.company')?.value || 'Company Name';
-        const position = item.querySelector('.position')?.value || 'Position Title';
-        const startDate = item.querySelector('.startDate')?.value || '2023-01-01';
-        const endDate = item.querySelector('.endDate')?.value || '';
-        const description = item.querySelector('.description')?.value || 'Key responsibilities and achievements';
+        const company = item.querySelector('.company')?.value?.trim();
+        const position = item.querySelector('.position')?.value?.trim();
+        const startDate = item.querySelector('.startDate')?.value;
+        const endDate = item.querySelector('.endDate')?.value;
+        const description = item.querySelector('.description')?.value?.trim();
 
-        experiences.push({
-            company,
-            position,
-            startDate,
-            endDate,
-            description
-        });
+        // Only add experience if it has meaningful content
+        if (company && position && company !== '' && position !== '') {
+            experiences.push({
+                company: company || 'Company Name',
+                position: position || 'Position Title',
+                startDate: startDate || '',
+                endDate: endDate || '',
+                description: description || 'Key responsibilities and achievements'
+            });
+        }
     });
 
     const skillsInput = document.getElementById('skills')?.value || 'JavaScript, Python, React, Node.js';
@@ -742,8 +808,8 @@ function collectFormData() {
         skills: skills.length > 0 ? skills : ['JavaScript', 'Python', 'React', 'Node.js'],
         education,
         certifications,
-        selectedTemplate,
-        jobAnalysis: jobAnalysisData
+        selectedTemplate: window.selectedTemplate,
+        jobAnalysis: window.jobAnalysisData
     };
 }
 
@@ -751,7 +817,7 @@ async function generateResume(type) {
     if (isProcessing) return;
 
     isProcessing = true;
-    resumeData = collectFormData();
+    window.resumeData = collectFormData();
 
     showLoading();
 
@@ -850,15 +916,22 @@ function createBasicResumeHTML() {
 }
 
 function createModernTemplate() {
-    const personalInfo = resumeData.personalInfo || {};
-    const experience = resumeData.experience || [];
-    const skills = resumeData.skills || [];
+    const personalInfo = window.resumeData.personalInfo || {};
+    const experience = window.resumeData.experience || [];
+    const skills = window.resumeData.skills || [];
+    
+    // Filter out empty experiences
+    const validExperiences = experience.filter(exp => 
+        exp && exp.company && exp.position && 
+        exp.company.trim() !== '' && exp.position.trim() !== '' &&
+        exp.company !== 'Company Name' && exp.position !== 'Position Title'
+    );
     
     return `
         <div class="resume-container modern-template">
             <div class="resume-header modern-header">
                 <h1>${personalInfo.name || 'Your Name'}</h1>
-                <div class="subtitle">${resumeData.jobTitle || 'Professional'}</div>
+                <div class="subtitle">${window.resumeData.jobTitle || 'Professional'}</div>
                 <div class="contact-info">
                     <span><i class="fas fa-envelope"></i> ${personalInfo.email || 'your.email@example.com'}</span>
                     <span><i class="fas fa-phone"></i> ${personalInfo.phone || '+91 9999999999'}</span>
@@ -870,7 +943,7 @@ function createModernTemplate() {
                 <div class="main-content">
                     <div class="resume-section">
                         <h2><i class="fas fa-briefcase"></i> Professional Experience</h2>
-                        ${experience.length > 0 ? experience.map(exp => {
+                        ${validExperiences.length > 0 ? validExperiences.map(exp => {
                             const startDate = exp.startDate ? new Date(exp.startDate).toLocaleDateString('en-US', { year: 'numeric', month: 'short' }) : 'Start Date';
                             const endDate = exp.endDate ? new Date(exp.endDate).toLocaleDateString('en-US', { year: 'numeric', month: 'short' }) : 'Present';
                             
@@ -878,13 +951,13 @@ function createModernTemplate() {
                                 <div class="experience-item modern-experience">
                                     <div class="experience-header">
                                         <div class="position-company">
-                                            <h3>${exp.position || 'Position'}</h3>
-                                            <h4>${exp.company || 'Company'}</h4>
+                                            <h3>${exp.position}</h3>
+                                            <h4>${exp.company}</h4>
                                         </div>
                                         <div class="dates">${startDate} - ${endDate}</div>
                                     </div>
                                     <div class="description">
-                                        ${exp.description ? exp.description.split('\n').map(line => `<p>• ${line.trim()}</p>`).join('') : '<p>• Key responsibilities and achievements</p>'}
+                                        ${exp.description ? exp.description.split('\n').map(line => line.trim() ? `<p>• ${line.trim()}</p>` : '').join('') : '<p>• Key responsibilities and achievements</p>'}
                                     </div>
                                 </div>
                             `;
@@ -892,7 +965,7 @@ function createModernTemplate() {
                             <div class="experience-item modern-experience">
                                 <div class="experience-header">
                                     <div class="position-company">
-                                        <h3>${resumeData.jobTitle || 'Professional'}</h3>
+                                        <h3>${window.resumeData.jobTitle || 'Professional'}</h3>
                                         <h4>Your Company</h4>
                                     </div>
                                     <div class="dates">2023 - Present</div>
