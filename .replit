@@ -1,3 +1,4 @@
+modules = ["nodejs-20"]
 [workflows]
 runButton = "ResumeX Server"
 
@@ -13,3 +14,6 @@ args = "npm install"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "node server/index.js"
+
+[nix]
+channel = "stable-24_05"
