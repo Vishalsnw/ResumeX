@@ -9,49 +9,33 @@ class APIService {
     this.currentUser = JSON.parse(localStorage.getItem('resumex_current_user') || 'null');
   }
 
-  // Real AI content generation using DeepSeek API directly
+  // Real AI content generation using backend API
   async generateContent(type, personalInfo, context = '') {
     try {
-      // For demo purposes, you'll need to add your DeepSeek API key here
-      // In production, this should be handled securely via a backend
-      const DEEPSEEK_API_KEY = 'your-deepseek-api-key-here';
-      
-      if (!DEEPSEEK_API_KEY || DEEPSEEK_API_KEY === 'your-deepseek-api-key-here') {
-        // Fallback to mock AI-like content for demo
-        return this.generateMockContent(type, personalInfo, context);
-      }
-
-      let prompt = this.buildPrompt(type, personalInfo, context);
-
-      const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
+      const response = await fetch(`${this.baseURL}/api/ai/generate-content`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${DEEPSEEK_API_KEY}`
         },
         body: JSON.stringify({
-          model: 'deepseek-chat',
-          messages: [
-            {
-              role: 'user',
-              content: prompt
-            }
-          ],
-          max_tokens: 500,
-          temperature: 0.7
+          type,
+          personalInfo,
+          context
         })
       });
 
       if (!response.ok) {
-        throw new Error(`DeepSeek API error: ${response.status}`);
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || `Server error: ${response.status}`);
       }
 
       const data = await response.json();
-      return { content: data.choices[0].message.content };
+      return { content: data.content };
     } catch (error) {
       console.error('AI generation error:', error);
-      // Fallback to mock content if API fails
-      return this.generateMockContent(type, personalInfo, context);
+      
+      // Enhanced fallback with more professional content
+      return this.generateEnhancedContent(type, personalInfo, context);
     }
   }
 
@@ -79,23 +63,40 @@ class APIService {
     }
   }
 
-  generateMockContent(type, personalInfo, context) {
+  generateEnhancedContent(type, personalInfo, context) {
+    const name = personalInfo.fullName || 'Professional';
+    const field = context || 'technology';
+    
     switch (type) {
       case 'summary':
+        const summaryTemplates = [
+          `Results-driven ${field} professional with expertise in innovative problem-solving and strategic execution. Demonstrated ability to deliver exceptional outcomes while collaborating effectively in dynamic team environments. Committed to continuous learning and professional growth.`,
+          `Experienced ${field} specialist with a proven track record of success in challenging environments. Strong analytical skills combined with excellent communication abilities. Passionate about leveraging technology to drive business value and operational excellence.`,
+          `Dynamic ${field} professional known for delivering high-quality solutions and exceeding performance expectations. Expert in stakeholder management and cross-functional collaboration. Dedicated to staying current with industry best practices and emerging trends.`
+        ];
         return {
-          content: `Dynamic ${context || 'professional'} with expertise in modern technologies and strong problem-solving abilities. Proven track record of delivering high-quality solutions and collaborating effectively in team environments. Passionate about continuous learning and staying current with industry trends.`
+          content: summaryTemplates[Math.floor(Math.random() * summaryTemplates.length)]
         };
       
       case 'skills':
+        const skillsByField = {
+          technology: 'JavaScript, React, Node.js, Python, HTML/CSS, Git, REST APIs, Database Management, Cloud Computing, Agile Methodologies',
+          business: 'Strategic Planning, Project Management, Business Analysis, Financial Modeling, Market Research, Stakeholder Management, Process Optimization',
+          marketing: 'Digital Marketing, Content Strategy, SEO/SEM, Social Media Management, Analytics, Brand Management, Campaign Development',
+          design: 'UI/UX Design, Adobe Creative Suite, Figma, Prototyping, User Research, Visual Design, Wireframing, Design Systems',
+          default: 'Leadership, Problem Solving, Communication, Project Management, Analytical Thinking, Team Collaboration, Strategic Planning'
+        };
+        
+        const technicalSkills = skillsByField[field.toLowerCase()] || skillsByField.default;
+        const softSkills = 'Leadership, Problem Solving, Communication, Team Collaboration, Adaptability, Critical Thinking, Time Management, Attention to Detail';
+        
         return {
-          content: `Technical Skills: JavaScript, React, Node.js, HTML/CSS, Git, REST APIs, Database Management
-          
-Soft Skills: Problem Solving, Team Collaboration, Communication, Project Management, Adaptability, Critical Thinking`
+          content: `Technical Skills: ${technicalSkills}\n\nSoft Skills: ${softSkills}`
         };
       
       default:
         return {
-          content: `Enhanced ${type} content for ${personalInfo.fullName} with professional formatting and industry-relevant details.`
+          content: `Professional ${type} content tailored for ${name} in the ${field} industry, emphasizing relevant experience and achievements that demonstrate value and expertise.`
         };
     }
   }
