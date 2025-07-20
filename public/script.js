@@ -986,8 +986,8 @@ function editResume() {
 
 function downloadPDF() {
     if (!checkPremiumAccess()) {
-        showToast('PDF download requires premium access. Upgrade to download your resume!', 'info');
-        upgradeToPremium();
+        showToast('PDF download requires payment. Pay ₹99 to download your resume!', 'info');
+        upgradeToDownload();
         return;
     }
 
@@ -1026,12 +1026,16 @@ function getResumeStyles() {
 }
 
 // Payment functions
+async function upgradeToDownload() {
+    await initiatePayment(99, 'Download Access');
+}
+
 async function upgradeToPremium() {
-    await initiatePayment(299, 'Premium Plan');
+    await initiatePayment(99, 'Download Access');
 }
 
 async function upgradeToPro() {
-    await initiatePayment(599, 'Pro Plan');
+    await initiatePayment(99, 'Download Access');
 }
 
 async function initiatePayment(amount, planName) {
@@ -1127,8 +1131,11 @@ async function verifyPayment(paymentResponse) {
 
         if (result.success) {
             localStorage.setItem('premiumAccess', 'true');
-            showToast('Payment successful! Premium features activated.', 'success');
-            await generateAIResume();
+            showToast('Payment successful! Download access activated.', 'success');
+            // Automatically trigger download
+            setTimeout(() => {
+                downloadPDF();
+            }, 1000);
         } else {
             throw new Error(result.error || 'Payment verification failed');
         }
