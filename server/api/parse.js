@@ -6,14 +6,19 @@ const pdfParse = require('pdf-parse');
 const mammoth = require('mammoth');
 const axios = require('axios');
 
-// Step 1: Extract text from uploaded file
+// Extract text from uploaded file
 async function extractText(filename) {
   const filePath = path.join(__dirname, '../uploads', filename);
-  if (!fs.existsSync(filePath)) throw new Error('File not found');
+
+  if (!fs.existsSync(filePath)) {
+    throw new Error('File not found');
+  }
+
   const ext = path.extname(filename).toLowerCase();
 
   if (ext === '.pdf') {
-    const data = await pdfParse(fs.readFileSync(filePath));
+    const dataBuffer = fs.readFileSync(filePath);
+    const data = await pdfParse(dataBuffer);
     return data.text;
   } else if (ext === '.docx') {
     const result = await mammoth.extractRawText({ path: filePath });
@@ -23,33 +28,18 @@ async function extractText(filename) {
   }
 }
 
-// Step 2: Clean AI response and parse JSON
-function cleanAndParseJSON(rawContent) {
-  console.log('Raw response (300 chars):', rawContent.slice(0, 300));
-
-  let content = rawContent
-    .replace(/```json|```/g, '')
-    .replace(/^.*?(?=\{)/s, '')
-    .replace(/\}[^}]*$/s, '}')
-    .trim();
-
-  try {
-    return ensureValidStructure(JSON.parse(content));
-  } catch (e) {
-    console.log('First parse failed');
-  }
-
-  const match = content.match(/\{[\s\S]*\}/);
-  if (match) {
-    try {
-      return ensureValidStructure(JSON.parse(match[0]));
-    } catch (e) {}
-  }
-
-  return getFallbackStructure();
+// Fallback structure
+function getFallbackStructure() {
+  return {
+    personalInfo: {
+      name: '', email: '', phone: '', address: '', linkedin: '', github: ''
+    },
+    summary: 'Unable to parse resume. Please fill manually.',
+    experience: [], education: [], skills: [], projects: [], certifications: []
+  };
 }
 
-// Step 3: Validate structure
+// Validate & complete structure
 function ensureValidStructure(data) {
   return {
     personalInfo: {
@@ -69,50 +59,88 @@ function ensureValidStructure(data) {
   };
 }
 
-// Step 4: Fallback structure
-function getFallbackStructure() {
-  return {
-    personalInfo: {
-      name: '', email: '', phone: '', address: '', linkedin: '', github: ''
-    },
-    summary: 'Unable to parse resume. Please enter manually.',
-    experience: [], education: [], skills: [], projects: [], certifications: []
-  };
-}
-
-// Step 5: DeepSeek AI parsing
+// Parse with DeepSeek using enforced JSON schema
 async function parseWithDeepSeek(text) {
   const response = await axios.post(
     'https://api.deepseek.com/v1/chat/completions',
     {
       model: 'deepseek-chat',
-      response_format: 'json', // 🔥 Key fix
-      messages: [{
-        role: 'user',
-        content: `Return ONLY JSON (no comments or explanations):
-
-{
-  "personalInfo": {
-    "name": "",
-    "email": "",
-    "phone": "",
-    "address": "",
-    "linkedin": "",
-    "github": ""
-  },
-  "summary": "",
-  "experience": [{"company": "", "position": "", "duration": "", "description": ""}],
-  "education": [{"institution": "", "degree": "", "year": ""}],
-  "skills": [""],
-  "projects": [{"name": "", "description": "", "technologies": ""}],
-  "certifications": [""]
-}
-
-Resume:
-${text}`
-      }],
-      max_tokens: 2000,
-      temperature: 0.1
+      tools: [
+        {
+          type: 'function',
+          function: {
+            name: 'extractResumeData',
+            description: 'Extract structured resume data from text.',
+            parameters: {
+              type: 'object',
+              properties: {
+                personalInfo: {
+                  type: 'object',
+                  properties: {
+                    name: { type: 'string' },
+                    email: { type: 'string' },
+                    phone: { type: 'string' },
+                    address: { type: 'string' },
+                    linkedin: { type: 'string' },
+                    github: { type: 'string' }
+                  },
+                  required: ['name', 'email']
+                },
+                summary: { type: 'string' },
+                experience: {
+                  type: 'array',
+                  items: {
+                    type: 'object',
+                    properties: {
+                      company: { type: 'string' },
+                      position: { type: 'string' },
+                      duration: { type: 'string' },
+                      description: { type: 'string' }
+                    }
+                  }
+                },
+                education: {
+                  type: 'array',
+                  items: {
+                    type: 'object',
+                    properties: {
+                      institution: { type: 'string' },
+                      degree: { type: 'string' },
+                      year: { type: 'string' }
+                    }
+                  }
+                },
+                skills: { type: 'array', items: { type: 'string' } },
+                projects: {
+                  type: 'array',
+                  items: {
+                    type: 'object',
+                    properties: {
+                      name: { type: 'string' },
+                      description: { type: 'string' },
+                      technologies: { type: 'string' }
+                    }
+                  }
+                },
+                certifications: { type: 'array', items: { type: 'string' } }
+              },
+              required: ['personalInfo', 'summary']
+            }
+          }
+        }
+      ],
+      tool_choice: {
+        type: 'function',
+        function: { name: 'extractResumeData' }
+      },
+      messages: [
+        {
+          role: 'user',
+          content: `Extract structured JSON from the following resume:\n\n${text}`
+        }
+      ],
+      temperature: 0.1,
+      max_tokens: 2000
     },
     {
       headers: {
@@ -123,35 +151,42 @@ ${text}`
     }
   );
 
-  const content = response.data.choices[0].message.content.trim();
-  return cleanAndParseJSON(content);
+  const toolCalls = response.data.choices?.[0]?.message?.tool_calls;
+  if (!toolCalls || !toolCalls[0]?.function?.arguments) {
+    throw new Error('Invalid tool_calls structure from DeepSeek');
+  }
+
+  const parsed = JSON.parse(toolCalls[0].function.arguments);
+  return ensureValidStructure(parsed);
 }
 
-// Step 6: Endpoint to trigger parsing
+// Main route
 router.post('/', async (req, res) => {
   try {
     const { filename } = req.body;
     if (!filename) return res.status(400).json({ success: false, error: 'Filename is required' });
 
     const text = await extractText(filename);
-    if (!text || text.length < 50) {
-      return res.status(400).json({ success: false, error: 'Insufficient resume text' });
+    if (!text || text.trim().length < 50) {
+      return res.status(400).json({ success: false, error: 'Resume text is too short' });
     }
 
-    let parsedData = getFallbackStructure();
+    let parsedData;
     try {
       parsedData = await parseWithDeepSeek(text);
-    } catch (e) {
-      console.error('DeepSeek failed:', e.message);
+    } catch (err) {
+      console.error('DeepSeek error:', err.message);
+      parsedData = getFallbackStructure();
     }
 
     const filePath = path.join(__dirname, '../uploads', filename);
     if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
 
     res.json({ success: true, data: parsedData });
+
   } catch (error) {
-    console.error('Parse error:', error.message);
-    res.status(500).json({ success: false, error: 'Resume parsing failed' });
+    console.error('Parsing error:', error.message);
+    res.status(500).json({ success: false, error: error.message });
   }
 });
 
