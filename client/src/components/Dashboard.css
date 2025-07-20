@@ -1,4 +1,3 @@
-
 /* Mobile-first Dashboard styles */
 .dashboard-header {
   display: flex;
@@ -120,27 +119,38 @@
 /* Tablet styles */
 @media (min-width: 768px) {
   .dashboard-header {
-    flex-direction: row;
+    display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 0 20px;
+    margin-bottom: 2rem;
+    background: white;
+    padding: 30px;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
   }
-  
+
   .dashboard-header h1 {
-    font-size: 2rem;
+    color: #2d3748;
+    font-size: 32px;
+    font-weight: 700;
+    margin: 0;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
   }
-  
+
   .empty-state {
     padding: 3rem;
     margin: 0 20px;
   }
-  
+
   .resume-grid {
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
     gap: 1.5rem;
     padding: 0 20px;
   }
-  
+
   .resume-actions {
     flex-direction: row;
   }
@@ -151,16 +161,16 @@
   .dashboard-header {
     padding: 0 30px;
   }
-  
+
   .empty-state {
     margin: 0 30px;
   }
-  
+
   .resume-grid {
     padding: 0 30px;
     gap: 2rem;
   }
-  
+
   .resume-grid {
     grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
   }
