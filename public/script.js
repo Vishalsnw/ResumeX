@@ -195,20 +195,25 @@ async function analyzeJobDescription() {
         const response = await fetch('/api/analyze-job', {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
             },
             body: JSON.stringify({ jobDescription: jobDescription.trim() })
         });
 
         console.log('Response status:', response.status);
+        console.log('Response headers:', response.headers);
         
-        if (!response.ok) {
-            const errorText = await response.text();
-            console.error('Server error response:', errorText);
-            throw new Error(`Server error: ${response.status}`);
+        let result;
+        try {
+            result = await response.json();
+        } catch (parseError) {
+            console.error('Failed to parse response as JSON:', parseError);
+            const textResponse = await response.text();
+            console.error('Raw response:', textResponse);
+            throw new Error('Invalid server response format');
         }
 
-        const result = await response.json();
         console.log('Job analysis response:', result);
 
         if (result.success && result.analysis) {
@@ -216,18 +221,23 @@ async function analyzeJobDescription() {
             displayJobAnalysis(result.analysis);
             showToast('Job description analyzed successfully!', 'success');
         } else {
+            console.error('Analysis failed:', result);
             throw new Error(result.error || 'Analysis failed - no data received');
         }
     } catch (error) {
         console.error('Job analysis error:', error);
         let errorMessage = 'Failed to analyze job description';
         
-        if (error.message.includes('Failed to fetch')) {
-            errorMessage = 'Network error - Please check your connection';
-        } else if (error.message.includes('Server error: 400')) {
-            errorMessage = 'Invalid request - Please check your input';
-        } else if (error.message.includes('Server error: 401')) {
-            errorMessage = 'API key not configured - Please contact support';
+        if (error.name === 'TypeError' && error.message.includes('Failed to fetch')) {
+            errorMessage = 'Network error - Unable to connect to server';
+        } else if (error.message.includes('Invalid server response')) {
+            errorMessage = 'Server returned invalid response - Please try again';
+        } else if (error.message.includes('API key not configured')) {
+            errorMessage = 'AI service not configured - Please check environment variables';
+        } else if (error.message.includes('Rate limit exceeded')) {
+            errorMessage = 'Too many requests - Please wait a moment and try again';
+        } else if (error.message.includes('Network error')) {
+            errorMessage = 'Unable to connect to AI service - Please try again';
         } else if (error.message) {
             errorMessage = error.message;
         }

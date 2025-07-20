@@ -100,7 +100,7 @@ app.post('/api/analyze-job', async (req, res) => {
 
     console.log('Job analysis request received');
     console.log('Job description length:', jobDescription?.length || 0);
-    console.log('Environment check - DEEPSEEK_API_KEY:', process.env.DEEPSEEK_API_KEY ? `Present (${process.env.DEEPSEEK_API_KEY.substring(0, 10)}...)` : 'Missing');
+    console.log('Environment check - DEEPSEEK_API_KEY exists:', !!process.env.DEEPSEEK_API_KEY);
 
     if (!jobDescription || jobDescription.trim().length === 0) {
       return res.status(400).json({ 
@@ -109,70 +109,107 @@ app.post('/api/analyze-job', async (req, res) => {
       });
     }
 
-    if (!process.env.DEEPSEEK_API_KEY || process.env.DEEPSEEK_API_KEY === 'your_actual_deepseek_api_key_here') {
+    if (!process.env.DEEPSEEK_API_KEY || process.env.DEEPSEEK_API_KEY.includes('your_actual_deepseek_api_key_here')) {
       console.error('DEEPSEEK_API_KEY not configured properly');
-      return res.status(400).json({ 
+      return res.status(500).json({ 
         success: false, 
-        error: 'AI service not configured. Please add your Deepseek API key in environment variables.' 
+        error: 'AI service not configured. Please check your environment variables.' 
       });
     }
 
-    const prompt = `Analyze this job description and extract key information. Return ONLY a valid JSON object with:
-    - requiredSkills: array of 5-8 key skills
-    - experienceLevel: string (entry, mid, senior, executive)
-    - industry: string 
-    - recommendations: array of 3-4 brief suggestions for resume optimization
+    const prompt = `Analyze this job description and extract key information. Return ONLY a valid JSON object with these exact fields:
+{
+  "requiredSkills": ["skill1", "skill2", "skill3", "skill4", "skill5"],
+  "experienceLevel": "entry-level/mid-level/senior-level/executive",
+  "industry": "industry name",
+  "recommendations": ["recommendation1", "recommendation2", "recommendation3"]
+}
 
-    Job Description: ${jobDescription}`;
+Job Description: ${jobDescription.substring(0, 2000)}`;
 
     console.log('Making API call to Deepseek...');
     
-    const response = await axios.post('https://api.deepseek.com/v1/chat/completions', {
-      model: 'deepseek-chat',
-      messages: [
-        {
-          role: 'system',
-          content: 'You are an expert recruiter. Analyze job descriptions and return only valid JSON without any additional text or formatting.'
-        },
-        {
-          role: 'user',
-          content: prompt
-        }
-      ],
-      max_tokens: 800,
-      temperature: 0.3
-    }, {
+    const apiResponse = await axios({
+      method: 'POST',
+      url: 'https://api.deepseek.com/v1/chat/completions',
       headers: {
         'Authorization': `Bearer ${process.env.DEEPSEEK_API_KEY}`,
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
       },
-      timeout: 30000
+      data: {
+        model: 'deepseek-chat',
+        messages: [
+          {
+            role: 'system',
+            content: 'You are an expert recruiter and HR analyst. Analyze job descriptions and return only valid JSON without any additional text, markdown formatting, or explanations.'
+          },
+          {
+            role: 'user',
+            content: prompt
+          }
+        ],
+        max_tokens: 1000,
+        temperature: 0.1,
+        top_p: 1,
+        frequency_penalty: 0,
+        presence_penalty: 0
+      },
+      timeout: 25000
     });
 
-    console.log('API Response received:', response.status);
-    console.log('Response data:', JSON.stringify(response.data, null, 2));
+    console.log('API Response status:', apiResponse.status);
+    
+    if (!apiResponse.data || !apiResponse.data.choices || !apiResponse.data.choices[0]) {
+      throw new Error('Invalid API response structure');
+    }
+
+    const aiContent = apiResponse.data.choices[0].message.content;
+    console.log('Raw AI response:', aiContent);
 
     let analysis;
     try {
-      const aiResponse = response.data.choices[0].message.content;
-      console.log('AI Response content:', aiResponse);
-      
-      // Try to extract JSON if wrapped in markdown or other formatting
-      let jsonString = aiResponse;
-      const jsonMatch = aiResponse.match(/\{[\s\S]*\}/);
-      if (jsonMatch) {
-        jsonString = jsonMatch[0];
+      // Clean the response - remove any markdown formatting
+      let cleanContent = aiContent.trim();
+      if (cleanContent.startsWith('```json')) {
+        cleanContent = cleanContent.replace(/^```json\s*/, '').replace(/\s*```$/, '');
+      } else if (cleanContent.startsWith('```')) {
+        cleanContent = cleanContent.replace(/^```\s*/, '').replace(/\s*```$/, '');
       }
       
-      analysis = JSON.parse(jsonString);
-      console.log('Parsed analysis:', analysis);
+      // Extract JSON object
+      const jsonMatch = cleanContent.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        cleanContent = jsonMatch[0];
+      }
+      
+      analysis = JSON.parse(cleanContent);
+      
+      // Validate required fields
+      if (!analysis.requiredSkills || !Array.isArray(analysis.requiredSkills)) {
+        throw new Error('Invalid requiredSkills field');
+      }
+      if (!analysis.experienceLevel || typeof analysis.experienceLevel !== 'string') {
+        throw new Error('Invalid experienceLevel field');
+      }
+      if (!analysis.industry || typeof analysis.industry !== 'string') {
+        throw new Error('Invalid industry field');
+      }
+      if (!analysis.recommendations || !Array.isArray(analysis.recommendations)) {
+        throw new Error('Invalid recommendations field');
+      }
+      
+      console.log('Successfully parsed analysis:', analysis);
+      
     } catch (parseError) {
-      console.warn('Failed to parse AI response, using fallback:', parseError.message);
-      // Fallback analysis if AI response isn't valid JSON
+      console.warn('Failed to parse AI response:', parseError.message);
+      console.warn('AI response was:', aiContent);
+      
+      // Provide fallback analysis
       analysis = {
-        requiredSkills: ['Communication', 'Problem Solving', 'Team Work', 'Leadership', 'Time Management'],
+        requiredSkills: ['Communication', 'Problem Solving', 'Teamwork', 'Leadership', 'Technical Skills'],
         experienceLevel: 'mid-level',
-        industry: 'General',
+        industry: 'Technology',
         recommendations: [
           'Highlight relevant experience prominently',
           'Include industry-specific keywords',
@@ -183,33 +220,44 @@ app.post('/api/analyze-job', async (req, res) => {
     }
 
     res.json({ success: true, analysis });
+    
   } catch (error) {
-    console.error('Job Analysis Error Details:', {
+    console.error('Job Analysis Error:', error.message);
+    console.error('Error details:', {
+      name: error.name,
       message: error.message,
-      response: error.response?.data,
-      status: error.response?.status,
-      config: {
-        url: error.config?.url,
-        method: error.config?.method,
-        headers: error.config?.headers ? { ...error.config.headers, Authorization: '[REDACTED]' } : undefined
-      }
+      stack: error.stack?.split('\n')[0],
+      response: error.response ? {
+        status: error.response.status,
+        statusText: error.response.statusText,
+        data: error.response.data
+      } : 'No response data'
     });
     
     let errorMessage = 'Failed to analyze job description';
-    if (error.code === 'ENOTFOUND') {
+    let statusCode = 500;
+    
+    if (error.code === 'ENOTFOUND' || error.code === 'ECONNREFUSED') {
       errorMessage = 'Network error - Unable to connect to AI service';
+      statusCode = 503;
     } else if (error.response?.status === 401) {
       errorMessage = 'Invalid API key - Please check your Deepseek API configuration';
+      statusCode = 401;
     } else if (error.response?.status === 429) {
       errorMessage = 'Rate limit exceeded - Please try again in a moment';
-    } else if (error.response?.data?.error?.message) {
-      errorMessage = error.response.data.error.message;
+      statusCode = 429;
+    } else if (error.response?.status === 400) {
+      errorMessage = 'Invalid request - Please check your input';
+      statusCode = 400;
+    } else if (error.message.includes('timeout')) {
+      errorMessage = 'Request timeout - Please try again';
+      statusCode = 408;
     }
     
-    res.status(500).json({ 
+    res.status(statusCode).json({ 
       success: false, 
       error: errorMessage,
-      details: process.env.NODE_ENV === 'development' ? error.message : undefined
+      code: error.code || 'UNKNOWN_ERROR'
     });
   }
 });
