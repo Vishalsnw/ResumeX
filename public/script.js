@@ -189,30 +189,50 @@ async function analyzeJobDescription() {
 
     showLoading();
     try {
-        // Get base URL for API calls
-        const baseURL = window.location.origin;
+        console.log('Starting job analysis...');
+        console.log('Job description length:', jobDescription.length);
 
-        const response = await fetch(`${baseURL}/api/analyze-job`, {
+        const response = await fetch('/api/analyze-job', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ jobDescription })
+            body: JSON.stringify({ jobDescription: jobDescription.trim() })
         });
+
+        console.log('Response status:', response.status);
+        
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('Server error response:', errorText);
+            throw new Error(`Server error: ${response.status}`);
+        }
 
         const result = await response.json();
         console.log('Job analysis response:', result);
 
-        if (result.success) {
+        if (result.success && result.analysis) {
             jobAnalysisData = result.analysis;
             displayJobAnalysis(result.analysis);
             showToast('Job description analyzed successfully!', 'success');
         } else {
-            throw new Error(result.error);
+            throw new Error(result.error || 'Analysis failed - no data received');
         }
     } catch (error) {
         console.error('Job analysis error:', error);
-        showToast('Failed to analyze job description', 'error');
+        let errorMessage = 'Failed to analyze job description';
+        
+        if (error.message.includes('Failed to fetch')) {
+            errorMessage = 'Network error - Please check your connection';
+        } else if (error.message.includes('Server error: 400')) {
+            errorMessage = 'Invalid request - Please check your input';
+        } else if (error.message.includes('Server error: 401')) {
+            errorMessage = 'API key not configured - Please contact support';
+        } else if (error.message) {
+            errorMessage = error.message;
+        }
+        
+        showToast(errorMessage, 'error');
     } finally {
         hideLoading();
     }
@@ -1012,11 +1032,9 @@ async function upgradeToPro() {
 async function initiatePayment(amount, planName) {
     try {
         showLoading();
+        console.log('Initiating payment for:', planName, 'Amount:', amount);
 
-        // Get base URL for API calls
-        const baseURL = window.location.origin;
-
-        const response = await fetch(`${baseURL}/api/create-order`, {
+        const response = await fetch('/api/create-order', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -1024,17 +1042,32 @@ async function initiatePayment(amount, planName) {
             body: JSON.stringify({ amount })
         });
 
-        const result = await response.json();
+        console.log('Payment response status:', response.status);
 
-        if (result.success) {
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('Payment error response:', errorText);
+            throw new Error(`Payment service error: ${response.status}`);
+        }
+
+        const result = await response.json();
+        console.log('Payment order result:', result);
+
+        if (result.success && result.order) {
+            // Check if Razorpay is loaded
+            if (typeof Razorpay === 'undefined') {
+                throw new Error('Razorpay SDK not loaded. Please refresh the page and try again.');
+            }
+
             const options = {
-                key: 'rzp_test_your_actual_key_here', // Replace with your actual Razorpay key_id
+                key: 'rzp_test_9WfzZJnPKqfELf', // This should be your actual Razorpay key_id from environment
                 amount: result.order.amount,
                 currency: result.order.currency,
                 name: 'AI Resume Builder',
                 description: planName,
                 order_id: result.order.id,
                 handler: function(response) {
+                    console.log('Payment successful:', response);
                     verifyPayment(response);
                 },
                 prefill: {
@@ -1043,17 +1076,34 @@ async function initiatePayment(amount, planName) {
                 },
                 theme: {
                     color: '#4f46e5'
+                },
+                modal: {
+                    ondismiss: function() {
+                        console.log('Payment cancelled by user');
+                        showToast('Payment cancelled', 'info');
+                        hideLoading();
+                    }
                 }
             };
 
             const rzp = new Razorpay(options);
             rzp.open();
         } else {
-            throw new Error(result.error || 'Payment initialization failed');
+            throw new Error(result.error || 'Failed to create payment order');
         }
     } catch (error) {
-        console.error('Payment error:', error);
-        showToast('Payment initialization failed. Please try again.', 'error');
+        console.error('Payment initialization error:', error);
+        let errorMessage = 'Payment initialization failed';
+        
+        if (error.message.includes('Failed to fetch')) {
+            errorMessage = 'Network error - Please check your connection';
+        } else if (error.message.includes('Payment service error')) {
+            errorMessage = 'Payment service unavailable - Please try again later';
+        } else if (error.message) {
+            errorMessage = error.message;
+        }
+        
+        showToast(errorMessage, 'error');
     } finally {
         hideLoading();
     }

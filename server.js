@@ -14,12 +14,23 @@ app.use(express.static('public'));
 
 // Initialize Razorpay
 let razorpay = null;
+console.log('Razorpay Key ID:', process.env.RAZORPAY_KEY_ID ? `${process.env.RAZORPAY_KEY_ID.substring(0, 10)}...` : 'Missing');
+console.log('Razorpay Key Secret:', process.env.RAZORPAY_KEY_SECRET ? `${process.env.RAZORPAY_KEY_SECRET.substring(0, 10)}...` : 'Missing');
+
 if (process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET && 
-    process.env.RAZORPAY_KEY_ID !== 'your_actual_razorpay_key_id_here') {
-  razorpay = new Razorpay({
-    key_id: process.env.RAZORPAY_KEY_ID,
-    key_secret: process.env.RAZORPAY_KEY_SECRET
-  });
+    process.env.RAZORPAY_KEY_ID !== 'your_actual_razorpay_key_id_here' &&
+    process.env.RAZORPAY_KEY_SECRET !== 'your_actual_razorpay_secret_here') {
+  try {
+    razorpay = new Razorpay({
+      key_id: process.env.RAZORPAY_KEY_ID,
+      key_secret: process.env.RAZORPAY_KEY_SECRET
+    });
+    console.log('Razorpay initialized successfully');
+  } catch (error) {
+    console.error('Razorpay initialization failed:', error.message);
+  }
+} else {
+  console.warn('Razorpay not initialized - Missing or invalid credentials');
 }
 
 // Enhanced AI Resume Generation with multiple features
@@ -87,14 +98,26 @@ app.post('/api/analyze-job', async (req, res) => {
   try {
     const { jobDescription } = req.body;
 
-    if (!process.env.DEEPSEEK_API_KEY || process.env.DEEPSEEK_API_KEY === 'your_actual_deepseek_api_key_here') {
+    console.log('Job analysis request received');
+    console.log('Job description length:', jobDescription?.length || 0);
+    console.log('Environment check - DEEPSEEK_API_KEY:', process.env.DEEPSEEK_API_KEY ? `Present (${process.env.DEEPSEEK_API_KEY.substring(0, 10)}...)` : 'Missing');
+
+    if (!jobDescription || jobDescription.trim().length === 0) {
       return res.status(400).json({ 
         success: false, 
-        error: 'AI service not configured. Please add your Deepseek API key.' 
+        error: 'Job description is required' 
       });
     }
 
-    const prompt = `Analyze this job description and extract key information. Return a JSON object with:
+    if (!process.env.DEEPSEEK_API_KEY || process.env.DEEPSEEK_API_KEY === 'your_actual_deepseek_api_key_here') {
+      console.error('DEEPSEEK_API_KEY not configured properly');
+      return res.status(400).json({ 
+        success: false, 
+        error: 'AI service not configured. Please add your Deepseek API key in environment variables.' 
+      });
+    }
+
+    const prompt = `Analyze this job description and extract key information. Return ONLY a valid JSON object with:
     - requiredSkills: array of 5-8 key skills
     - experienceLevel: string (entry, mid, senior, executive)
     - industry: string 
@@ -102,14 +125,14 @@ app.post('/api/analyze-job', async (req, res) => {
 
     Job Description: ${jobDescription}`;
 
-    console.log('Making API call to Deepseek with key:', process.env.DEEPSEEK_API_KEY ? 'Present' : 'Missing');
+    console.log('Making API call to Deepseek...');
     
     const response = await axios.post('https://api.deepseek.com/v1/chat/completions', {
       model: 'deepseek-chat',
       messages: [
         {
           role: 'system',
-          content: 'You are an expert recruiter. Analyze job descriptions and return only valid JSON.'
+          content: 'You are an expert recruiter. Analyze job descriptions and return only valid JSON without any additional text or formatting.'
         },
         {
           role: 'user',
@@ -126,13 +149,28 @@ app.post('/api/analyze-job', async (req, res) => {
       timeout: 30000
     });
 
+    console.log('API Response received:', response.status);
+    console.log('Response data:', JSON.stringify(response.data, null, 2));
+
     let analysis;
     try {
-      analysis = JSON.parse(response.data.choices[0].message.content);
+      const aiResponse = response.data.choices[0].message.content;
+      console.log('AI Response content:', aiResponse);
+      
+      // Try to extract JSON if wrapped in markdown or other formatting
+      let jsonString = aiResponse;
+      const jsonMatch = aiResponse.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        jsonString = jsonMatch[0];
+      }
+      
+      analysis = JSON.parse(jsonString);
+      console.log('Parsed analysis:', analysis);
     } catch (parseError) {
+      console.warn('Failed to parse AI response, using fallback:', parseError.message);
       // Fallback analysis if AI response isn't valid JSON
       analysis = {
-        requiredSkills: ['Communication', 'Problem Solving', 'Team Work', 'Leadership'],
+        requiredSkills: ['Communication', 'Problem Solving', 'Team Work', 'Leadership', 'Time Management'],
         experienceLevel: 'mid-level',
         industry: 'General',
         recommendations: [
@@ -150,12 +188,27 @@ app.post('/api/analyze-job', async (req, res) => {
       message: error.message,
       response: error.response?.data,
       status: error.response?.status,
-      headers: error.response?.headers,
-      apiKey: process.env.DEEPSEEK_API_KEY ? 'Set' : 'Not set'
+      config: {
+        url: error.config?.url,
+        method: error.config?.method,
+        headers: error.config?.headers ? { ...error.config.headers, Authorization: '[REDACTED]' } : undefined
+      }
     });
+    
+    let errorMessage = 'Failed to analyze job description';
+    if (error.code === 'ENOTFOUND') {
+      errorMessage = 'Network error - Unable to connect to AI service';
+    } else if (error.response?.status === 401) {
+      errorMessage = 'Invalid API key - Please check your Deepseek API configuration';
+    } else if (error.response?.status === 429) {
+      errorMessage = 'Rate limit exceeded - Please try again in a moment';
+    } else if (error.response?.data?.error?.message) {
+      errorMessage = error.response.data.error.message;
+    }
+    
     res.status(500).json({ 
       success: false, 
-      error: error.response?.data?.error?.message || 'Failed to analyze job description. Please check your API key configuration.',
+      error: errorMessage,
       details: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
@@ -214,18 +267,54 @@ app.post('/api/score-resume', async (req, res) => {
 // Create Razorpay order for premium features
 app.post('/api/create-order', async (req, res) => {
   try {
+    console.log('Payment order request received');
     const { amount, currency = 'INR' } = req.body;
+
+    if (!razorpay) {
+      console.error('Razorpay not initialized');
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Payment service not configured. Please check Razorpay credentials.' 
+      });
+    }
+
+    if (!amount || amount <= 0) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Invalid amount specified' 
+      });
+    }
+
+    console.log(`Creating order for amount: ${amount} ${currency}`);
 
     const order = await razorpay.orders.create({
       amount: amount * 100, // Convert to paise
       currency,
-      receipt: `receipt_${Date.now()}`
+      receipt: `receipt_${Date.now()}`,
+      notes: {
+        purpose: 'AI Resume Builder Premium'
+      }
     });
 
+    console.log('Order created successfully:', order.id);
     res.json({ success: true, order });
   } catch (error) {
-    console.error('Payment Error:', error);
-    res.status(500).json({ success: false, error: 'Failed to create order' });
+    console.error('Payment Error Details:', {
+      message: error.message,
+      response: error.response?.data,
+      status: error.response?.status
+    });
+    
+    let errorMessage = 'Failed to create payment order';
+    if (error.error && error.error.code === 'BAD_REQUEST_ERROR') {
+      errorMessage = 'Invalid payment request - Please check your details';
+    }
+    
+    res.status(500).json({ 
+      success: false, 
+      error: errorMessage,
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
   }
 });
 
