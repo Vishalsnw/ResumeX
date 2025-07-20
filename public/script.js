@@ -1,3 +1,4 @@
+
 // Global variables
 let currentStep = 1;
 let resumeData = {
@@ -380,10 +381,6 @@ function populateFormWithEnhancedData(data) {
     }
 }
 
-function viewTemplates() {
-    alert('Template gallery coming soon! For now, you can create resumes with our AI-powered builder.');
-}
-
 function closeModal() {
     if (modal) modal.style.display = 'none';
     if (previewModal) previewModal.style.display = 'none';
@@ -706,106 +703,6 @@ async function generateAIResume() {
         console.error('AI Resume generation error:', error);
         showToast('Failed to generate AI resume. Please try again.', 'error');
     }
-}
-
-async function generateAIPlusResume() {
-    try {
-        await generateAIResume();
-
-        if (resumeData.targetJobDescription) {
-            await scoreResume();
-        }
-    } catch (error) {
-        console.error('AI Plus generation error:', error);
-        showToast('Failed to generate AI Plus resume. Please try again.', 'error');
-    }
-}
-
-async function scoreResume() {
-    try {
-        const resumeContent = document.getElementById('resumeContent').innerText;
-
-        const response = await fetch('/api/score-resume', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                resumeContent,
-                jobDescription: resumeData.targetJobDescription
-            })
-        });
-
-        const result = await response.json();
-
-        if (result.success) {
-            displayResumeScoring(result.scoring);
-        }
-    } catch (error) {
-        console.error('Resume scoring error:', error);
-        showToast('Failed to score resume', 'error');
-    }
-}
-
-function displayResumeScoring(scoring) {
-    const scoringDiv = document.createElement('div');
-    scoringDiv.className = 'resume-scoring';
-    scoringDiv.innerHTML = `
-        <div class="scoring-header">
-            <h3><i class="fas fa-chart-bar"></i> Resume Analysis</h3>
-            <div class="overall-score">
-                <span class="score-number">${scoring.overallScore}/100</span>
-                <span class="score-label">Overall Match</span>
-            </div>
-        </div>
-        <div class="score-breakdown">
-            <div class="score-item">
-                <span>Keyword Match</span>
-                <div class="score-bar">
-                    <div class="score-fill" style="width: ${scoring.scores.keywordMatch}%"></div>
-                </div>
-                <span>${scoring.scores.keywordMatch}/100</span>
-            </div>
-            <div class="score-item">
-                <span>Experience Relevance</span>
-                <div class="score-bar">
-                    <div class="score-fill" style="width: ${scoring.scores.experienceRelevance}%"></div>
-                </div>
-                <span>${scoring.scores.experienceRelevance}/100</span>
-            </div>
-            <div class="score-item">
-                <span>Skills Alignment</span>
-                <div class="score-bar">
-                    <div class="score-fill" style="width: ${scoring.scores.skillsAlignment}%"></div>
-                </div>
-                <span>${scoring.scores.skillsAlignment}/100</span>
-            </div>
-            <div class="score-item">
-                <span>ATS Compatibility</span>
-                <div class="score-bar">
-                    <div class="score-fill" style="width: ${scoring.scores.atsCompatibility}%"></div>
-                </div>
-                <span>${scoring.scores.atsCompatibility}/100</span>
-            </div>
-        </div>
-        <div class="recommendations">
-            <h4>Improvement Recommendations:</h4>
-            <ul>
-                ${scoring.recommendations.map(rec => `<li>${rec}</li>`).join('')}
-            </ul>
-        </div>
-        ${scoring.missingKeywords && scoring.missingKeywords.length > 0 ? `
-            <div class="missing-keywords">
-                <h4>Consider Adding These Keywords:</h4>
-                <div class="keyword-suggestions">
-                    ${scoring.missingKeywords.map(keyword => `<span class="keyword-suggestion">${keyword}</span>`).join('')}
-                </div>
-            </div>
-        ` : ''}
-    `;
-
-    const previewModal = document.getElementById('resumePreview');
-    previewModal.querySelector('.modal-body').appendChild(scoringDiv);
 }
 
 function createBasicResumeHTML() {
@@ -1579,6 +1476,7 @@ function resetForm() {
     localStorage.removeItem('usedAIEnhancement');
 }
 
+// Smooth scrolling for anchor links
 document.querySelectorAll('a[href^="#"]').forEach(anchor => {
     anchor.addEventListener('click', function (e) {
         e.preventDefault();
@@ -1592,6 +1490,7 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
     });
 });
 
+// Add animation styles
 const style = document.createElement('style');
 style.textContent = `
     @keyframes slideIn {
@@ -1607,7 +1506,7 @@ style.textContent = `
 `;
 document.head.appendChild(style);
 
-// Make all functions globally available
+// Make all functions globally available for HTML onclick handlers
 window.startBuilding = startBuilding;
 window.viewTemplates = viewTemplates;
 window.enhanceExistingResume = enhanceExistingResume;
