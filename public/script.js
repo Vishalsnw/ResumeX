@@ -668,7 +668,7 @@ async function initiatePayment(amount, planName) {
         
         if (result.success) {
             const options = {
-                key: 'your_razorpay_key_id', // This should come from environment
+                key: 'rzp_test_your_actual_key_here', // Replace with your actual Razorpay key_id
                 amount: result.order.amount,
                 currency: result.order.currency,
                 name: 'AI Resume Builder',
