@@ -1087,11 +1087,15 @@ async function initiatePayment(amount, planName) {
         if (result.success && result.order) {
             // Check if Razorpay is loaded
             if (typeof Razorpay === 'undefined') {
-                throw new Error('Razorpay SDK not loaded. Please refresh the page and try again.');
+                throw new Error('Razorpay SDK not loaded. Please refresh the page and try again.');ain.');
             }
 
+            // Get Razorpay key from backend
+            const keyResponse = await fetch('/api/razorpay-key');
+            const keyData = await keyResponse.json();
+            
             const options = {
-                key: 'rzp_test_9WfzZJnPKqfELf', // This should be your actual Razorpay key_id from environment
+                key: keyData.key,
                 amount: result.order.amount,
                 currency: result.order.currency,
                 name: 'AI Resume Builder',
