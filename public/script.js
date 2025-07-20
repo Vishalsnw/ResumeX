@@ -836,12 +836,12 @@ function createTechTemplate() {
         <div class="resume-container tech-template">
             <div class="tech-header">
                 <div class="tech-profile">
-                    <h1>&lt;${resumeData.personalInfo.name}/&gt;</h1>
-                    <div class="tech-title">// ${resumeData.jobTitle}</div>
+                    <h1>&lt;${resumeData.personalInfo.name || 'Developer'}/&gt;</h1>
+                    <div class="tech-title">// ${resumeData.jobTitle || 'Software Engineer'}</div>
                     <div class="tech-contact">
-                        <span>📧 ${resumeData.personalInfo.email}</span>
-                        <span>📱 ${resumeData.personalInfo.phone}</span>
-                        <span>📍 ${resumeData.personalInfo.location}</span>
+                        <span>📧 ${resumeData.personalInfo.email || 'your.email@example.com'}</span>
+                        <span>📱 ${resumeData.personalInfo.phone || '+91 9999999999'}</span>
+                        <span>📍 ${resumeData.personalInfo.location || 'Your Location'}</span>
                     </div>
                 </div>
             </div>
@@ -854,7 +854,28 @@ function createTechTemplate() {
                         </div>
                         <div class="code-content">
                             ${resumeData.experience.map((exp, index) => {
-                                const varName = exp.position.replace(/[^a-zA-Z0-9]/g, '').toLowerCase() || 'experience';
+                                // Handle NA, empty, or invalid values
+                                let company = exp.company || 'TechCompany';
+                                let position = exp.position || 'Developer';
+                                let description = exp.description || 'Key responsibilities and achievements';
+                                
+                                // Replace NA with proper defaults
+                                if (company.toUpperCase() === 'NA' || company.trim() === '') {
+                                    company = 'TechCompany';
+                                }
+                                if (position.toUpperCase() === 'NA' || position.trim() === '') {
+                                    position = 'Developer';
+                                }
+                                if (description.toUpperCase() === 'NA' || description.trim() === '') {
+                                    description = 'Key responsibilities and achievements';
+                                }
+                                
+                                // Create a valid variable name
+                                let varName = position.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
+                                if (!varName || varName === 'na') {
+                                    varName = 'experience' + (index + 1);
+                                }
+                                
                                 const lineStart = index * 6 + 1;
                                 return `
                                 <div class="tech-experience">
@@ -868,25 +889,25 @@ function createTechTemplate() {
                                     <div class="code-line indent">
                                         <span class="line-number">${(lineStart + 1).toString().padStart(2, '0')}</span>
                                         <span class="code-text">
-                                            position: <span class="string">"${exp.position}"</span>,
+                                            position: <span class="string">"${position}"</span>,
                                         </span>
                                     </div>
                                     <div class="code-line indent">
                                         <span class="line-number">${(lineStart + 2).toString().padStart(2, '0')}</span>
                                         <span class="code-text">
-                                            company: <span class="string">"${exp.company}"</span>,
+                                            company: <span class="string">"${company}"</span>,
                                         </span>
                                     </div>
                                     <div class="code-line indent">
                                         <span class="line-number">${(lineStart + 3).toString().padStart(2, '0')}</span>
                                         <span class="code-text">
-                                            period: <span class="string">"${exp.startDate} - ${exp.endDate || 'Present'}"</span>,
+                                            period: <span class="string">"${exp.startDate || '2023-01-01'} - ${exp.endDate || 'Present'}"</span>,
                                         </span>
                                     </div>
                                     <div class="code-line indent">
                                         <span class="line-number">${(lineStart + 4).toString().padStart(2, '0')}</span>
                                         <span class="code-text">
-                                            achievements: <span class="string">"${exp.description}"</span>
+                                            achievements: <span class="string">"${description}"</span>
                                         </span>
                                     </div>
                                     <div class="code-line">
@@ -904,12 +925,18 @@ function createTechTemplate() {
                     <div class="tech-skills">
                         <h3>// Tech Stack</h3>
                         <div class="tech-skills-list">
-                            ${resumeData.skills.map(skill => `
+                            ${resumeData.skills.map(skill => {
+                                const cleanSkill = skill.trim();
+                                if (cleanSkill.toUpperCase() === 'NA' || cleanSkill === '') {
+                                    return '';
+                                }
+                                return `
                                 <div class="tech-skill">
                                     <span class="skill-icon">⚡</span>
-                                    <span>${skill.trim()}</span>
+                                    <span>${cleanSkill}</span>
                                 </div>
-                            `).join('')}
+                            `;
+                            }).join('')}
                         </div>
                     </div>
 
@@ -917,11 +944,11 @@ function createTechTemplate() {
                         <h3>// Education</h3>
                         <div class="edu-item">
                             <span class="keyword">import</span> knowledge <span class="keyword">from</span> 
-                            <span class="string">"${resumeData.education}"</span>;
+                            <span class="string">"${resumeData.education && resumeData.education.toUpperCase() !== 'NA' ? resumeData.education : 'Bachelor of Technology'}"</span>;
                         </div>
                     </div>
 
-                    ${resumeData.certifications ? `
+                    ${resumeData.certifications && resumeData.certifications.toUpperCase() !== 'NA' ? `
                         <div class="tech-certifications">
                             <h3>// Certifications</h3>
                             <div class="cert-item">
