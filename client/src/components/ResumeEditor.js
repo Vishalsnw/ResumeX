@@ -98,20 +98,10 @@ const ResumeEditor = () => {
       formData.append('resume', file);
 
       try {
-        const response = await fetch('/api/ai/analyze-resume', {
-          method: 'POST',
-          body: formData
-        });
+        const analyzedData = await APIService.analyzeResume(file);
 
         clearInterval(progressInterval);
         setUploadProgress(100);
-
-        if (!response.ok) {
-          const errorData = await response.json().catch(() => ({}));
-          throw new Error(errorData.message || `Analysis failed: ${response.status}`);
-        }
-
-        const analyzedData = await response.json();
         
         // Fill form with extracted data
         setResume({

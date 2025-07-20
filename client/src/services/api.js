@@ -107,17 +107,37 @@ class APIService {
       const formData = new FormData();
       formData.append('resume', file);
 
-      const response = await fetch(`${this.baseURL}/api/ai/analyze-resume`, {
-        method: 'POST',
-        body: formData
-      });
+      // Try multiple endpoints for better reliability
+      const endpoints = [
+        `${this.baseURL}/api/ai/analyze-resume`,
+        '/api/ai/analyze-resume'
+      ];
 
-      if (!response.ok) {
-        throw new Error('Failed to analyze resume');
+      let lastError;
+      
+      for (const endpoint of endpoints) {
+        try {
+          console.log('Trying endpoint:', endpoint);
+          const response = await fetch(endpoint, {
+            method: 'POST',
+            body: formData
+          });
+
+          if (response.ok) {
+            const data = await response.json();
+            console.log('Resume analysis successful');
+            return data;
+          } else {
+            const errorData = await response.json().catch(() => ({}));
+            lastError = new Error(errorData.message || `Server error: ${response.status}`);
+          }
+        } catch (fetchError) {
+          lastError = fetchError;
+          console.log('Endpoint failed:', endpoint, fetchError.message);
+        }
       }
 
-      const data = await response.json();
-      return data;
+      throw lastError;
     } catch (error) {
       console.error('Resume analysis error:', error);
 
