@@ -1004,7 +1004,7 @@ function createAIResumeHTML(aiContent) {
                 <p>${section.content}</p>
             </div>
         `).join('')` : ''}
-    `;
+`;
 }
 
 // Preview and export functions
