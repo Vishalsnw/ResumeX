@@ -254,11 +254,8 @@ function selectTemplate(templateName) {
     });
     document.querySelector(`[data-template="${templateName}"]`).classList.add('selected');
     
-    // Check if premium template
-    const isPremium = ['creative', 'executive'].includes(templateName);
-    if (isPremium && !checkPremiumAccess()) {
-        showToast('This template requires a premium subscription', 'info');
-    }
+    // All templates are now free to use
+    showToast(`${templateName.charAt(0).toUpperCase() + templateName.slice(1)} template selected!`, 'success');
 }
 
 // Data collection
@@ -946,6 +943,13 @@ function editResume() {
 }
 
 function downloadPDF() {
+    // Check for premium access for downloads
+    if (!checkPremiumAccess()) {
+        showToast('PDF download requires premium access. Upgrade to download your resume!', 'info');
+        upgradeToPremium();
+        return;
+    }
+    
     // Simple print functionality - in production, you'd use a proper PDF library
     const printContent = document.getElementById('resumeContent').innerHTML;
     const printWindow = window.open('', '_blank');
