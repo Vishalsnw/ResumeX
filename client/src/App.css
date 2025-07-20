@@ -1,101 +1,91 @@
 
+/* Global mobile-first styles */
 * {
-  margin: 0;
-  padding: 0;
   box-sizing: border-box;
 }
 
 body {
+  margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
     'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background-color: #f5f5f5;
+  background-color: #f8f9fa;
+  line-height: 1.6;
 }
 
 .App {
   min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-}
-
-.main-content {
-  flex: 1;
-  padding: 20px;
-}
-
-.loading {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
-  font-size: 18px;
 }
 
 .container {
-  max-width: 1200px;
+  width: 100%;
+  max-width: 100%;
   margin: 0 auto;
-  padding: 0 20px;
-}
-
-.card {
-  background: white;
-  border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-  padding: 20px;
-  margin-bottom: 20px;
+  padding: 10px;
 }
 
 .btn {
-  background: #007bff;
+  display: inline-block;
+  padding: 12px 16px;
+  margin: 4px 2px;
+  background-color: #007bff;
   color: white;
+  text-decoration: none;
   border: none;
-  padding: 10px 20px;
-  border-radius: 5px;
+  border-radius: 6px;
   cursor: pointer;
-  font-size: 16px;
-  transition: background 0.3s;
+  font-size: 14px;
+  font-weight: 500;
+  text-align: center;
+  transition: all 0.3s ease;
+  min-height: 44px; /* Touch-friendly minimum */
 }
 
 .btn:hover {
-  background: #0056b3;
+  background-color: #0056b3;
+  transform: translateY(-1px);
 }
 
-.btn-secondary {
-  background: #6c757d;
+.btn:active {
+  transform: translateY(0);
 }
 
-.btn-secondary:hover {
-  background: #545b62;
-}
-
-.btn-success {
-  background: #28a745;
-}
-
-.btn-success:hover {
-  background: #1e7e34;
+.btn:disabled {
+  background-color: #6c757d;
+  cursor: not-allowed;
+  opacity: 0.6;
 }
 
 .form-group {
-  margin-bottom: 15px;
+  margin-bottom: 1rem;
 }
 
 .form-group label {
   display: block;
-  margin-bottom: 5px;
-  font-weight: bold;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+  color: #555;
 }
 
 .form-group input,
 .form-group textarea,
 .form-group select {
   width: 100%;
-  padding: 8px 12px;
+  padding: 12px;
   border: 1px solid #ddd;
   border-radius: 4px;
-  font-size: 16px;
+  font-size: 16px; /* Prevents zoom on iOS */
+  transition: border-color 0.3s ease;
+}
+
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 0 2px rgba(0,123,255,0.25);
 }
 
 .form-group textarea {
@@ -106,9 +96,94 @@ body {
 .error {
   color: #dc3545;
   margin-top: 10px;
+  padding: 8px 12px;
+  background-color: #f8d7da;
+  border: 1px solid #f5c6cb;
+  border-radius: 4px;
+  font-size: 14px;
 }
 
 .success {
-  color: #28a745;
+  color: #155724;
   margin-top: 10px;
+  padding: 8px 12px;
+  background-color: #d4edda;
+  border: 1px solid #c3e6cb;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.loading {
+  text-align: center;
+  padding: 2rem;
+  color: #666;
+  font-size: 16px;
+}
+
+/* Responsive grid utilities */
+.grid {
+  display: grid;
+  gap: 1rem;
+}
+
+.grid-cols-1 {
+  grid-template-columns: 1fr;
+}
+
+/* Tablet breakpoint */
+@media (min-width: 768px) {
+  .container {
+    padding: 20px;
+    max-width: 1200px;
+  }
+  
+  .grid-cols-md-2 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .btn {
+    font-size: 16px;
+  }
+}
+
+/* Desktop breakpoint */
+@media (min-width: 1024px) {
+  .container {
+    padding: 30px;
+  }
+  
+  .grid-cols-lg-3 {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* Large desktop breakpoint */
+@media (min-width: 1200px) {
+  .grid-cols-xl-4 {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+/* Touch-friendly improvements */
+@media (hover: none) {
+  .btn:hover {
+    transform: none;
+    background-color: #007bff;
+  }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  body {
+    background-color: #121212;
+    color: #ffffff;
+  }
+  
+  .form-group input,
+  .form-group textarea,
+  .form-group select {
+    background-color: #1e1e1e;
+    border-color: #333;
+    color: #ffffff;
+  }
 }

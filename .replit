@@ -1,7 +1,7 @@
 modules = ["nodejs-20"]
 
 [workflows]
-runButton = "Development Server"
+runButton = "Full Stack Server"
 
 [[workflows.workflow]]
 name = "ResumeX Server"
@@ -20,6 +20,19 @@ mode = "parallel"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "cd client && npm start"
+
+[[workflows.workflow]]
+name = "Full Stack Server"
+author = 43564906
+mode = "parallel"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "cd client && npm start"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "node server/index.js"
 
 [nix]
 channel = "stable-24_05"
