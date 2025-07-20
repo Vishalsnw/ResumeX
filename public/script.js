@@ -1,18 +1,20 @@
 // Global variables - Initialize only if not already defined
-window.currentStep = window.currentStep || 1;
-window.resumeData = window.resumeData || {
-    personalInfo: {},
-    experience: [],
-    skills: [],
-    jobTitle: '',
-    targetJobDescription: ''
-};
-window.uploadedResumeFile = window.uploadedResumeFile || null;
-window.enhancedResumeData = window.enhancedResumeData || null;
-window.isProcessing = window.isProcessing || false;
-window.selectedTemplate = window.selectedTemplate || 'modern';
-window.jobAnalysisData = window.jobAnalysisData || null;
-window.hasUsedAI = window.hasUsedAI || false;
+if (typeof window.currentStep === 'undefined') {
+    window.currentStep = 1;
+    window.resumeData = {
+        personalInfo: {},
+        experience: [],
+        skills: [],
+        jobTitle: '',
+        targetJobDescription: ''
+    };
+    window.uploadedResumeFile = null;
+    window.enhancedResumeData = null;
+    window.isProcessing = false;
+    window.selectedTemplate = 'modern';
+    window.jobAnalysisData = null;
+    window.hasUsedAI = false;
+}
 
 // Local references to global variables
 let currentStep = window.currentStep;
