@@ -882,7 +882,7 @@ body {
     left: 16px;
     top: 50%;
     transform: translateY(-50%);
-    color: #94a3b8;
+    color: #94aa3b8;
     font-size: 16px;
     z-index: 1;
 }
@@ -1614,6 +1614,712 @@ body {
     .footer-links {
         flex-wrap: wrap;
         justify-content: center;
+    }
+}
+
+/* CSS styles for generate button */
+.add-btn:hover {
+    background: #27ae60;
+    transform: translateY(-1px);
+}
+
+.form-actions {
+    margin-top: 30px;
+    text-align: center;
+}
+
+.generate-btn {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    padding: 15px 30px;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+}
+
+.generate-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+}
+
+.modern-template .experience-item {
+    margin-bottom: 25px;
+    padding: 20px;
+    background: #f8fafc;
+    border-radius: 8px;
+    border-left: 4px solid #4f46e5;
+    page-break-inside: avoid;
+}
+
+.modern-template .experience-header {
+    margin-bottom: 12px;
+}
+
+.modern-template .position-company h3 {
+    font-size: 18px;
+    font-weight: 700;
+    color: #1e293b;
+    margin-bottom: 4px;
+    line-height: 1.3;
+}
+
+.modern-template .position-company h4 {
+    font-size: 16px;
+    font-weight: 600;
+    color: #4f46e5;
+    margin-bottom: 2px;
+}
+
+.modern-template .dates {
+    font-size: 14px;
+    color: #64748b;
+    font-weight: 500;
+    font-style: italic;
+}
+
+.modern-template .description {
+    margin-top: 12px;
+}
+
+.modern-template .description p {
+    margin-bottom: 8px;
+    line-height: 1.6;
+    font-size: 14px;
+    color: #475569;
+}
+
+.modern-template .description p:last-child {
+    margin-bottom: 0;
+}
+
+/* Modern Template Styles */
+.modern-template {
+    background: white;
+    font-family: 'Inter', Arial, sans-serif;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.modern-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 2rem;
+    text-align: center;
+}
+
+.modern-header h1 {
+    font-size: 2.5rem;
+    font-weight: 800;
+    margin-bottom: 0.5rem;
+}
+
+.modern-header .subtitle {
+    font-size: 1.2rem;
+    opacity: 0.9;
+    margin-bottom: 1rem;
+}
+
+.modern-header .contact-info {
+    display: flex;
+    justify-content: center;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+    font-size: 0.9rem;
+}
+
+.modern-body {
+    display: flex;
+    gap: 2rem;
+    padding: 2rem;
+}
+
+.main-content {
+    flex: 2;
+}
+
+.sidebar {
+    flex: 1;
+    background: #f8fafc;
+    padding: 1.5rem;
+    border-radius: 8px;
+}
+
+.modern-experience {
+    margin-bottom: 1.5rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.modern-experience:last-child {
+    border-bottom: none;
+}
+
+.experience-header {
+    margin-bottom: 0.75rem;
+}
+
+.experience-header h3 {
+    color: #1e293b;
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+}
+
+.experience-header h4 {
+    color: #667eea;
+    font-size: 1rem;
+    font-weight: 500;
+}
+
+.dates {
+    color: #64748b;
+    font-size: 0.9rem;
+    font-style: italic;
+}
+
+.skills-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.skill-tag {
+    background: #667eea;
+    color: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+/* Executive Template Styles */
+.executive-template {
+    background: white;
+    font-family: 'Times New Roman', serif;
+    max-width: 800px;
+    margin: 0 auto;
+    line-height: 1.6;
+}
+
+.executive-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 2rem;
+    border-bottom: 3px solid #2c3e50;
+}
+
+.executive-header h1 {
+    font-size: 2.5rem;
+    color: #2c3e50;
+    font-weight: bold;
+    margin: 0;
+}
+
+.executive-title {
+    font-size: 1.3rem;
+    color: #34495e;
+    font-style: italic;
+    margin-top: 0.5rem;
+}
+
+.executive-contact {
+    text-align: right;
+    font-size: 0.95rem;
+    color: #2c3e50;
+}
+
+.executive-summary {
+    padding: 1.5rem 2rem;
+    background: #ecf0f1;
+}
+
+.executive-summary h2 {
+    color: #2c3e50;
+    margin-bottom: 1rem;
+    font-size: 1.3rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.executive-section {
+    padding: 2rem;
+}
+
+.executive-experience {
+    margin-bottom: 2rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid #bdc3c7;
+}
+
+.executive-experience .experience-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+}
+
+.executive-experience h3 {
+    color: #2c3e50;
+    font-size: 1.2rem;
+    font-weight: bold;
+}
+
+.executive-experience h4 {
+    color: #34495e;
+    font-size: 1rem;
+    font-style: italic;
+}
+
+.competencies-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 0.5rem;
+    margin-top: 1rem;
+}
+
+.competencies-grid span {
+    padding: 0.5rem;
+    background: #3498db;
+    color: white;
+    border-radius: 4px;
+    text-align: center;
+    font-size: 0.9rem;
+}
+
+/* Creative Template Styles */
+.creative-template {
+    display: flex;
+    background: white;
+    font-family: 'Arial', sans-serif;
+    max-width: 800px;
+    margin: 0 auto;
+    min-height: 100vh;
+}
+
+.creative-sidebar {
+    width: 300px;
+    background: linear-gradient(180deg, #e74c3c 0%, #c0392b 100%);
+    color: white;
+    padding: 2rem;
+}
+
+.profile-section {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.profile-circle {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1rem;
+    font-size: 2rem;
+    font-weight: bold;
+}
+
+.profile-section h1 {
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.profile-section .title {
+    font-size: 1rem;
+    opacity: 0.9;
+}
+
+.contact-section h3,
+.skills-section h3 {
+    margin-bottom: 1rem;
+    font-size: 1.1rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.contact-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+    font-size: 0.9rem;
+}
+
+.skill-item {
+    margin-bottom: 1rem;
+}
+
+.skill-bar {
+    height: 8px;
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 4px;
+    margin-top: 0.5rem;
+}
+
+.skill-progress {
+    height: 100%;
+    background: white;
+    border-radius: 4px;
+    transition: width 1s ease;
+}
+
+.creative-main {
+    flex: 1;
+    padding: 2rem;
+}
+
+.creative-experience {
+    position: relative;
+    margin-bottom: 2rem;
+    padding-left: 2rem;
+}
+
+.timeline-dot {
+    position: absolute;
+    left: 0;
+    top: 0.5rem;
+    width: 12px;
+    height: 12px;
+    background: #e74c3c;
+    border-radius: 50%;
+}
+
+.timeline-dot::before {
+    content: '';
+    position: absolute;
+```text
+    left: 5px;
+    top: 12px;
+    width: 2px;
+    height: 100px;
+    background: #e74c3c;
+    opacity: 0.3;
+}
+
+.creative-experience h3 {
+    color: #2c3e50;
+    font-size: 1.2rem;
+    margin-bottom: 0.5rem;
+}
+
+.creative-experience h4 {
+    color: #7f8c8d;
+    font-size: 1rem;
+    margin-bottom: 0.75rem;
+}
+
+/* Classic Template Styles */
+.classic-template {
+    background: white;
+    font-family: 'Times New Roman', serif;
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+.classic-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.classic-header h1 {
+    font-size: 2.2rem;
+    color: #2c3e50;
+    margin-bottom: 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+.classic-divider {
+    border: none;
+    height: 2px;
+    background: #2c3e50;
+    margin: 1rem 0;
+}
+
+.contact-line {
+    font-size: 1rem;
+    color: #34495e;
+    margin-bottom: 1rem;
+}
+
+.objective {
+    font-size: 1.1rem;
+    color: #2c3e50;
+}
+
+.classic-section h2 {
+    font-size: 1.3rem;
+    color: #2c3e50;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    border-bottom: 1px solid #2c3e50;
+    padding-bottom: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.classic-experience {
+    margin-bottom: 1.5rem;
+}
+
+.classic-experience .experience-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
+}
+
+.classic-description {
+    margin-left: 1rem;
+}
+
+/* Minimalist Template Styles */
+.minimalist-template {
+    background: white;
+    font-family: 'Helvetica', Arial, sans-serif;
+    max-width: 700px;
+    margin: 0 auto;
+    padding: 2rem;
+    line-height: 1.5;
+}
+
+.minimalist-header {
+    border-bottom: 1px solid #ddd;
+    padding-bottom: 1rem;
+    margin-bottom: 2rem;
+}
+
+.minimalist-header h1 {
+    font-size: 2rem;
+    font-weight: 300;
+    color: #333;
+    margin-bottom: 0.5rem;
+}
+
+.minimalist-contact {
+    color: #666;
+    font-size: 0.9rem;
+}
+
+.minimalist-section {
+    margin-bottom: 2rem;
+}
+
+.minimalist-section h2 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.minimalist-item {
+    margin-bottom: 1.5rem;
+}
+
+.item-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+}
+
+.position {
+    color: #333;
+}
+
+.company {
+    color: #666;
+}
+
+.dates {
+    color: #999;
+    font-size: 0.9rem;
+}
+
+/* Tech Template Styles */
+.tech-template {
+    background: #1e1e1e;
+    color: #d4d4d4;
+    font-family: 'Consolas', 'Monaco', monospace;
+    max-width: 900px;
+    margin: 0 auto;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.tech-header {
+    background: #252526;
+    padding: 2rem;
+    border-bottom: 1px solid #3e3e42;
+}
+
+.tech-profile h1 {
+    color: #569cd6;
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+}
+
+.tech-title {
+    color: #608b4e;
+    font-size: 1.2rem;
+    margin-bottom: 1rem;
+}
+
+.tech-contact {
+    display: flex;
+    gap: 2rem;
+    font-size: 0.9rem;
+    color: #d4d4d4;
+}
+
+.tech-grid {
+    display: flex;
+}
+
+.tech-main {
+    flex: 2;
+    padding: 1rem;
+}
+
+.code-block {
+    background: #1e1e1e;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.code-header {
+    background: #2d2d30;
+    padding: 0.5rem 1rem;
+    border-bottom: 1px solid #3e3e42;
+}
+
+.code-tab {
+    color: #d4d4d4;
+    font-size: 0.9rem;
+}
+
+.code-content {
+    padding: 1rem;
+}
+
+.code-line {
+    display: flex;
+    align-items: center;
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.line-number {
+    color: #858585;
+    margin-right: 1rem;
+    min-width: 30px;
+}
+
+.code-text {
+    color: #d4d4d4;
+}
+
+.keyword {
+    color: #569cd6;
+}
+
+.variable {
+    color: #9cdcfe;
+}
+
+.string {
+    color: #ce9178;
+}
+
+.tech-sidebar {
+    flex: 1;
+    background: #252526;
+    padding: 1.5rem;
+    border-left: 1px solid #3e3e42;
+}
+
+.tech-skills h3 {
+    color: #608b4e;
+    margin-bottom: 1rem;
+    font-size: 1.1rem;
+}
+
+.tech-skill {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+    color: #d4d4d4;
+}
+
+.skill-icon {
+    color: #f1fa8c;
+}
+
+.tech-experience {
+    margin-bottom: 1.5rem;
+}
+
+.indent {
+    padding-left: 2rem;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .modern-body,
+    .tech-grid,
+    .creative-template {
+        flex-direction: column;
+    }
+
+    .creative-sidebar {
+        width: 100%;
+    }
+
+    .executive-header {
+        flex-direction: column;
+        text-align: center;
+        gap: 1rem;
+    }
+
+    .item-header {
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+
+    .tech-contact {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+}
+
+/* Print Styles */
+@media print {
+    .resume-container {
+        max-width: none;
+        margin: 0;
+        box-shadow: none;
+    }
+
+    .modern-header,
+    .creative-sidebar,
+    .tech-template {
+        background: white !important;
+        color: black !important;
+    }
+
+    .skill-tag,
+    .competencies-grid span {
+        border: 1px solid #333 !important;
+        color: black !important;
+        background: white !important;
     }
 }
 

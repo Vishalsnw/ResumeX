@@ -1,25 +1,33 @@
-// Global variables (initialize only once)
-if (typeof window.currentStep === 'undefined') {
-    window.currentStep = 1;
-    window.resumeData = {
-        personalInfo: {},
-        experience: [],
-        skills: [],
-        jobTitle: '',
-        targetJobDescription: ''
-    };
-    window.uploadedResumeFile = null;
-    window.enhancedResumeData = null;
-    window.isProcessing = false;
-    window.selectedTemplate = 'modern';
-    window.jobAnalysisData = null;
-    window.hasUsedAI = false;
-    
-    // DOM elements
-    window.modal = null;
-    window.previewModal = null;
-    window.loadingOverlay = null;
-}
+// Global variables - prevent redeclaration
+let currentStep = window.currentStep || 1;
+let resumeData = window.resumeData || {
+    personalInfo: {},
+    experience: [],
+    skills: [],
+    jobTitle: '',
+    targetJobDescription: ''
+};
+let uploadedResumeFile = window.uploadedResumeFile || null;
+let enhancedResumeData = window.enhancedResumeData || null;
+let isProcessing = window.isProcessing || false;
+let selectedTemplate = window.selectedTemplate || 'modern';
+let jobAnalysisData = window.jobAnalysisData || null;
+let hasUsedAI = window.hasUsedAI || false;
+
+// DOM elements
+let modal = window.modal || null;
+let previewModal = window.previewModal || null;
+let loadingOverlay = window.loadingOverlay || null;
+
+// Update window references
+window.currentStep = currentStep;
+window.resumeData = resumeData;
+window.uploadedResumeFile = uploadedResumeFile;
+window.enhancedResumeData = enhancedResumeData;
+window.isProcessing = isProcessing;
+window.selectedTemplate = selectedTemplate;
+window.jobAnalysisData = jobAnalysisData;
+window.hasUsedAI = hasUsedAI;
 
 // Initialize the application
 document.addEventListener('DOMContentLoaded', function() {
