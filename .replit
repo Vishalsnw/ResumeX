@@ -1,4 +1,5 @@
 run = "npm start run"
+modules = ["nodejs-20"]
 [nix]
 channel = "stable-24_05"
 
