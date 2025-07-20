@@ -3,14 +3,14 @@ import cors from 'cors';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
+import axios from 'axios';
+import Razorpay from 'razorpay';
 
 dotenv.config();
 
 // Get __dirname equivalent in ES modules
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-
-const Razorpay = require('razorpay');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -476,7 +476,7 @@ app.post('/api/verify-payment', async (req, res) => {
     const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
 
     // Verify signature logic here
-    const crypto = require('crypto');
+    const crypto = await import('crypto');
     const body = razorpay_order_id + "|" + razorpay_payment_id;
     const expectedSignature = crypto
       .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET)
@@ -506,7 +506,7 @@ app.get('/api/status', (req, res) => {
 });
 
 app.listen(PORT, '0.0.0.0', () => {
-  console.log(`Server running on port ${PORT}`);
+  console.log(`Server running on http://0.0.0.0:${PORT}`);
   console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
   console.log(`Deepseek API Key: ${process.env.DEEPSEEK_API_KEY ? 'Configured' : 'Missing'}`);
   console.log(`Razorpay Keys: ${process.env.RAZORPAY_KEY_ID ? 'Configured' : 'Missing'}`);
