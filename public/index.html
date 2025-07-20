@@ -146,7 +146,8 @@
                     <div class="step active" data-step="1">Personal Info</div>
                     <div class="step" data-step="2">Experience</div>
                     <div class="step" data-step="3">Skills</div>
-                    <div class="step" data-step="4">Generate</div>
+                    <div class="step" data-step="4">Template</div>
+                    <div class="step" data-step="5">Generate</div>
                 </div>
 
                 <!-- Step 1: Personal Information & Job Target -->
@@ -257,8 +258,75 @@
                     </div>
                 </div>
 
-                <!-- Step 4: Generate -->
+                <!-- Step 4: Template Selection -->
                 <div id="step4" class="form-step">
+                    <div class="template-selection">
+                        <h3>Choose Your Template</h3>
+                        <div class="template-grid">
+                            <div class="template-card" data-template="modern" onclick="selectTemplate('modern')">
+                                <div class="template-preview modern-preview">
+                                    <div class="template-header"></div>
+                                    <div class="template-content"></div>
+                                </div>
+                                <h4>Modern</h4>
+                                <p>Clean and professional</p>
+                                <span class="template-tag">Free</span>
+                            </div>
+                            <div class="template-card" data-template="classic" onclick="selectTemplate('classic')">
+                                <div class="template-preview classic-preview">
+                                    <div class="template-header"></div>
+                                    <div class="template-content"></div>
+                                </div>
+                                <h4>Classic</h4>
+                                <p>Traditional and elegant</p>
+                                <span class="template-tag">Free</span>
+                            </div>
+                            <div class="template-card premium" data-template="creative" onclick="selectTemplate('creative')">
+                                <div class="template-preview creative-preview">
+                                    <div class="template-header"></div>
+                                    <div class="template-content"></div>
+                                </div>
+                                <h4>Creative</h4>
+                                <p>Eye-catching design</p>
+                                <span class="template-tag premium">Premium</span>
+                            </div>
+                            <div class="template-card premium" data-template="executive" onclick="selectTemplate('executive')">
+                                <div class="template-preview executive-preview">
+                                    <div class="template-header"></div>
+                                    <div class="template-content"></div>
+                                </div>
+                                <h4>Executive</h4>
+                                <p>Senior-level professional</p>
+                                <span class="template-tag premium">Premium</span>
+                            </div>
+                            <div class="template-card premium" data-template="minimalist" onclick="selectTemplate('minimalist')">
+                                <div class="template-preview minimalist-preview">
+                                    <div class="template-header"></div>
+                                    <div class="template-content"></div>
+                                </div>
+                                <h4>Minimalist</h4>
+                                <p>Simple and clean</p>
+                                <span class="template-tag premium">Premium</span>
+                            </div>
+                            <div class="template-card premium" data-template="tech" onclick="selectTemplate('tech')">
+                                <div class="template-preview tech-preview">
+                                    <div class="template-header"></div>
+                                    <div class="template-content"></div>
+                                </div>
+                                <h4>Tech Pro</h4>
+                                <p>Perfect for developers</p>
+                                <span class="template-tag premium">Premium</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button class="btn-secondary" onclick="prevStep()">Previous</button>
+                        <button class="btn-primary" onclick="nextStep()">Next</button>
+                    </div>
+                </div>
+
+                <!-- Step 5: Generate -->
+                <div id="step5" class="form-step">
                     <div class="generate-options">
                         <h3>Choose Generation Option</h3>
                         <div class="option-cards">
@@ -273,6 +341,12 @@
                                 <h4>AI-Enhanced Resume</h4>
                                 <p>AI-optimized content for better results</p>
                                 <span class="price-tag">Premium</span>
+                            </div>
+                            <div class="option-card pro" onclick="generateResume('ai-plus')">
+                                <i class="fas fa-star"></i>
+                                <h4>AI Plus with Scoring</h4>
+                                <p>AI content + job match scoring</p>
+                                <span class="price-tag">Pro</span>
                             </div>
                         </div>
                     </div>

@@ -124,7 +124,7 @@ function updateStepDisplay() {
 }
 
 function updateProgress() {
-    const progressPercent = (currentStep / 4) * 100;
+    const progressPercent = (currentStep / 5) * 100;
     // You can add a progress bar here if needed
 }
 
@@ -479,46 +479,389 @@ function displayResumeScoring(scoring) {
 }
 
 function createBasicResumeHTML() {
+    const templateClass = `template-${selectedTemplate}`;
+    
+    switch(selectedTemplate) {
+        case 'modern':
+            return createModernTemplate();
+        case 'classic':
+            return createClassicTemplate();
+        case 'creative':
+            return createCreativeTemplate();
+        case 'executive':
+            return createExecutiveTemplate();
+        case 'minimalist':
+            return createMinimalistTemplate();
+        case 'tech':
+            return createTechTemplate();
+        default:
+            return createModernTemplate();
+    }
+}
+
+function createModernTemplate() {
     return `
-        <div class="resume-header">
-            <h1>${resumeData.personalInfo.name}</h1>
-            <p>${resumeData.jobTitle}</p>
-            <p>${resumeData.personalInfo.email} | ${resumeData.personalInfo.phone} | ${resumeData.personalInfo.location}</p>
-        </div>
-        
-        <div class="resume-section">
-            <h2>Experience</h2>
-            ${resumeData.experience.map(exp => `
-                <div class="experience-item-resume">
-                    <div class="experience-header">
-                        <div class="company-position">
-                            <strong>${exp.position}</strong> at ${exp.company}
-                        </div>
-                        <div class="dates">${exp.startDate} - ${exp.endDate || 'Present'}</div>
-                    </div>
-                    <p>${exp.description || 'Responsibilities and achievements will be listed here.'}</p>
+        <div class="resume-container modern-template">
+            <div class="resume-header modern-header">
+                <h1>${resumeData.personalInfo.name}</h1>
+                <div class="subtitle">${resumeData.jobTitle}</div>
+                <div class="contact-info">
+                    <span><i class="fas fa-envelope"></i> ${resumeData.personalInfo.email}</span>
+                    <span><i class="fas fa-phone"></i> ${resumeData.personalInfo.phone}</span>
+                    <span><i class="fas fa-map-marker-alt"></i> ${resumeData.personalInfo.location}</span>
                 </div>
-            `).join('')}
-        </div>
-        
-        <div class="resume-section">
-            <h2>Skills</h2>
-            <p>${resumeData.skills.join(', ')}</p>
-        </div>
-        
-        ${resumeData.education ? `
-            <div class="resume-section">
-                <h2>Education</h2>
-                <p>${resumeData.education}</p>
             </div>
-        ` : ''}
-        
-        ${resumeData.certifications ? `
-            <div class="resume-section">
-                <h2>Certifications</h2>
-                <p>${resumeData.certifications}</p>
+            
+            <div class="resume-body modern-body">
+                <div class="main-content">
+                    <div class="resume-section">
+                        <h2><i class="fas fa-briefcase"></i> Experience</h2>
+                        ${resumeData.experience.map(exp => `
+                            <div class="experience-item modern-experience">
+                                <div class="experience-header">
+                                    <div class="position-company">
+                                        <h3>${exp.position}</h3>
+                                        <h4>${exp.company}</h4>
+                                    </div>
+                                    <div class="dates">${exp.startDate} - ${exp.endDate || 'Present'}</div>
+                                </div>
+                                <p>${exp.description || 'Key responsibilities and achievements will be listed here.'}</p>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+                
+                <div class="sidebar">
+                    <div class="resume-section">
+                        <h2><i class="fas fa-cog"></i> Skills</h2>
+                        <div class="skills-grid">
+                            ${resumeData.skills.map(skill => `<span class="skill-tag">${skill}</span>`).join('')}
+                        </div>
+                    </div>
+                    
+                    ${resumeData.education ? `
+                        <div class="resume-section">
+                            <h2><i class="fas fa-graduation-cap"></i> Education</h2>
+                            <p>${resumeData.education}</p>
+                        </div>
+                    ` : ''}
+                    
+                    ${resumeData.certifications ? `
+                        <div class="resume-section">
+                            <h2><i class="fas fa-certificate"></i> Certifications</h2>
+                            <p>${resumeData.certifications}</p>
+                        </div>
+                    ` : ''}
+                </div>
             </div>
-        ` : ''}
+        </div>
+    `;
+}
+
+function createClassicTemplate() {
+    return `
+        <div class="resume-container classic-template">
+            <div class="resume-header classic-header">
+                <h1>${resumeData.personalInfo.name}</h1>
+                <hr class="classic-divider">
+                <div class="contact-line">
+                    ${resumeData.personalInfo.email} • ${resumeData.personalInfo.phone} • ${resumeData.personalInfo.location}
+                </div>
+                <div class="objective">
+                    <strong>${resumeData.jobTitle}</strong>
+                </div>
+            </div>
+            
+            <div class="resume-section classic-section">
+                <h2>PROFESSIONAL EXPERIENCE</h2>
+                ${resumeData.experience.map(exp => `
+                    <div class="experience-item classic-experience">
+                        <div class="experience-header">
+                            <div><strong>${exp.position}</strong> | ${exp.company}</div>
+                            <div class="dates">${exp.startDate} - ${exp.endDate || 'Present'}</div>
+                        </div>
+                        <ul class="classic-list">
+                            <li>${exp.description || 'Key responsibilities and achievements'}</li>
+                        </ul>
+                    </div>
+                `).join('')}
+            </div>
+            
+            <div class="resume-section classic-section">
+                <h2>CORE COMPETENCIES</h2>
+                <p>${resumeData.skills.join(' • ')}</p>
+            </div>
+            
+            ${resumeData.education ? `
+                <div class="resume-section classic-section">
+                    <h2>EDUCATION</h2>
+                    <p>${resumeData.education}</p>
+                </div>
+            ` : ''}
+            
+            ${resumeData.certifications ? `
+                <div class="resume-section classic-section">
+                    <h2>CERTIFICATIONS</h2>
+                    <p>${resumeData.certifications}</p>
+                </div>
+            ` : ''}
+        </div>
+    `;
+}
+
+function createCreativeTemplate() {
+    return `
+        <div class="resume-container creative-template">
+            <div class="creative-sidebar">
+                <div class="profile-section">
+                    <div class="profile-circle">
+                        <span>${resumeData.personalInfo.name.charAt(0)}</span>
+                    </div>
+                    <h1>${resumeData.personalInfo.name}</h1>
+                    <div class="title">${resumeData.jobTitle}</div>
+                </div>
+                
+                <div class="contact-section">
+                    <h3>Contact</h3>
+                    <div class="contact-item">
+                        <i class="fas fa-envelope"></i>
+                        <span>${resumeData.personalInfo.email}</span>
+                    </div>
+                    <div class="contact-item">
+                        <i class="fas fa-phone"></i>
+                        <span>${resumeData.personalInfo.phone}</span>
+                    </div>
+                    <div class="contact-item">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <span>${resumeData.personalInfo.location}</span>
+                    </div>
+                </div>
+                
+                <div class="skills-section">
+                    <h3>Skills</h3>
+                    ${resumeData.skills.map(skill => `
+                        <div class="skill-item">
+                            <span>${skill}</span>
+                            <div class="skill-bar">
+                                <div class="skill-progress"></div>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+            
+            <div class="creative-main">
+                <div class="resume-section">
+                    <h2>Experience</h2>
+                    ${resumeData.experience.map(exp => `
+                        <div class="experience-item creative-experience">
+                            <div class="timeline-dot"></div>
+                            <div class="experience-content">
+                                <h3>${exp.position}</h3>
+                                <h4>${exp.company} • ${exp.startDate} - ${exp.endDate || 'Present'}</h4>
+                                <p>${exp.description || 'Key responsibilities and achievements'}</p>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+                
+                ${resumeData.education ? `
+                    <div class="resume-section">
+                        <h2>Education</h2>
+                        <p>${resumeData.education}</p>
+                    </div>
+                ` : ''}
+            </div>
+        </div>
+    `;
+}
+
+function createExecutiveTemplate() {
+    return `
+        <div class="resume-container executive-template">
+            <div class="executive-header">
+                <div class="name-title">
+                    <h1>${resumeData.personalInfo.name}</h1>
+                    <div class="executive-title">${resumeData.jobTitle}</div>
+                </div>
+                <div class="executive-contact">
+                    <div>${resumeData.personalInfo.email}</div>
+                    <div>${resumeData.personalInfo.phone}</div>
+                    <div>${resumeData.personalInfo.location}</div>
+                </div>
+            </div>
+            
+            <div class="executive-summary">
+                <h2>Executive Summary</h2>
+                <p>Accomplished ${resumeData.jobTitle} with extensive experience in driving business growth and operational excellence.</p>
+            </div>
+            
+            <div class="resume-section executive-section">
+                <h2>Professional Experience</h2>
+                ${resumeData.experience.map(exp => `
+                    <div class="experience-item executive-experience">
+                        <div class="experience-header">
+                            <div class="left-column">
+                                <h3>${exp.position}</h3>
+                                <h4>${exp.company}</h4>
+                            </div>
+                            <div class="right-column">
+                                <div class="dates">${exp.startDate} - ${exp.endDate || 'Present'}</div>
+                            </div>
+                        </div>
+                        <div class="executive-achievements">
+                            <p>${exp.description || 'Strategic leadership and key accomplishments'}</p>
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+            
+            <div class="executive-footer">
+                <div class="footer-section">
+                    <h3>Core Competencies</h3>
+                    <div class="competencies-grid">
+                        ${resumeData.skills.map(skill => `<span>${skill}</span>`).join('')}
+                    </div>
+                </div>
+                
+                ${resumeData.education ? `
+                    <div class="footer-section">
+                        <h3>Education</h3>
+                        <p>${resumeData.education}</p>
+                    </div>
+                ` : ''}
+            </div>
+        </div>
+    `;
+}
+
+function createMinimalistTemplate() {
+    return `
+        <div class="resume-container minimalist-template">
+            <header class="minimalist-header">
+                <h1>${resumeData.personalInfo.name}</h1>
+                <div class="minimalist-contact">
+                    ${resumeData.personalInfo.email} | ${resumeData.personalInfo.phone} | ${resumeData.personalInfo.location}
+                </div>
+            </header>
+            
+            <section class="minimalist-section">
+                <h2>${resumeData.jobTitle}</h2>
+            </section>
+            
+            <section class="minimalist-section">
+                <h2>Experience</h2>
+                ${resumeData.experience.map(exp => `
+                    <div class="minimalist-item">
+                        <div class="item-header">
+                            <span class="position">${exp.position}</span>
+                            <span class="company">${exp.company}</span>
+                            <span class="dates">${exp.startDate}—${exp.endDate || 'Present'}</span>
+                        </div>
+                        <p class="item-description">${exp.description || 'Key responsibilities and achievements'}</p>
+                    </div>
+                `).join('')}
+            </section>
+            
+            <section class="minimalist-section">
+                <h2>Skills</h2>
+                <p>${resumeData.skills.join(', ')}</p>
+            </section>
+            
+            ${resumeData.education ? `
+                <section class="minimalist-section">
+                    <h2>Education</h2>
+                    <p>${resumeData.education}</p>
+                </section>
+            ` : ''}
+        </div>
+    `;
+}
+
+function createTechTemplate() {
+    return `
+        <div class="resume-container tech-template">
+            <div class="tech-header">
+                <div class="tech-profile">
+                    <h1>&lt;${resumeData.personalInfo.name}/&gt;</h1>
+                    <div class="tech-title">// ${resumeData.jobTitle}</div>
+                    <div class="tech-contact">
+                        <span>📧 ${resumeData.personalInfo.email}</span>
+                        <span>📱 ${resumeData.personalInfo.phone}</span>
+                        <span>📍 ${resumeData.personalInfo.location}</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="tech-grid">
+                <div class="tech-main">
+                    <div class="code-block">
+                        <div class="code-header">
+                            <span class="code-tab">experience.js</span>
+                        </div>
+                        <div class="code-content">
+                            ${resumeData.experience.map((exp, index) => `
+                                <div class="tech-experience">
+                                    <div class="code-line">
+                                        <span class="line-number">${(index + 1).toString().padStart(2, '0')}</span>
+                                        <span class="code-text">
+                                            <span class="keyword">const</span> 
+                                            <span class="variable">${exp.position.replace(/\s+/g, '')}</span> = {
+                                        </span>
+                                    </div>
+                                    <div class="code-line indent">
+                                        <span class="line-number">${(index + 2).toString().padStart(2, '0')}</span>
+                                        <span class="code-text">
+                                            company: <span class="string">"${exp.company}"</span>,
+                                        </span>
+                                    </div>
+                                    <div class="code-line indent">
+                                        <span class="line-number">${(index + 3).toString().padStart(2, '0')}</span>
+                                        <span class="code-text">
+                                            period: <span class="string">"${exp.startDate} - ${exp.endDate || 'Present'}"</span>,
+                                        </span>
+                                    </div>
+                                    <div class="code-line indent">
+                                        <span class="line-number">${(index + 4).toString().padStart(2, '0')}</span>
+                                        <span class="code-text">
+                                            achievements: <span class="string">"${exp.description || 'Key contributions'}"</span>
+                                        </span>
+                                    </div>
+                                    <div class="code-line">
+                                        <span class="line-number">${(index + 5).toString().padStart(2, '0')}</span>
+                                        <span class="code-text">};</span>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="tech-sidebar">
+                    <div class="tech-skills">
+                        <h3>// Tech Stack</h3>
+                        <div class="tech-skills-list">
+                            ${resumeData.skills.map(skill => `
+                                <div class="tech-skill">
+                                    <span class="skill-icon">⚡</span>
+                                    <span>${skill}</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                    
+                    ${resumeData.education ? `
+                        <div class="tech-education">
+                            <h3>// Education</h3>
+                            <div class="edu-item">
+                                <span class="keyword">import</span> knowledge <span class="keyword">from</span> 
+                                <span class="string">"${resumeData.education}"</span>;
+                            </div>
+                        </div>
+                    ` : ''}
+                </div>
+            </div>
+        </div>
     `;
 }
 
