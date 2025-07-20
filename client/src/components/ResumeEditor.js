@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import './ResumeEditor.css';
 
@@ -32,9 +32,9 @@ const ResumeEditor = () => {
     if (id) {
       fetchResume();
     }
-  }, [id]);
+  }, [id, fetchResume]);
 
-  const fetchResume = () => {
+  const fetchResume = useCallback(() => {
     setLoading(true);
     try {
       const savedResumes = localStorage.getItem('resumex_resumes');
@@ -52,7 +52,7 @@ const ResumeEditor = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [id]);
 
   const saveResume = () => {
     setSaving(true);
