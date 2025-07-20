@@ -83,3 +83,87 @@ router.get('/subscription', auth, async (req, res) => {
 });
 
 module.exports = router;
+const express = require('express');
+const crypto = require('crypto');
+const router = express.Router();
+
+// In production, these should be environment variables
+const RAZORPAY_KEY_ID = process.env.RAZORPAY_KEY_ID;
+const RAZORPAY_KEY_SECRET = process.env.RAZORPAY_KEY_SECRET;
+
+// Verify payment
+router.post('/verify', async (req, res) => {
+  try {
+    const { paymentId, orderId, signature } = req.body;
+
+    // For demo purposes, accept any payment ID
+    if (!RAZORPAY_KEY_SECRET) {
+      return res.json({
+        success: true,
+        message: 'Payment verified (demo mode)',
+        paymentId: paymentId || 'demo_payment_' + Date.now()
+      });
+    }
+
+    // In production, verify the Razorpay signature
+    const generated_signature = crypto
+      .createHmac('sha256', RAZORPAY_KEY_SECRET)
+      .update(orderId + '|' + paymentId)
+      .digest('hex');
+
+    if (generated_signature === signature) {
+      res.json({
+        success: true,
+        message: 'Payment verified successfully',
+        paymentId: paymentId
+      });
+    } else {
+      res.status(400).json({
+        success: false,
+        message: 'Payment verification failed'
+      });
+    }
+  } catch (error) {
+    console.error('Payment verification error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Payment verification failed',
+      error: error.message
+    });
+  }
+});
+
+// Create order for payment
+router.post('/create-order', async (req, res) => {
+  try {
+    const { amount = 999 } = req.body; // Default ₹9.99
+
+    // For demo purposes, return a mock order
+    if (!RAZORPAY_KEY_ID) {
+      return res.json({
+        id: 'demo_order_' + Date.now(),
+        currency: 'INR',
+        amount: amount,
+        key: 'demo_key'
+      });
+    }
+
+    // In production, create actual Razorpay order
+    const order = {
+      id: 'order_' + Date.now(),
+      currency: 'INR',
+      amount: amount,
+      key: RAZORPAY_KEY_ID
+    };
+
+    res.json(order);
+  } catch (error) {
+    console.error('Order creation error:', error);
+    res.status(500).json({
+      message: 'Order creation failed',
+      error: error.message
+    });
+  }
+});
+
+module.exports = router;

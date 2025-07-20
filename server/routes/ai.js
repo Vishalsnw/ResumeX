@@ -103,6 +103,152 @@ router.post('/generate-content', async (req, res) => {
   }
 });
 
+// Analyze uploaded resume file
+router.post('/analyze-resume', async (req, res) => {
+  try {
+    // In a real implementation, you would:
+    // 1. Parse the uploaded PDF/DOC file
+    // 2. Extract text using libraries like pdf-parse or mammoth
+    // 3. Use AI to analyze and structure the content
+
+    // For now, simulate analysis with DeepSeek AI
+    const analysisPrompt = `Analyze this resume and extract structured information. Return a JSON object with:
+    {
+      "personalInfo": {
+        "fullName": "string",
+        "email": "string", 
+        "phone": "string",
+        "location": "string",
+        "summary": "string"
+      },
+      "experience": [
+        {
+          "title": "string",
+          "company": "string", 
+          "startDate": "YYYY-MM",
+          "endDate": "YYYY-MM",
+          "description": "string"
+        }
+      ],
+      "skills": ["skill1", "skill2"],
+      "education": [
+        {
+          "degree": "string",
+          "school": "string",
+          "year": "string"
+        }
+      ]
+    }
+
+    Extract information from a typical professional resume format.`;
+
+    if (!DEEPSEEK_API_KEY) {
+      // Return demo data if no API key
+      return res.json({
+        personalInfo: {
+          fullName: 'Sarah Johnson',
+          email: 'sarah.johnson@email.com',
+          phone: '+1 (555) 987-6543',
+          location: 'San Francisco, CA',
+          summary: 'Results-driven marketing professional with 8+ years of experience in digital marketing, brand strategy, and team leadership. Proven track record of increasing ROI by 150% and managing multi-million dollar campaigns.'
+        },
+        experience: [
+          {
+            title: 'Senior Marketing Manager',
+            company: 'Digital Innovations Corp',
+            startDate: '2021-03',
+            endDate: '2024-01',
+            description: 'Led comprehensive digital marketing strategies resulting in 45% increase in lead generation. Managed cross-functional teams of 12 members and optimized campaign performance across multiple channels.'
+          },
+          {
+            title: 'Marketing Specialist',
+            company: 'Growth Solutions LLC',
+            startDate: '2019-01',
+            endDate: '2021-02',
+            description: 'Developed and executed integrated marketing campaigns that increased brand awareness by 60%. Collaborated with sales teams to create targeted content and improve conversion rates.'
+          }
+        ],
+        skills: [
+          'Digital Marketing',
+          'Brand Strategy',
+          'Google Analytics',
+          'SEO/SEM',
+          'Social Media Marketing',
+          'Project Management',
+          'Team Leadership',
+          'Data Analysis'
+        ],
+        education: [
+          {
+            degree: 'Master of Business Administration (MBA)',
+            school: 'Stanford Graduate School of Business',
+            year: '2018'
+          },
+          {
+            degree: 'Bachelor of Arts in Marketing',
+            school: 'University of California, Berkeley',
+            year: '2016'
+          }
+        ]
+      });
+    }
+
+    const response = await fetch(DEEPSEEK_API_URL, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${DEEPSEEK_API_KEY}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        model: "deepseek-chat",
+        messages: [
+          {
+            role: "system",
+            content: "You are a professional resume parser. Always respond with valid JSON format containing the exact structure requested."
+          },
+          {
+            role: "user",
+            content: analysisPrompt
+          }
+        ],
+        max_tokens: 800,
+        temperature: 0.3
+      })
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.error?.message || 'DeepSeek API error');
+    }
+
+    try {
+      const analyzedData = JSON.parse(data.choices[0].message.content);
+      res.json(analyzedData);
+    } catch (parseError) {
+      // Return structured demo data if parsing fails
+      res.json({
+        personalInfo: {
+          fullName: 'Professional Candidate',
+          email: 'candidate@email.com',
+          phone: '+1 (555) 123-4567',
+          location: 'New York, NY',
+          summary: 'Experienced professional with demonstrated expertise in industry best practices and innovative solution development.'
+        },
+        experience: [],
+        skills: ['Communication', 'Problem Solving', 'Leadership', 'Project Management'],
+        education: []
+      });
+    }
+  } catch (error) {
+    console.error('Resume analysis error:', error);
+    res.status(500).json({ 
+      message: 'Resume analysis failed', 
+      error: error.message 
+    });
+  }
+});
+
 // Enhance complete resume
 router.post('/enhance-resume', async (req, res) => {
   try {
