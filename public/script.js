@@ -245,7 +245,11 @@ async function enhanceExistingResume() {
         if (result.success && result.enhancedData) {
             enhancedResumeData = result.enhancedData;
             populateFormWithEnhancedData(result.enhancedData);
-            showToast('Resume enhanced successfully! Review and edit as needed.', 'success');
+            
+            // Mark that user has used AI enhancement
+            localStorage.setItem('usedAIEnhancement', 'true');
+            
+            showToast('Resume enhanced successfully! Download now requires payment.', 'success');
         } else {
             throw new Error(result.error || 'Enhancement failed - no data returned');
         }
@@ -745,8 +749,12 @@ async function generateAIResume() {
         const result = await response.json();
 
         if (result.success) {
+            // Mark that user has used AI generation
+            localStorage.setItem('usedAIEnhancement', 'true');
+            
             const resumeHTML = createAIResumeHTML(result.content);
             showResumePreview(resumeHTML, result.content);
+            showToast('AI resume generated! Download requires payment.', 'info');
         } else {
             throw new Error(result.error || 'AI generation failed');
         }
@@ -1358,6 +1366,20 @@ function createAIResumeHTML(aiContent) {
 // Preview and export functions
 function showResumePreview(htmlContent) {
     document.getElementById('resumeContent').innerHTML = htmlContent;
+    
+    // Add AI usage indicator if applicable
+    const hasUsedAI = localStorage.getItem('usedAIEnhancement') === 'true';
+    if (hasUsedAI && !checkPremiumAccess()) {
+        const indicator = document.createElement('div');
+        indicator.className = 'ai-usage-indicator';
+        indicator.innerHTML = `
+            <div style="background: #fef3c7; border: 1px solid #f59e0b; padding: 10px; margin: 10px 0; border-radius: 5px; color: #92400e;">
+                <i class="fas fa-robot"></i> <strong>AI Enhanced Resume</strong> - Download requires payment (₹99)
+            </div>
+        `;
+        document.getElementById('resumeContent').insertBefore(indicator, document.getElementById('resumeContent').firstChild);
+    }
+    
     if (modal) modal.style.display = 'none';
     if (previewModal) previewModal.style.display = 'block';
 }
@@ -1368,29 +1390,78 @@ function editResume() {
 }
 
 function downloadPDF() {
-    if (!checkPremiumAccess()) {
-        showToast('PDF download requires payment. Pay ₹99 to download your resume!', 'info');
+    // Check if user has used AI enhancement - if so, require payment
+    const hasUsedAI = localStorage.getItem('usedAIEnhancement') === 'true';
+    
+    if (hasUsedAI && !checkPremiumAccess()) {
+        showToast('You used AI enhancement. Download requires payment of ₹99!', 'info');
         upgradeToDownload();
         return;
     }
+    
+    // For regular resumes without AI enhancement, allow free download
+    if (!hasUsedAI && !checkPremiumAccess()) {
+        // Allow free download for basic resumes
+        performDownload();
+        return;
+    }
+    
+    // Premium users can always download
+    if (checkPremiumAccess()) {
+        performDownload();
+        return;
+    }
+    
+    // Fallback - require payment
+    showToast('PDF download requires payment. Pay ₹99 to download your resume!', 'info');
+    upgradeToDownload();
+}
 
-    const printContent = document.getElementById('resumeContent').innerHTML;
-    const printWindow = window.open('', '_blank');
-    printWindow.document.write(`
-        <html>
-            <head>
-                <title>Resume - ${resumeData.personalInfo.name}</title>
-                <style>
-                    ${getResumeStyles()}
-                </style>
-            </head>
-            <body>
-                ${printContent}
-            </body>
-        </html>
-    `);
-    printWindow.document.close();
-    printWindow.print();
+function performDownload() {
+    try {
+        const resumeContent = document.getElementById('resumeContent');
+        if (!resumeContent) {
+            showToast('No resume content found. Please generate a resume first.', 'error');
+            return;
+        }
+
+        const printContent = resumeContent.innerHTML;
+        if (!printContent || printContent.trim().length === 0) {
+            showToast('Resume content is empty. Please generate a resume first.', 'error');
+            return;
+        }
+
+        const printWindow = window.open('', '_blank');
+        if (!printWindow) {
+            showToast('Popup blocked. Please allow popups and try again.', 'error');
+            return;
+        }
+
+        printWindow.document.write(`
+            <html>
+                <head>
+                    <title>Resume - ${resumeData?.personalInfo?.name || 'Resume'}</title>
+                    <style>
+                        ${getResumeStyles()}
+                    </style>
+                </head>
+                <body>
+                    ${printContent}
+                </body>
+            </html>
+        `);
+        printWindow.document.close();
+        
+        // Add a small delay before printing to ensure content is loaded
+        setTimeout(() => {
+            printWindow.print();
+        }, 500);
+        
+        showToast('Resume download started!', 'success');
+    } catch (error) {
+        console.error('Download error:', error);
+        showToast('Failed to download resume. Please try again.', 'error');
+    }
 }
 
 function getResumeStyles() {
@@ -1517,7 +1588,7 @@ async function verifyPayment(paymentResponse) {
             showToast('Payment successful! Download access activated.', 'success');
             // Automatically trigger download
             setTimeout(() => {
-                downloadPDF();
+                performDownload();
             }, 1000);
         } else {
             throw new Error(result.error || 'Payment verification failed');
@@ -1574,6 +1645,9 @@ function resetForm() {
     firstItem.querySelectorAll('input, textarea').forEach(input => {
         input.value = '';
     });
+    
+    // Reset AI usage tracking for new resume
+    localStorage.removeItem('usedAIEnhancement');
 }
 
 // Smooth scrolling for navigation links
