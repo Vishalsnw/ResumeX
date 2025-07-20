@@ -7,7 +7,11 @@ const Header = () => {
     <header className="header">
       <div className="header-container">
         <Link to="/" className="logo">
-          <img src="/logo.jpg" alt="ResumeX Logo" className="logo-image" />
+          <img src="/logo.jpg" alt="ResumeX" className="logo" onError={(e) => {
+          e.target.style.display = 'none';
+          e.target.nextSibling.style.display = 'inline';
+        }} />
+        <span className="logo-text" style={{display: 'none'}}>📄 ResumeX</span>
           <div className="logo-text">
             <h1>ResumeX</h1>
             <span>AI Resume Builder</span>
