@@ -1,3 +1,4 @@
+
 // Global variables
 let currentStep = 1;
 let resumeData = {
@@ -14,7 +15,7 @@ let selectedTemplate = 'modern';
 let jobAnalysisData = null;
 let hasUsedAI = false;
 
-// DOM elements - declared once
+// DOM elements
 let modal, previewModal, loadingOverlay;
 
 // Start building function - opens the resume builder modal
@@ -24,7 +25,6 @@ function startBuilding() {
     if (modal) {
         modal.style.display = 'block';
         document.body.style.overflow = 'hidden';
-        // Reset to first step
         currentStep = 1;
         showStep(1);
         updateProgress();
@@ -160,14 +160,13 @@ function handleFileUpload(file) {
         return;
     }
 
-    if (file.size > 10 * 1024 * 1024) { // 10MB limit
+    if (file.size > 10 * 1024 * 1024) {
         showToast('File size must be less than 10MB', 'error');
         return;
     }
 
     uploadedResumeFile = file;
 
-    // Show uploaded file info
     const uploadArea = document.getElementById('resumeUploadArea');
     const placeholder = uploadArea.querySelector('.upload-placeholder');
     const uploadedInfo = document.getElementById('uploadedFileInfo');
@@ -179,7 +178,6 @@ function handleFileUpload(file) {
     fileName.textContent = file.name;
     enhanceBtn.style.display = 'inline-block';
 
-    // Show specific message for PDF files
     if (file.type === 'application/pdf') {
         showToast('PDF uploaded! AI will extract and enhance the text content.', 'success');
     } else {
@@ -216,7 +214,6 @@ async function enhanceExistingResume() {
     try {
         console.log('Starting resume enhancement...');
 
-        // Convert file to text
         const fileText = await readFileAsText(uploadedResumeFile);
         console.log('File text extracted, length:', fileText.length);
 
@@ -256,10 +253,7 @@ async function enhanceExistingResume() {
 
         if (result.success && result.enhancedData) {
             populateFormWithEnhancedData(result.enhancedData);
-
-            // Mark that user has used AI enhancement
             localStorage.setItem('usedAIEnhancement', 'true');
-
             showToast('Resume enhanced successfully! Download now requires payment.', 'success');
         } else {
             throw new Error(result.error || 'Enhancement failed - no data returned');
@@ -286,7 +280,6 @@ async function enhanceExistingResume() {
 
 function readFileAsText(file) {
     return new Promise((resolve, reject) => {
-        // Handle PDF files specially
         if (file.type === 'application/pdf') {
             extractPDFText(file)
                 .then(resolve)
@@ -294,7 +287,6 @@ function readFileAsText(file) {
             return;
         }
 
-        // Handle other file types
         const reader = new FileReader();
         reader.onload = function(e) {
             const result = e.target.result;
@@ -313,10 +305,8 @@ function readFileAsText(file) {
     });
 }
 
-// Function to extract text from PDF files
 async function extractPDFText(file) {
     try {
-        // Load PDF.js if not already loaded
         if (typeof pdfjsLib === 'undefined') {
             await loadPDFJS();
         }
@@ -326,7 +316,6 @@ async function extractPDFText(file) {
 
         let fullText = '';
 
-        // Extract text from each page
         for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
             const page = await pdf.getPage(pageNum);
             const textContent = await page.getTextContent();
@@ -351,20 +340,16 @@ async function extractPDFText(file) {
     }
 }
 
-// Load PDF.js library dynamically
 function loadPDFJS() {
     return new Promise((resolve, reject) => {
-        // Check if already loaded
         if (typeof pdfjsLib !== 'undefined') {
             resolve();
             return;
         }
 
-        // Load PDF.js from CDN
         const script = document.createElement('script');
         script.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
         script.onload = function() {
-            // Configure PDF.js worker
             pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
             resolve();
         };
@@ -377,7 +362,6 @@ function loadPDFJS() {
 }
 
 function populateFormWithEnhancedData(data) {
-    // Populate personal info
     if (data.personalInfo) {
         if (data.personalInfo.name) document.getElementById('fullName').value = data.personalInfo.name;
         if (data.personalInfo.email) document.getElementById('email').value = data.personalInfo.email;
@@ -385,18 +369,16 @@ function populateFormWithEnhancedData(data) {
         if (data.personalInfo.location) document.getElementById('location').value = data.personalInfo.location;
     }
 
-    // Populate job title
     if (data.jobTitle && !document.getElementById('jobTitle').value) {
         document.getElementById('jobTitle').value = data.jobTitle;
     }
 
-    // Populate experience
     if (data.experience && data.experience.length > 0) {
         const container = document.getElementById('experienceContainer');
-        container.innerHTML = ''; // Clear existing
+        container.innerHTML = '';
 
         data.experience.forEach((exp, index) => {
-            if (index > 0) addExperience(); // Add new experience item if needed
+            if (index > 0) addExperience();
 
             const items = container.querySelectorAll('.experience-item');
             const currentItem = items[index];
@@ -411,23 +393,19 @@ function populateFormWithEnhancedData(data) {
         });
     }
 
-    // Populate skills
     if (data.skills) {
         document.getElementById('skills').value = Array.isArray(data.skills) ? data.skills.join(', ') : data.skills;
     }
 
-    // Populate education
     if (data.education) {
         document.getElementById('education').value = data.education;
     }
 
-    // Populate certifications
     if (data.certifications) {
         document.getElementById('certifications').value = data.certifications;
     }
 }
 
-// Navigation functions
 function viewTemplates() {
     alert('Template gallery coming soon! For now, you can create resumes with our AI-powered builder.');
 }
@@ -439,12 +417,10 @@ function closeModal() {
     document.body.style.overflow = 'auto';
 }
 
-// Step navigation
 function showStep(stepNumber) {
     const steps = document.querySelectorAll('.step');
     const formSteps = document.querySelectorAll('.form-step');
 
-    // Update step indicators
     steps.forEach((step, index) => {
         if (index + 1 <= stepNumber) {
             step.classList.add('active');
@@ -453,7 +429,6 @@ function showStep(stepNumber) {
         }
     });
 
-    // Update form steps
     formSteps.forEach((step, index) => {
         if (index + 1 === stepNumber) {
             step.classList.add('active');
@@ -481,10 +456,8 @@ function prevStep() {
 
 function updateProgress() {
     const progressPercent = (currentStep / 5) * 100;
-    // You can add a progress bar here if needed
 }
 
-// Form validation
 function validateCurrentStep() {
     const currentFormStep = document.getElementById(`step${currentStep}`);
     if (!currentFormStep) return true;
@@ -501,7 +474,6 @@ function validateCurrentStep() {
     return true;
 }
 
-// Experience management
 function addExperience() {
     const container = document.getElementById('experienceContainer');
     const experienceItem = document.createElement('div');
@@ -538,7 +510,6 @@ function removeExperience(button) {
     button.parentElement.remove();
 }
 
-// Job Description Analysis
 async function analyzeJobDescription() {
     const jobDescription = document.getElementById('targetJobDescription').value;
     if (!jobDescription.trim()) {
@@ -624,11 +595,9 @@ function displayJobAnalysis(analysis) {
     analysisDiv.style.display = 'block';
 }
 
-// Template Selection
 function selectTemplate(templateName) {
     selectedTemplate = templateName;
 
-    // Update UI to show selected template
     document.querySelectorAll('.template-card').forEach(card => {
         card.classList.remove('selected');
     });
@@ -640,7 +609,6 @@ function selectTemplate(templateName) {
     showToast(`${templateName.charAt(0).toUpperCase() + templateName.slice(1)} template selected!`, 'success');
 }
 
-// Data collection
 function collectFormData() {
     const personalInfo = {
         name: document.getElementById('fullName')?.value || 'Your Name',
@@ -696,7 +664,6 @@ function collectFormData() {
     };
 }
 
-// Resume generation
 async function generateResume(type) {
     if (isProcessing) return;
 
@@ -760,7 +727,6 @@ async function generateAIResume() {
         const result = await response.json();
 
         if (result.success) {
-            // Mark that user has used AI generation
             localStorage.setItem('usedAIEnhancement', 'true');
 
             const resumeHTML = createAIResumeHTML(result.content);
@@ -1196,12 +1162,10 @@ function createTechTemplate() {
                         </div>
                         <div class="code-content">
                             ${resumeData.experience.map((exp, index) => {
-                                // Handle NA, empty, or invalid values
                                 let company = exp.company || 'TechCompany';
                                 let position = exp.position || 'Developer';
                                 let description = exp.description || 'Key responsibilities and achievements';
 
-                                // Replace NA with proper defaults
                                 if (company.toUpperCase() === 'NA' || company.trim() === '') {
                                     company = 'TechCompany';
                                 }
@@ -1212,7 +1176,6 @@ function createTechTemplate() {
                                     description = 'Key responsibilities and achievements';
                                 }
 
-                                // Create a valid variable name
                                 let varName = position.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
                                 if (!varName || varName === 'na') {
                                     varName = 'experience' + (index + 1);
@@ -1374,11 +1337,9 @@ function createAIResumeHTML(aiContent) {
     `;
 }
 
-// Preview and export functions
 function showResumePreview(htmlContent) {
     document.getElementById('resumeContent').innerHTML = htmlContent;
 
-    // Add AI usage indicator if applicable
     const hasUsedAI = localStorage.getItem('usedAIEnhancement') === 'true';
     if (hasUsedAI && !checkPremiumAccess()) {
         const indicator = document.createElement('div');
@@ -1401,7 +1362,6 @@ function editResume() {
 }
 
 function downloadPDF() {
-    // Check if user has used AI enhancement - if so, require payment
     const hasUsedAI = localStorage.getItem('usedAIEnhancement') === 'true';
 
     if (hasUsedAI && !checkPremiumAccess()) {
@@ -1410,20 +1370,16 @@ function downloadPDF() {
         return;
     }
 
-    // For regular resumes without AI enhancement, allow free download
     if (!hasUsedAI && !checkPremiumAccess()) {
-        // Allow free download for basic resumes
         performDownload();
         return;
     }
 
-    // Premium users can always download
     if (checkPremiumAccess()) {
         performDownload();
         return;
     }
 
-    // Fallback - require payment
     showToast('PDF download requires payment. Pay ₹99 to download your resume!', 'info');
     upgradeToDownload();
 }
@@ -1463,7 +1419,6 @@ function performDownload() {
         `);
         printWindow.document.close();
 
-        // Add a small delay before printing to ensure content is loaded
         setTimeout(() => {
             printWindow.print();
         }, 500);
@@ -1490,7 +1445,6 @@ function getResumeStyles() {
     `;
 }
 
-// Payment functions
 async function upgradeToDownload() {
     await initiatePayment(99, 'Download Access');
 }
@@ -1597,7 +1551,6 @@ async function verifyPayment(paymentResponse) {
         if (result.success) {
             localStorage.setItem('premiumAccess', 'true');
             showToast('Payment successful! Download access activated.', 'success');
-            // Automatically trigger download
             setTimeout(() => {
                 performDownload();
             }, 1000);
@@ -1610,7 +1563,6 @@ async function verifyPayment(paymentResponse) {
     }
 }
 
-// Utility functions
 function showLoading() {
     if (loadingOverlay) loadingOverlay.style.display = 'block';
 }
@@ -1657,11 +1609,9 @@ function resetForm() {
         input.value = '';
     });
 
-    // Reset AI usage tracking for new resume
     localStorage.removeItem('usedAIEnhancement');
 }
 
-// Smooth scrolling for navigation links
 document.querySelectorAll('a[href^="#"]').forEach(anchor => {
     anchor.addEventListener('click', function (e) {
         e.preventDefault();
@@ -1675,7 +1625,6 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
     });
 });
 
-// Add CSS animation for toast
 const style = document.createElement('style');
 style.textContent = `
     @keyframes slideIn {
@@ -1691,7 +1640,7 @@ style.textContent = `
 `;
 document.head.appendChild(style);
 
-// Ensure all functions are available globally
+// Make all functions globally available
 window.startBuilding = startBuilding;
 window.viewTemplates = viewTemplates;
 window.enhanceExistingResume = enhanceExistingResume;
@@ -1706,4 +1655,3 @@ window.selectTemplate = selectTemplate;
 window.addExperience = addExperience;
 window.removeExperience = removeExperience;
 window.analyzeJobDescription = analyzeJobDescription;
-```
