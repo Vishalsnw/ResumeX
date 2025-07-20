@@ -1,0 +1,15 @@
+[workflows]
+runButton = "ResumeX Server"
+
+[[workflows.workflow]]
+name = "ResumeX Server"
+author = 43564906
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "npm install"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "node server/index.js"
