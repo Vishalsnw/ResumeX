@@ -1812,32 +1812,30 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
     });
 });
 
-// Add animation styles
-const style = document.createElement('style');
-style.textContent = `
-    @keyframes slideIn {
-        from {
-            transform: translateX(100%);
-            opacity: 0;
+// Add animation styles only if not already added
+if (!document.querySelector('style[data-animations]')) {
+    const animationStyle = document.createElement('style');
+    animationStyle.setAttribute('data-animations', 'true');
+    animationStyle.textContent = `
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
         }
-        to {
-            transform: translateX(0);
-            opacity: 1;
-        }
-    }
-`;
-document.head.appendChild(style);
-
-// Add the missing enhanceUploadedResume function
-function enhanceUploadedResume() {
-    enhanceExistingResume();
+    `;
+    document.head.appendChild(animationStyle);
 }
 
 // Make all functions globally available for HTML onclick handlers
 window.startBuilding = startBuilding;
 window.viewTemplates = viewTemplates;
 window.enhanceExistingResume = enhanceExistingResume;
-window.enhanceUploadedResume = enhanceUploadedResume;
+window.enhanceUploadedResume = enhanceExistingResume; // Alias for compatibility
 window.removeUploadedFile = removeUploadedFile;
 window.nextStep = nextStep;
 window.prevStep = prevStep;
@@ -1849,179 +1847,3 @@ window.selectTemplate = selectTemplate;
 window.addExperience = addExperience;
 window.removeExperience = removeExperience;
 window.analyzeJobDescription = analyzeJobDescription;
-
-function populateFormWithEnhancedData(data) {
-    // Populate personal info
-    if (data.personalInfo) {
-        if (data.personalInfo.name) document.getElementById('fullName').value = data.personalInfo.name;
-        if (data.personalInfo.email) document.getElementById('email').value = data.personalInfo.email;
-        if (data.personalInfo.phone) document.getElementById('phone').value = data.personalInfo.phone;
-        if (data.personalInfo.location) document.getElementById('location').value = data.personalInfo.location;
-    }
-
-    // Populate job title
-    if (data.jobTitle) {
-        document.getElementById('jobTitle').value = data.jobTitle;
-    }
-
-    // Clear existing experience items
-    const experienceContainer = document.getElementById('experienceContainer');
-    experienceContainer.innerHTML = '';
-
-    // Add experiences
-    if (data.experience && data.experience.length > 0) {
-        data.experience.forEach((exp, index) => {
-            if (index === 0) {
-                // Use first experience item
-                addExperienceItem(exp.company, exp.position, exp.startDate, exp.endDate, exp.description);
-            } else {
-                // Add additional experience items
-                addExperience();
-                const items = document.querySelectorAll('.experience-item');
-                const lastItem = items[items.length - 1];
-                lastItem.querySelector('.company').value = exp.company || '';
-                lastItem.querySelector('.position').value = exp.position || '';
-                lastItem.querySelector('.startDate').value = exp.startDate || '';
-                lastItem.querySelector('.endDate').value = exp.endDate || '';
-                lastItem.querySelector('.description').value = exp.description || '';
-            }
-        });
-    }
-
-    // Populate skills
-    if (data.skills && data.skills.length > 0) {
-        document.getElementById('skills').value = data.skills.join(', ');
-    }
-
-    // Store enhanced data for resume generation
-    resumeData = {
-        personalInfo: data.personalInfo || {},
-        jobTitle: data.jobTitle || 'Professional',
-        experience: data.experience || [],
-        skills: data.skills || [],
-        education: data.education || '',
-        certifications: data.certifications || ''
-    };
-}
-
-function addExperienceItem(company = '', position = '', startDate = '', endDate = '', description = '') {
-    const container = document.getElementById('experienceContainer');
-    const item = document.createElement('div');
-    item.className = 'experience-item';
-    item.innerHTML = `
-        <div class="form-row">
-            <input type="text" class="company" placeholder="Company Name" value="${company}">
-            <input type="text" class="position" placeholder="Job Title" value="${position}">
-        </div>
-        <div class="form-row">
-            <input type="date" class="startDate" value="${startDate}">
-            <input type="date" class="endDate" value="${endDate}">
-        </div>
-        <textarea class="description" placeholder="Describe your responsibilities and achievements..." rows="3">${description}</textarea>
-        <button type="button" class="remove-btn" onclick="removeExperience(this)">
-            <i class="fas fa-trash"></i> Remove
-        </button>
-    `;
-    container.appendChild(item);
-}
-
-async function enhanceResume() {
-    const jobTitle = document.getElementById('jobTitle').value;
-    const currentResume = document.getElementById('extractedText').value;
-
-    if (!currentResume || !currentResume.trim()) {
-        showToast('Please upload a resume first', 'error');
-        return;
-    }
-
-    showLoading();
-
-    try {
-        const response = await fetch('/api/enhance-resume', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                resumeText: currentResume,
-                jobTitle: jobTitle || 'Professional'
-            })
-        });
-
-        const result = await response.json();
-
-        if (result.success && result.enhancedData) {
-            populateFormWithEnhancedData(result.enhancedData);
-            localStorage.setItem('usedAIEnhancement', 'true');
-            showToast('Resume enhanced successfully!', 'success');
-        } else {
-            throw new Error(result.error || 'Enhancement failed - no data returned');
-        }
-    } catch (error) {
-        console.error('Enhancement error:', error);
-        let errorMessage = 'Failed to enhance resume';
-
-        if (error.name === 'TypeError' && error.message.includes('Failed to fetch')) {
-            errorMessage = 'Network error - Unable to connect to server';
-        } else if (error.message) {
-            errorMessage = error.message;
-        }
-
-        showToast(errorMessage, 'error');
-    } finally {
-        hideLoading();
-    }
-}
-
-async function enhanceWithAI(resumeText) {
-    if (!resumeText || !resumeText.trim()) {
-        showToast('No resume text available for enhancement', 'error');
-        return;
-    }
-
-    showLoading();
-
-    try {
-        const jobTitle = document.getElementById('jobTitle')?.value || 'Professional';
-        const jobDescription = document.getElementById('jobDescription')?.value || '';
-
-        const response = await fetch('/api/enhance-resume', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                resumeText: resumeText,
-                jobTitle: jobTitle,
-                jobDescription: jobDescription
-            })
-        });
-
-        const result = await response.json();
-
-        if (result.success && result.enhancedData) {
-            populateFormWithEnhancedData(result.enhancedData);
-            localStorage.setItem('usedAIEnhancement', 'true');
-            showToast('Resume enhanced with AI successfully!', 'success');
-
-            // Hide upload section and show form
-            document.getElementById('uploadSection').style.display = 'none';
-            document.getElementById('resumeForm').style.display = 'block';
-        } else {
-            throw new Error(result.error || 'AI enhancement failed');
-        }
-    } catch (error) {
-        console.error('AI Enhancement error:', error);
-        let errorMessage = 'Failed to enhance resume with AI';
-
-        if (error.name === 'TypeError' && error.message.includes('Failed to fetch')) {
-            errorMessage = 'Network error - Unable to connect to server';
-        } else if (error.message) {
-            errorMessage = error.message;
-        }
-
-        showToast(errorMessage, 'error');
-    } finally {
-        hideLoading();
-    }
-}
