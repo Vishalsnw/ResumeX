@@ -1,23 +1,25 @@
 // Global variables (avoid redeclaration)
-window.currentStep = window.currentStep || 1;
-window.resumeData = window.resumeData || {
-    personalInfo: {},
-    experience: [],
-    skills: [],
-    jobTitle: '',
-    targetJobDescription: ''
-};
-window.uploadedResumeFile = window.uploadedResumeFile || null;
-window.enhancedResumeData = window.enhancedResumeData || null;
-window.isProcessing = window.isProcessing || false;
-window.selectedTemplate = window.selectedTemplate || 'modern';
-window.jobAnalysisData = window.jobAnalysisData || null;
-window.hasUsedAI = window.hasUsedAI || false;
+if (typeof window.currentStep === 'undefined') window.currentStep = 1;
+if (typeof window.resumeData === 'undefined') {
+    window.resumeData = {
+        personalInfo: {},
+        experience: [],
+        skills: [],
+        jobTitle: '',
+        targetJobDescription: ''
+    };
+}
+if (typeof window.uploadedResumeFile === 'undefined') window.uploadedResumeFile = null;
+if (typeof window.enhancedResumeData === 'undefined') window.enhancedResumeData = null;
+if (typeof window.isProcessing === 'undefined') window.isProcessing = false;
+if (typeof window.selectedTemplate === 'undefined') window.selectedTemplate = 'modern';
+if (typeof window.jobAnalysisData === 'undefined') window.jobAnalysisData = null;
+if (typeof window.hasUsedAI === 'undefined') window.hasUsedAI = false;
 
 // DOM elements
-window.modal = window.modal || null;
-window.previewModal = window.previewModal || null;
-window.loadingOverlay = window.loadingOverlay || null;
+if (typeof window.modal === 'undefined') window.modal = null;
+if (typeof window.previewModal === 'undefined') window.previewModal = null;
+if (typeof window.loadingOverlay === 'undefined') window.loadingOverlay = null;
 
 // Initialize the application
 document.addEventListener('DOMContentLoaded', function() {
@@ -238,14 +240,17 @@ async function enhanceExistingResume() {
 
         if (result.success && result.enhancedData) {
             populateFormWithEnhancedData(result.enhancedData);
+            window.enhancedResumeData = result.enhancedData;
             localStorage.setItem('usedAIEnhancement', 'true');
-            showToast('Resume enhanced successfully!', 'success');
+            showToast('Resume enhanced successfully! You can now edit and preview.', 'success');
 
-            // Hide enhance button and show success indicator
+            // Hide enhance button and show preview button
             const enhanceBtn = document.getElementById('enhanceBtn');
             if (enhanceBtn) {
-                enhanceBtn.innerHTML = '<i class="fas fa-check"></i> Enhanced';
-                enhanceBtn.disabled = true;
+                enhanceBtn.innerHTML = '<i class="fas fa-eye"></i> Preview & Download';
+                enhanceBtn.onclick = function() {
+                    showEnhancedResumePreview();
+                };
                 enhanceBtn.classList.add('btn-success');
             }
         } else {
@@ -259,12 +264,15 @@ async function enhanceExistingResume() {
             const fileText = await readFileAsText(uploadedResumeFile);
             const basicData = extractBasicResumeInfo(fileText);
             populateFormWithEnhancedData(basicData);
+            window.enhancedResumeData = basicData;
             showToast('Resume processed (AI enhancement unavailable)', 'info');
 
             const enhanceBtn = document.getElementById('enhanceBtn');
             if (enhanceBtn) {
-                enhanceBtn.innerHTML = '<i class="fas fa-info"></i> Basic Processing';
-                enhanceBtn.disabled = true;
+                enhanceBtn.innerHTML = '<i class="fas fa-eye"></i> Preview & Download';
+                enhanceBtn.onclick = function() {
+                    showEnhancedResumePreview();
+                };
             }
         } catch (fallbackError) {
             console.error('Basic extraction failed:', fallbackError);
@@ -825,8 +833,30 @@ async function generateResume(type) {
         // Payment check disabled for testing
         console.log('Payment check disabled for testing');
 
-        // Generate AI-enhanced resume
-        await generateAIResume();
+        // If we already have enhanced data from upload, use it directly
+        if (window.enhancedResumeData && localStorage.getItem('usedAIEnhancement') === 'true') {
+            console.log('Using previously enhanced data');
+            
+            // Merge enhanced data with current form data
+            const mergedData = {
+                ...window.enhancedResumeData,
+                ...window.resumeData,
+                personalInfo: {
+                    ...window.enhancedResumeData.personalInfo,
+                    ...window.resumeData.personalInfo
+                }
+            };
+            
+            window.resumeData = mergedData;
+            
+            // Generate resume using basic template with enhanced data
+            const resumeHTML = createBasicResumeHTML();
+            showResumePreview(resumeHTML);
+            showToast('Resume generated using enhanced data!', 'success');
+        } else {
+            // Generate AI-enhanced resume for new resumes
+            await generateAIResume();
+        }
     } catch (error) {
         console.error('Resume generation error:', error);
         showToast('Failed to generate resume. Please try again.', 'error');
@@ -1436,6 +1466,36 @@ function showResumePreview(htmlContent, aiContent) {
     if (previewModal) previewModal.style.display = 'block';
 }
 
+function showEnhancedResumePreview() {
+    try {
+        // Collect current form data in case user made edits
+        const currentFormData = collectFormData();
+        
+        // Use enhanced data as base but allow form overrides
+        const dataToUse = {
+            ...window.enhancedResumeData,
+            ...currentFormData,
+            personalInfo: {
+                ...window.enhancedResumeData?.personalInfo,
+                ...currentFormData.personalInfo
+            }
+        };
+        
+        window.resumeData = dataToUse;
+        
+        // Generate HTML using the selected template
+        const resumeHTML = createBasicResumeHTML();
+        
+        // Show the preview
+        showResumePreview(resumeHTML);
+        
+        showToast('Resume preview ready for download!', 'success');
+    } catch (error) {
+        console.error('Preview generation error:', error);
+        showToast('Failed to generate preview. Please try again.', 'error');
+    }
+}
+
 function editResume() {
     if (previewModal) previewModal.style.display = 'none';
     if (modal) modal.style.display = 'block';
@@ -1814,9 +1874,9 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
 
 // Add animation styles only if not already added
 if (!document.querySelector('style[data-animations]')) {
-    const animationStyle = document.createElement('style');
-    animationStyle.setAttribute('data-animations', 'true');
-    animationStyle.textContent = `
+    const animationStyleElement = document.createElement('style');
+    animationStyleElement.setAttribute('data-animations', 'true');
+    animationStyleElement.textContent = `
         @keyframes slideIn {
             from {
                 transform: translateX(100%);
@@ -1828,7 +1888,7 @@ if (!document.querySelector('style[data-animations]')) {
             }
         }
     `;
-    document.head.appendChild(animationStyle);
+    document.head.appendChild(animationStyleElement);
 }
 
 // Make all functions globally available for HTML onclick handlers
@@ -1836,6 +1896,7 @@ window.startBuilding = startBuilding;
 window.viewTemplates = viewTemplates;
 window.enhanceExistingResume = enhanceExistingResume;
 window.enhanceUploadedResume = enhanceExistingResume; // Alias for compatibility
+window.showEnhancedResumePreview = showEnhancedResumePreview;
 window.removeUploadedFile = removeUploadedFile;
 window.nextStep = nextStep;
 window.prevStep = prevStep;
