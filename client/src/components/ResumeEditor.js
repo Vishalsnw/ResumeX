@@ -177,6 +177,10 @@ const ResumeEditor = () => {
         });
 
         setError('Resume analysis completed with demo data. Please review and update your information.');
+      }
+    } catch (error) {
+      console.error('Upload error:', error);
+      setError('Failed to upload resume. Please try again.');
     } finally {
       setAnalyzing(false);
       setUploadProgress(0);
