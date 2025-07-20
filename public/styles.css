@@ -1988,12 +1988,10 @@ body {
     height: 12px;
     background: #e74c3c;
     border-radius: 50%;
-}
-
+}```text
 .timeline-dot::before {
     content: '';
     position: absolute;
-```text
     left: 5px;
     top: 12px;
     width: 2px;
@@ -2147,15 +2145,11 @@ body {
 .tech-template {
     background: #1e1e1e;
     color: #d4d4d4;
-    font-family: 'Consolas', 'Monaco', monospace;
-    max-width: 900px;
-    margin: 0 auto;
-    border-radius: 8px;
-    overflow: hidden;
+    font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
 }
 
 .tech-header {
-    background: #252526;
+    background: #2d2d30;
     padding: 2rem;
     border-bottom: 1px solid #3e3e42;
 }
@@ -2172,26 +2166,22 @@ body {
     margin-bottom: 1rem;
 }
 
-.tech-contact {
-    display: flex;
-    gap: 2rem;
-    font-size: 0.9rem;
-    color: #d4d4d4;
+.tech-contact span {
+    margin-right: 1.5rem;
+    color: #9cdcfe;
 }
 
 .tech-grid {
-    display: flex;
-}
-
-.tech-main {
-    flex: 2;
-    padding: 1rem;
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 2rem;
+    padding: 2rem;
 }
 
 .code-block {
     background: #1e1e1e;
+    border: 1px solid #3e3e42;
     border-radius: 4px;
-    overflow: hidden;
 }
 
 .code-header {
@@ -2201,7 +2191,7 @@ body {
 }
 
 .code-tab {
-    color: #d4d4d4;
+    color: #cccccc;
     font-size: 0.9rem;
 }
 
@@ -2212,18 +2202,18 @@ body {
 .code-line {
     display: flex;
     align-items: center;
-    margin-bottom: 0.5rem;
-    font-size: 0.9rem;
+    margin-bottom: 0.25rem;
 }
 
 .line-number {
     color: #858585;
     margin-right: 1rem;
-    min-width: 30px;
+    width: 2rem;
+    text-align: right;
 }
 
-.code-text {
-    color: #d4d4d4;
+.indent {
+    margin-left: 2rem;
 }
 
 .keyword {
@@ -2239,165 +2229,571 @@ body {
 }
 
 .tech-sidebar {
-    flex: 1;
     background: #252526;
     padding: 1.5rem;
-    border-left: 1px solid #3e3e42;
+    border-radius: 4px;
 }
 
 .tech-skills h3 {
     color: #608b4e;
     margin-bottom: 1rem;
-    font-size: 1.1rem;
 }
 
 .tech-skill {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
-    margin-bottom: 0.75rem;
-    color: #d4d4d4;
+    margin-bottom: 0.5rem;
+    color: #cccccc;
 }
 
 .skill-icon {
-    color: #f1fa8c;
+    margin-right: 0.5rem;
+    color: #ffcc02;
 }
 
-.tech-experience {
+/* ATS Bold Accounting Template */
+.ats-bold-template {
+    font-family: 'Arial', sans-serif;
+    line-height: 1.4;
+}
+
+.ats-bold-header {
+    text-align: center;
+    border-bottom: 3px solid #2c3e50;
+    padding-bottom: 1rem;
     margin-bottom: 1.5rem;
 }
 
-.indent {
-    padding-left: 2rem;
+.ats-bold-header h1 {
+    font-size: 2.2rem;
+    font-weight: bold;
+    color: #2c3e50;
+    margin-bottom: 0.5rem;
 }
 
-/* Responsive Design */
-@media (max-width: 768px) {
-    .modern-body,
-    .tech-grid,
-    .creative-template {
-        flex-direction: column;
-    }
-
-    .creative-sidebar {
-        width: 100%;
-    }
-
-    .executive-header {
-        flex-direction: column;
-        text-align: center;
-        gap: 1rem;
-    }
-
-    .item-header {
-        flex-direction: column;
-        gap: 0.25rem;
-    }
-
-    .tech-contact {
-        flex-direction: column;
-        gap: 0.5rem;
-    }
+.ats-contact-bar {
+    font-size: 1rem;
+    color: #34495e;
+    margin-bottom: 1rem;
 }
 
-/* Print Styles */
-@media print {
-    .resume-container {
-        max-width: none;
-        margin: 0;
-        box-shadow: none;
-    }
-
-    .modern-header,
-    .creative-sidebar,
-    .tech-template {
-        background: white !important;
-        color: black !important;
-    }
-
-    .skill-tag,
-    .competencies-grid span {
-        border: 1px solid #333 !important;
-        color: black !important;
-        background: white !important;
-    }
-}
-
-/* CSS styles for generate button */
-.add-btn:hover {
-    background: #27ae60;
-    transform: translateY(-1px);
-}
-
-.form-actions {
-    margin-top: 30px;
-    text-align: center;
-}
-
-.generate-btn {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+.objective-section h2 {
+    background: #2c3e50;
     color: white;
-    border: none;
-    padding: 15px 30px;
-    border-radius: 8px;
-    font-size: 16px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+    padding: 0.5rem;
+    margin: 1rem 0 0.5rem 0;
+    font-size: 1.1rem;
 }
 
-.generate-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+.ats-experience-item {
+    margin-bottom: 1.5rem;
 }
 
-.modern-template .experience-item {
-    margin-bottom: 25px;
-    padding: 20px;
-    background: #f8fafc;
-    border-radius: 8px;
-    border-left: 4px solid #4f46e5;
-    page-break-inside: avoid;
+.ats-experience-item .experience-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
 }
 
-.modern-template .experience-header {
-    margin-bottom: 12px;
+.ats-experience-item h3 {
+    font-weight: bold;
+    color: #2c3e50;
+    margin-bottom: 0.2rem;
 }
 
-.modern-template .position-company h3 {
-    font-size: 18px;
-    font-weight: 700;
-    color: #1e293b;
-    margin-bottom: 4px;
-    line-height: 1.3;
+.ats-experience-item h4 {
+    color: #7f8c8d;
+    font-weight: normal;
 }
 
-.modern-template .position-company h4 {
-    font-size: 16px;
-    font-weight: 600;
-    color: #4f46e5;
-    margin-bottom: 2px;
+.ats-skills-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 0.5rem;
+    margin-top: 1rem;
 }
 
-.modern-template .dates {
-    font-size: 14px;
-    color: #64748b;
+.ats-skill {
+    padding: 0.3rem 0.8rem;
+    background: #ecf0f1;
+    border-left: 3px solid #3498db;
     font-weight: 500;
+}
+
+/* ATS HR Template */
+.ats-hr-template {
+    font-family: 'Times New Roman', serif;
+    line-height: 1.5;
+}
+
+.hr-header {
+    text-align: center;
+    border-bottom: 2px solid #34495e;
+    padding-bottom: 1rem;
+}
+
+.hr-header h1 {
+    font-size: 2rem;
+    color: #2c3e50;
+    margin-bottom: 0.3rem;
+}
+
+.hr-title {
+    font-size: 1.2rem;
+    color: #7f8c8d;
+    font-style: italic;
+    margin-bottom: 0.5rem;
+}
+
+.hr-contact {
+    font-size: 0.95rem;
+    color: #34495e;
+}
+
+.hr-summary, .hr-experience, .hr-skills {
+    margin: 1.5rem 0;
+}
+
+.hr-summary h2, .hr-experience h2, .hr-skills h2 {
+    font-size: 1.3rem;
+    color: #2c3e50;
+    border-bottom: 1px solid #bdc3c7;
+    padding-bottom: 0.3rem;
+    margin-bottom: 1rem;
+}
+
+.hr-job {
+    margin-bottom: 1.2rem;
+}
+
+.job-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 0.5rem;
+}
+
+.job-header h3 {
+    color: #34495e;
+    font-weight: bold;
+    margin-bottom: 0.2rem;
+}
+
+.company-name {
+    color: #7f8c8d;
     font-style: italic;
 }
 
-.modern-template .description {
-    margin-top: 12px;
+.job-dates {
+    color: #95a5a6;
+    font-size: 0.9rem;
 }
 
-.modern-template .description p {
-    margin-bottom: 8px;
+.hr-skills-list {
+    color: #34495e;
+}
+
+/* Attorney Template */
+.attorney-template {
+    font-family: 'Georgia', serif;
     line-height: 1.6;
-    font-size: 14px;
-    color: #475569;
+    color: #2c3e50;
 }
 
-.modern-template .description p:last-child {
-    margin-bottom: 0;
+.attorney-header {
+    text-align: center;
+    border-bottom: 3px double #8b4513;
+    padding-bottom: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.attorney-header h1 {
+    font-size: 2.5rem;
+    color: #8b4513;
+    margin-bottom: 0.5rem;
+}
+
+.attorney-subtitle {
+    font-size: 1.2rem;
+    color: #a0522d;
+    font-style: italic;
+    margin-bottom: 1rem;
+}
+
+.attorney-contact {
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    flex-wrap: wrap;
+}
+
+.contact-line {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #5d4e75;
+}
+
+.attorney-section {
+    margin-bottom: 2rem;
+}
+
+.attorney-section h2 {
+    font-size: 1.4rem;
+    color: #8b4513;
+    border-bottom: 2px solid #deb887;
+    padding-bottom: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.attorney-experience {
+    margin-bottom: 1.5rem;
+}
+
+.experience-title {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+}
+
+.experience-title h3 {
+    color: #a0522d;
+    font-weight: bold;
+}
+
+.firm-name {
+    color: #8b7355;
+    font-style: italic;
+}
+
+.experience-dates {
+    color: #696969;
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+}
+
+.practice-areas {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 0.5rem;
+}
+
+.practice-area {
+    padding: 0.5rem;
+    background: #f5f5dc;
+    border-left: 4px solid #8b4513;
+    color: #654321;
+}
+
+/* Industry Manager Template */
+.manager-template {
+    font-family: 'Arial', sans-serif;
+    line-height: 1.5;
+}
+
+.manager-header {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 2rem;
+    padding: 1.5rem;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    margin-bottom: 2rem;
+}
+
+.manager-header h1 {
+    font-size: 2.3rem;
+    margin-bottom: 0.5rem;
+}
+
+.manager-title {
+    font-size: 1.3rem;
+    opacity: 0.9;
+}
+
+.manager-contact-section {
+    text-align: right;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 0.3rem;
+}
+
+.manager-summary {
+    margin-bottom: 2rem;
+}
+
+.manager-summary h2 {
+    color: #667eea;
+    font-size: 1.4rem;
+    margin-bottom: 1rem;
+    border-bottom: 2px solid #667eea;
+    padding-bottom: 0.5rem;
+}
+
+.manager-experience h2 {
+    color: #764ba2;
+    font-size: 1.4rem;
+    margin-bottom: 1.5rem;
+    border-bottom: 2px solid #764ba2;
+    padding-bottom: 0.5rem;
+}
+
+.manager-role {
+    margin-bottom: 2rem;
+    border-left: 4px solid #667eea;
+    padding-left: 1rem;
+}
+
+.role-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: start;
+    margin-bottom: 0.8rem;
+}
+
+.role-title h3 {
+    color: #4a5568;
+    font-size: 1.2rem;
+    margin-bottom: 0.3rem;
+}
+
+.company-name {
+    color: #718096;
+    font-weight: 500;
+}
+
+.role-duration {
+    color: #a0aec0;
+    font-size: 0.9rem;
+}
+
+.competencies-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.competency {
+    padding: 0.8rem;
+    background: linear-gradient(135deg, #667eea20, #764ba220);
+    border-radius: 6px;
+    text-align: center;
+    font-weight: 500;
+    color: #4a5568;
+}
+
+/* Modern Nursing Template */
+.nursing-template {
+    font-family: 'Arial', sans-serif;
+    line-height: 1.5;
+    color: #2d3748;
+}
+
+.nursing-header {
+    background: linear-gradient(135deg, #48bb78, #38a169);
+    color: white;
+    padding: 2rem;
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.nursing-header h1 {
+    font-size: 2.2rem;
+    margin-bottom: 0.5rem;
+}
+
+.nursing-credentials {
+    font-size: 1.2rem;
+    opacity: 0.9;
+    margin-bottom: 1rem;
+}
+
+.nursing-contact {
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    flex-wrap: wrap;
+}
+
+.nursing-contact span {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.nursing-body {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 2rem;
+    padding: 0 1rem;
+}
+
+.nursing-section h2 {
+    color: #38a169;
+    font-size: 1.4rem;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.nursing-experience {
+    margin-bottom: 1.8rem;
+    border-left: 3px solid #68d391;
+    padding-left: 1rem;
+}
+
+.nursing-experience .experience-header {
+    margin-bottom: 0.8rem;
+}
+
+.nursing-experience h3 {
+    color: #2d3748;
+    font-size: 1.1rem;
+    margin-bottom: 0.3rem;
+}
+
+.facility-name {
+    color: #4a5568;
+    font-weight: 500;
+    margin-right: 1rem;
+}
+
+.experience-dates {
+    color: #718096;
+    font-size: 0.9rem;
+}
+
+.nursing-sidebar {
+    background: #f7fafc;
+    padding: 1.5rem;
+    border-radius: 8px;
+    height: fit-content;
+}
+
+.nursing-sidebar h3 {
+    color: #38a169;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.nursing-skills {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+}
+
+.nursing-skill {
+    padding: 0.6rem;
+    background: white;
+    border-left: 3px solid #68d391;
+    border-radius: 4px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+/* Simple Template */
+.simple-template {
+    font-family: 'Arial', sans-serif;
+    line-height: 1.6;
+    color: #333;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.simple-header {
+    text-align: center;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid #e0e0e0;
+    margin-bottom: 2rem;
+}
+
+.simple-header h1 {
+    font-size: 2rem;
+    color: #2c3e50;
+    margin-bottom: 0.5rem;
+}
+
+.simple-contact {
+    color: #7f8c8d;
+    font-size: 1rem;
+}
+
+.simple-section {
+    margin-bottom: 2rem;
+}
+
+.simple-section h2 {
+    color: #34495e;
+    font-size: 1.3rem;
+    margin-bottom: 1rem;
+    padding-bottom: 0.3rem;
+    border-bottom: 1px solid #bdc3c7;
+}
+
+.simple-job {
+    margin-bottom: 1.5rem;
+}
+
+.job-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.job-header h3 {
+    color: #2c3e50;
+    font-size: 1.1rem;
+    margin-bottom: 0.2rem;
+}
+
+.job-company {
+    color: #7f8c8d;
+    font-style: italic;
+    margin-right: 1rem;
+}
+
+.job-dates {
+    color: #95a5a6;
+    font-size: 0.9rem;
+}
+
+.simple-skills {
+    color: #34495e;
+    font-size: 1rem;
+}
+
+/* Responsive Design for New Templates */
+@media (max-width: 768px) {
+    .manager-header,
+    .nursing-body {
+        grid-template-columns: 1fr;
+        text-align: center;
+    }
+
+    .attorney-contact {
+        flex-direction: column;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .job-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .role-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .experience-title {
+        flex-direction: column;
+        align-items: flex-start;
+    }
 }
