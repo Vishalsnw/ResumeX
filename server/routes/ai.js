@@ -1,80 +1,175 @@
 
 const express = require('express');
-const axios = require('axios');
-const auth = require('../middleware/auth');
 const router = express.Router();
 
-const DEEPSEEK_API_URL = 'https://api.deepseek.com/v1/chat/completions';
-const DEEPSEEK_API_KEY = process.env.DEEPSEEK_API_KEY;
+// Note: In production, add your OpenAI API key to environment variables
+const OPENAI_API_URL = 'https://api.openai.com/v1/chat/completions';
+const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 
-// Generate resume content suggestions
-router.post('/generate-content', auth, async (req, res) => {
+// Generate specific resume content
+router.post('/generate-content', async (req, res) => {
   try {
-    const { type, context, jobTitle, experience } = req.body;
+    const { type, personalInfo, context } = req.body;
+    
+    if (!OPENAI_API_KEY) {
+      return res.status(500).json({ 
+        message: 'OpenAI API key not configured. Please add OPENAI_API_KEY to your environment variables.' 
+      });
+    }
     
     let prompt = '';
     
     switch (type) {
       case 'summary':
-        prompt = `Create a professional resume summary for a ${jobTitle} with ${experience} years of experience. Context: ${context}`;
+        prompt = `Create a professional resume summary for ${personalInfo.fullName}. 
+        Job Title/Field: ${context || 'General'}
+        Email: ${personalInfo.email}
+        Location: ${personalInfo.location}
+        Current Summary: ${personalInfo.summary || 'None provided'}
+        
+        Write a compelling 2-3 sentence professional summary that highlights their expertise and value proposition. Make it specific and impactful.`;
         break;
-      case 'experience':
-        prompt = `Write 3-4 bullet points describing achievements for a ${jobTitle} role. Focus on quantifiable results. Context: ${context}`;
-        break;
+        
       case 'skills':
-        prompt = `List relevant technical and soft skills for a ${jobTitle} position. Separate by categories.`;
+        prompt = `Based on the following information, suggest relevant technical and soft skills:
+        Name: ${personalInfo.fullName}
+        Field/Industry: ${context || 'General'}
+        Current Skills: ${personalInfo.skills || 'None listed'}
+        
+        Provide a well-organized list of skills categorized into Technical Skills and Soft Skills. Make them relevant to their field.`;
         break;
+        
+      case 'experience':
+        prompt = `Create professional experience bullet points for:
+        Position: ${context}
+        Industry context based on: ${personalInfo.fullName}'s background
+        
+        Generate 3-4 compelling bullet points that:
+        - Start with strong action verbs
+        - Include quantifiable achievements where possible
+        - Demonstrate impact and results
+        - Are tailored to the specified role`;
+        break;
+        
       default:
         return res.status(400).json({ message: 'Invalid content type' });
     }
 
-    const response = await axios.post(DEEPSEEK_API_URL, {
-      model: "deepseek-chat",
-      messages: [{ role: "user", content: prompt }],
-      max_tokens: 300,
-      temperature: 0.7
-    }, {
+    const response = await fetch(OPENAI_API_URL, {
+      method: 'POST',
       headers: {
-        'Authorization': `Bearer ${DEEPSEEK_API_KEY}`,
+        'Authorization': `Bearer ${OPENAI_API_KEY}`,
         'Content-Type': 'application/json'
-      }
+      },
+      body: JSON.stringify({
+        model: "gpt-3.5-turbo",
+        messages: [
+          {
+            role: "system",
+            content: "You are a professional resume writer with 10+ years of experience. Create compelling, ATS-friendly content that helps candidates stand out."
+          },
+          {
+            role: "user",
+            content: prompt
+          }
+        ],
+        max_tokens: 300,
+        temperature: 0.7
+      })
     });
 
-    res.json({ content: response.data.choices[0].message.content });
+    const data = await response.json();
+    
+    if (!response.ok) {
+      throw new Error(data.error?.message || 'OpenAI API error');
+    }
+
+    res.json({ content: data.choices[0].message.content });
   } catch (error) {
     console.error('AI generation error:', error);
-    res.status(500).json({ message: 'AI service error', error: error.message });
+    res.status(500).json({ 
+      message: 'AI content generation failed', 
+      error: error.message 
+    });
   }
 });
 
-// Optimize resume for ATS
-router.post('/optimize-ats', auth, async (req, res) => {
+// Enhance complete resume
+router.post('/enhance-resume', async (req, res) => {
   try {
-    const { resumeContent, jobDescription } = req.body;
+    const { resumeData } = req.body;
     
-    const prompt = `Analyze this resume content and suggest improvements for ATS optimization based on the job description. Focus on keywords and formatting:
-    
-    Resume: ${resumeContent}
-    Job Description: ${jobDescription}
-    
-    Provide specific suggestions for improvement.`;
+    if (!OPENAI_API_KEY) {
+      return res.status(500).json({ 
+        message: 'OpenAI API key not configured' 
+      });
+    }
 
-    const response = await axios.post(DEEPSEEK_API_URL, {
-      model: "deepseek-chat",
-      messages: [{ role: "user", content: prompt }],
-      max_tokens: 400,
-      temperature: 0.5
-    }, {
+    const prompt = `Enhance this resume to make it more professional and ATS-friendly:
+    
+    Name: ${resumeData.personalInfo.fullName}
+    Email: ${resumeData.personalInfo.email}
+    Phone: ${resumeData.personalInfo.phone}
+    Location: ${resumeData.personalInfo.location}
+    LinkedIn: ${resumeData.personalInfo.linkedin}
+    Summary: ${resumeData.personalInfo.summary}
+    
+    Skills: ${resumeData.skills.join(', ')}
+    
+    Provide an enhanced version with:
+    1. A compelling professional summary (2-3 sentences)
+    2. Improved and categorized skills list
+    3. Professional formatting suggestions
+    4. Industry-specific keywords
+    
+    Return the response as a JSON object with: enhancedSummary, enhancedSkills (array), suggestions (array of improvement tips)`;
+
+    const response = await fetch(OPENAI_API_URL, {
+      method: 'POST',
       headers: {
-        'Authorization': `Bearer ${DEEPSEEK_API_KEY}`,
+        'Authorization': `Bearer ${OPENAI_API_KEY}`,
         'Content-Type': 'application/json'
-      }
+      },
+      body: JSON.stringify({
+        model: "gpt-3.5-turbo",
+        messages: [
+          {
+            role: "system",
+            content: "You are an expert resume writer. Always respond with valid JSON format containing enhancedSummary, enhancedSkills array, and suggestions array."
+          },
+          {
+            role: "user",
+            content: prompt
+          }
+        ],
+        max_tokens: 500,
+        temperature: 0.7
+      })
     });
 
-    res.json({ suggestions: response.data.choices[0].message.content });
+    const data = await response.json();
+    
+    if (!response.ok) {
+      throw new Error(data.error?.message || 'OpenAI API error');
+    }
+
+    try {
+      const enhancedContent = JSON.parse(data.choices[0].message.content);
+      res.json(enhancedContent);
+    } catch (parseError) {
+      // Fallback if JSON parsing fails
+      res.json({
+        enhancedSummary: data.choices[0].message.content,
+        enhancedSkills: resumeData.skills,
+        suggestions: ["Please review the AI-generated content and apply manually."]
+      });
+    }
   } catch (error) {
-    console.error('ATS optimization error:', error);
-    res.status(500).json({ message: 'ATS optimization error', error: error.message });
+    console.error('Resume enhancement error:', error);
+    res.status(500).json({ 
+      message: 'Resume enhancement failed', 
+      error: error.message 
+    });
   }
 });
 

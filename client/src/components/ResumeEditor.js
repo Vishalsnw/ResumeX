@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import APIService from '../services/api';
 import './ResumeEditor.css';
 
 const ResumeEditor = () => {
@@ -27,6 +28,8 @@ const ResumeEditor = () => {
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const [aiLoading, setAiLoading] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
 
   const fetchResume = useCallback(() => {
     setLoading(true);
@@ -86,30 +89,81 @@ const ResumeEditor = () => {
     }
   };
 
-  const generateAIContent = async (type) => {
+  const generateAIContent = async (type, context = '') => {
+    setAiLoading(true);
+    setError('');
+    
     try {
-      // Mock AI content generation for demo
-      let content = '';
+      const result = await APIService.generateContent(type, resume.personalInfo, context);
       
       switch (type) {
         case 'summary':
-          content = 'Experienced professional with a strong background in delivering high-quality results. Proven track record of success in collaborative environments with excellent communication and problem-solving skills.';
+          setResume({
+            ...resume,
+            personalInfo: {
+              ...resume.personalInfo,
+              summary: result.content
+            }
+          });
+          break;
+        case 'skills':
+          // Parse skills from AI response
+          const skillsText = result.content;
+          const skills = skillsText.split(/[,\n]/).map(s => s.trim()).filter(s => s.length > 0);
+          setResume({
+            ...resume,
+            skills: skills
+          });
           break;
         default:
-          content = 'AI-generated content';
-      }
-      
-      if (type === 'summary') {
-        setResume({
-          ...resume,
-          personalInfo: {
-            ...resume.personalInfo,
-            summary: content
-          }
-        });
+          break;
       }
     } catch (error) {
-      setError('AI generation failed');
+      setError('AI generation failed: ' + error.message);
+    } finally {
+      setAiLoading(false);
+    }
+  };
+
+  const enhanceResume = async () => {
+    setAiLoading(true);
+    setError('');
+    
+    try {
+      const enhanced = await APIService.enhanceResume(resume);
+      
+      setResume({
+        ...resume,
+        personalInfo: {
+          ...resume.personalInfo,
+          summary: enhanced.enhancedSummary || resume.personalInfo.summary
+        },
+        skills: enhanced.enhancedSkills || resume.skills
+      });
+      
+      if (enhanced.suggestions) {
+        alert('AI Suggestions:\n' + enhanced.suggestions.join('\n'));
+      }
+    } catch (error) {
+      setError('Resume enhancement failed: ' + error.message);
+    } finally {
+      setAiLoading(false);
+    }
+  };
+
+  const downloadResume = async () => {
+    try {
+      const blob = await APIService.generatePDF(resume);
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${resume.personalInfo.fullName || 'resume'}.html`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (error) {
+      setError('Download failed: ' + error.message);
     }
   };
 
@@ -135,10 +189,19 @@ const ResumeEditor = () => {
           className="title-input"
         />
         <div className="editor-actions">
-          <button onClick={saveResume} className="btn btn-success" disabled={saving}>
+          <button onClick={enhanceResume} className="btn btn-primary" disabled={aiLoading}>
+            {aiLoading ? 'Enhancing...' : '✨ Enhance with AI'}
+          </button>
+          <button onClick={() => setShowPreview(!showPreview)} className="btn btn-info">
+            {showPreview ? 'Hide Preview' : 'Preview Resume'}
+          </button>
+          <button onClick={downloadResume} className="btn btn-success">
+            📄 Download Resume
+          </button>
+          <button onClick={saveResume} className="btn btn-secondary" disabled={saving}>
             {saving ? 'Saving...' : 'Save Resume'}
           </button>
-          <button onClick={() => navigate('/dashboard')} className="btn btn-secondary">
+          <button onClick={() => navigate('/dashboard')} className="btn btn-outline">
             Back to Dashboard
           </button>
         </div>
@@ -196,8 +259,9 @@ const ResumeEditor = () => {
               <button 
                 onClick={() => generateAIContent('summary')}
                 className="btn ai-btn"
+                disabled={aiLoading}
               >
-                ✨ Generate with AI
+                {aiLoading ? 'Generating...' : '✨ Generate with AI'}
               </button>
             </div>
           </div>
@@ -219,7 +283,82 @@ const ResumeEditor = () => {
             ))}
           </div>
         </div>
+
+        <div className="section">
+          <h3>Skills</h3>
+          <div className="skills-input">
+            <div className="current-skills">
+              {resume.skills.map((skill, index) => (
+                <span key={index} className="skill-tag">
+                  {skill}
+                  <button 
+                    onClick={() => {
+                      const newSkills = resume.skills.filter((_, i) => i !== index);
+                      setResume({ ...resume, skills: newSkills });
+                    }}
+                    className="remove-skill"
+                  >
+                    ×
+                  </button>
+                </span>
+              ))}
+            </div>
+            <div className="skill-actions">
+              <input
+                type="text"
+                placeholder="Add a skill..."
+                onKeyPress={(e) => {
+                  if (e.key === 'Enter' && e.target.value.trim()) {
+                    setResume({
+                      ...resume,
+                      skills: [...resume.skills, e.target.value.trim()]
+                    });
+                    e.target.value = '';
+                  }
+                }}
+              />
+              <button 
+                onClick={() => generateAIContent('skills')}
+                className="btn ai-btn"
+                disabled={aiLoading}
+              >
+                {aiLoading ? 'Generating...' : '✨ Generate Skills'}
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
+
+      {showPreview && (
+        <div className="preview-section">
+          <h3>Resume Preview</h3>
+          <div className="resume-preview">
+            <div className="preview-header">
+              <h2>{resume.personalInfo.fullName}</h2>
+              <p>{resume.personalInfo.email} | {resume.personalInfo.phone} | {resume.personalInfo.location}</p>
+              {resume.personalInfo.linkedin && <p>{resume.personalInfo.linkedin}</p>}
+            </div>
+            
+            {resume.personalInfo.summary && (
+              <div className="preview-section-content">
+                <h4>Professional Summary</h4>
+                <p>{resume.personalInfo.summary}</p>
+              </div>
+            )}
+            
+            {resume.skills.length > 0 && (
+              <div className="preview-section-content">
+                <h4>Skills</h4>
+                <div className="preview-skills">
+                  {resume.skills.map((skill, index) => (
+                    <span key={index} className="preview-skill">{skill}</span>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 };
