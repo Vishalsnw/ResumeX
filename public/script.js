@@ -1,4 +1,3 @@
-
 // Global variables
 let currentStep = 1;
 let resumeData = {
@@ -646,7 +645,7 @@ async function generateResume(type) {
     try {
         // Payment check disabled for testing
         console.log('Payment check disabled for testing');
-        
+
         // Generate AI-enhanced resume
         await generateAIResume();
     } catch (error) {
@@ -1011,8 +1010,7 @@ function createTechTemplate() {
                         <span>📧 ${resumeData.personalInfo.email || 'your.email@example.com'}</span>
                         <span>📱 ${resumeData.personalInfo.phone || '+91 9999999999'}</span>
                         <span>📍 ${resumeData.personalInfo.location || 'Your Location'}</span>
-                    </div>
-                </div>
+                    </div>                </div>
             </div>
 
             <div class="tech-grid">

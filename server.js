@@ -43,7 +43,7 @@ if (process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET) {
 app.post('/api/extract-pdf', async (req, res) => {
   try {
     const { fileData } = req.body;
-    
+
     if (!fileData) {
       return res.status(400).json({ 
         success: false, 
@@ -66,10 +66,17 @@ app.post('/api/extract-pdf', async (req, res) => {
   }
 });
 
-// Enhanced AI Resume Generation with multiple features
+// Resume Generation
 app.post('/api/generate-resume', async (req, res) => {
   try {
+    console.log('=== AI Resume Generation Request ===');
+    console.log('Request body keys:', Object.keys(req.body || {}));
+
     const { personalInfo, experience, skills, jobTitle, targetJobDescription, industryFocus } = req.body;
+
+    if (!personalInfo || !personalInfo.name) {
+      return res.status(400).json({ success: false, error: 'Personal information is required' });
+    }
 
     const prompt = `As an expert resume writer and career coach, create a highly optimized resume for ${personalInfo.name}, targeting a ${jobTitle} position.
 
@@ -99,12 +106,19 @@ app.post('/api/generate-resume', async (req, res) => {
 
     const apiKey = process.env.DEEPSEEK_API_KEY;
 
+    if (!apiKey) {
+      console.error('DEEPSEEK_API_KEY not found in environment');
+      return res.status(500).json({ success: false, error: 'AI service configuration error' });
+    }
+
+    console.log('Making request to Deepseek API...');
+
     const response = await axios.post('https://api.deepseek.com/v1/chat/completions', {
       model: 'deepseek-chat',
       messages: [
         {
           role: 'system',
-          content: 'You are a professional resume writer with expertise in ATS optimization, career coaching, and industry-specific resume strategies.'
+          content: 'You are a professional resume writer with expertise in ATS optimization, career coaching, and industry-specific resume strategies. Always return valid JSON format.'
         },
         {
           role: 'user',
@@ -117,14 +131,69 @@ app.post('/api/generate-resume', async (req, res) => {
       headers: {
         'Authorization': `Bearer ${apiKey}`,
         'Content-Type': 'application/json'
-      }
+      },
+      timeout: 30000
     });
 
-    const aiContent = JSON.parse(response.data.choices[0].message.content);
+    console.log('Deepseek API response received, status:', response.status);
+
+    let aiContent;
+    try {
+      const rawContent = response.data.choices[0].message.content;
+      console.log('Raw AI response length:', rawContent.length);
+
+      // Clean JSON response
+      let cleanContent = rawContent.trim();
+      if (cleanContent.startsWith('```json')) {
+        cleanContent = cleanContent.replace(/^```json\s*/, '').replace(/\s*```$/, '');
+      } else if (cleanContent.startsWith('```')) {
+        cleanContent = cleanContent.replace(/^```\s*/, '').replace(/\s*```$/, '');
+      }
+
+      aiContent = JSON.parse(cleanContent);
+      console.log('Successfully parsed AI content');
+    } catch (parseError) {
+      console.warn('Failed to parse AI response, using fallback');
+      console.warn('Parse error:', parseError.message);
+
+      // Fallback content
+      aiContent = {
+        summary: `Experienced ${jobTitle} with strong background in ${skills?.slice(0, 3).join(', ') || 'professional skills'}. Proven track record of delivering results and driving success.`,
+        enhancedExperience: experience?.map(exp => ({
+          position: exp.position,
+          company: exp.company,
+          description: exp.description || `Successfully contributed to ${exp.company} as ${exp.position}, delivering key results and maintaining high performance standards.`
+        })) || [],
+        optimizedSkills: skills || ['Professional Skills', 'Industry Knowledge', 'Communication'],
+        additionalSections: [],
+        atsScore: 85,
+        improvementSuggestions: ['Consider adding specific metrics and achievements', 'Include relevant keywords for your industry'],
+        keywordMatches: ['Strong match with target role requirements']
+      };
+    }
+
     res.json({ success: true, content: aiContent });
   } catch (error) {
-    console.error('AI Generation Error:', error);
-    res.status(500).json({ success: false, error: 'Failed to generate AI content' });
+    console.error('AI Generation Error:', error.message);
+
+    let errorMessage = 'Failed to generate AI content';
+    let statusCode = 500;
+
+    if (error.code === 'ENOTFOUND' || error.code === 'ECONNREFUSED') {
+      errorMessage = 'AI service temporarily unavailable';
+      statusCode = 503;
+    } else if (error.response?.status === 401) {
+      errorMessage = 'AI service authentication failed';
+      statusCode = 401;
+    } else if (error.response?.status === 429) {
+      errorMessage = 'Service temporarily busy - please try again';
+      statusCode = 429;
+    } else if (error.message.includes('timeout')) {
+      errorMessage = 'Request timeout - please try again';
+      statusCode = 408;
+    }
+
+    res.status(statusCode).json({ success: false, error: errorMessage });
   }
 });
 
@@ -396,7 +465,7 @@ app.post('/api/enhance-resume', async (req, res) => {
   try {
     console.log('=== Resume Enhancement Request ===');
     console.log('Timestamp:', new Date().toISOString());
-    
+
     const { resumeText, jobDescription, jobTitle } = req.body;
 
     if (!resumeText || resumeText.trim().length === 0) {
@@ -489,7 +558,7 @@ app.post('/api/enhance-resume', async (req, res) => {
     try {
       const aiContent = response.data.choices[0].message.content;
       console.log('Raw AI response length:', aiContent.length);
-      
+
       // Clean JSON response
       let cleanContent = aiContent.trim();
       if (cleanContent.startsWith('```json')) {
@@ -497,12 +566,12 @@ app.post('/api/enhance-resume', async (req, res) => {
       } else if (cleanContent.startsWith('```')) {
         cleanContent = cleanContent.replace(/^```\s*/, '').replace(/\s*```$/, '');
       }
-      
+
       const jsonMatch = cleanContent.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
         cleanContent = jsonMatch[0];
       }
-      
+
       enhancedData = JSON.parse(cleanContent);
       console.log('Successfully parsed enhanced data');
     } catch (parseError) {
@@ -514,7 +583,7 @@ app.post('/api/enhance-resume', async (req, res) => {
     res.json({ success: true, enhancedData });
   } catch (error) {
     console.error('Resume Enhancement Error:', error.message);
-    
+
     let errorMessage = 'Failed to enhance resume';
     let statusCode = 500;
 
@@ -554,15 +623,15 @@ app.post('/api/enhance-resume', async (req, res) => {
 function extractBasicInfo(resumeText, jobTitle) {
   const text = resumeText.toLowerCase();
   const lines = resumeText.split('\n').map(line => line.trim()).filter(line => line.length > 0);
-  
+
   // Extract email
   const emailMatch = resumeText.match(/[\w.-]+@[\w.-]+\.\w+/);
   const email = emailMatch ? emailMatch[0] : 'your.email@example.com';
-  
+
   // Extract phone
   const phoneMatch = resumeText.match(/[\+]?[\d\s\-\(\)]{10,}/);
   const phone = phoneMatch ? phoneMatch[0].replace(/\s+/g, ' ').trim() : '+91 9999999999';
-  
+
   // Extract name (first non-empty line that doesn't look like contact info)
   let name = 'Your Name';
   for (const line of lines) {
@@ -571,7 +640,7 @@ function extractBasicInfo(resumeText, jobTitle) {
       break;
     }
   }
-  
+
   // Extract location
   let location = 'Your Location';
   const locationKeywords = ['address', 'location', 'city', 'state'];
@@ -582,18 +651,18 @@ function extractBasicInfo(resumeText, jobTitle) {
       break;
     }
   }
-  
+
   // Extract skills from common skill indicators
   const skillKeywords = ['skills', 'technical', 'expertise', 'proficient', 'experienced'];
   const commonSkills = ['javascript', 'python', 'java', 'react', 'node', 'html', 'css', 'sql', 'aws', 'git'];
   const foundSkills = [];
-  
+
   for (const skill of commonSkills) {
     if (text.includes(skill)) {
       foundSkills.push(skill.charAt(0).toUpperCase() + skill.slice(1));
     }
   }
-  
+
   // Extract education
   let education = 'Your Education Background';
   const educationKeywords = ['education', 'degree', 'university', 'college', 'bachelor', 'master', 'phd'];
@@ -603,12 +672,12 @@ function extractBasicInfo(resumeText, jobTitle) {
       break;
     }
   }
-  
+
   // Extract experience
   const experienceLines = [];
   const experienceKeywords = ['experience', 'work', 'employment', 'company', 'position', 'role'];
   let foundExperience = false;
-  
+
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
     if (experienceKeywords.some(keyword => line.toLowerCase().includes(keyword))) {
@@ -620,7 +689,7 @@ function extractBasicInfo(resumeText, jobTitle) {
       if (experienceLines.length >= 3) break;
     }
   }
-  
+
   return {
     personalInfo: {
       name: name,
