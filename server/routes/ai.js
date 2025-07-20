@@ -5,6 +5,8 @@ const router = express.Router();
 const DEEPSEEK_API_URL = 'https://api.deepseek.com/v1/chat/completions';
 const DEEPSEEK_API_KEY = process.env.DEEPSEEK_API_KEY;
 
+console.log('DEEPSEEK_API_KEY configured:', !!DEEPSEEK_API_KEY);
+
 // Generate specific resume content
 router.post('/generate-content', async (req, res) => {
   try {
@@ -12,7 +14,7 @@ router.post('/generate-content', async (req, res) => {
 
     if (!DEEPSEEK_API_KEY) {
       return res.status(500).json({ 
-        message: 'OpenAI API key not configured. Please add OPENAI_API_KEY to your environment variables.' 
+        message: 'DeepSeek API key not configured. Please add DEEPSEEK_API_KEY to your environment variables.' 
       });
     }
 
@@ -54,6 +56,8 @@ router.post('/generate-content', async (req, res) => {
         return res.status(400).json({ message: 'Invalid content type' });
     }
 
+    console.log('Making DeepSeek API request with prompt:', prompt.substring(0, 100) + '...');
+    
     const response = await fetch(DEEPSEEK_API_URL, {
       method: 'POST',
       headers: {
@@ -78,9 +82,15 @@ router.post('/generate-content', async (req, res) => {
     });
 
     const data = await response.json();
-
+    console.log('DeepSeek API response status:', response.status);
+    
     if (!response.ok) {
-      throw new Error(data.error?.message || 'DeepSeek API error');
+      console.error('DeepSeek API error:', data);
+      throw new Error(data.error?.message || `DeepSeek API error: ${response.status}`);
+    }
+
+    if (!data.choices || !data.choices[0] || !data.choices[0].message) {
+      throw new Error('Invalid response format from DeepSeek API');
     }
 
     res.json({ content: data.choices[0].message.content });

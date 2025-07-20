@@ -1,9 +1,9 @@
 // Frontend-only API service using localStorage
 class APIService {
   constructor() {
-    this.baseURL = process.env.NODE_ENV === 'production'
-      ? 'https://your-app-name.replit.app'
-      : 'http://localhost:5000';
+    this.baseURL = window.location.hostname === 'localhost' 
+      ? 'http://localhost:5000'
+      : `https://${window.location.hostname}`;
     this.users = JSON.parse(localStorage.getItem('resumex_users') || '[]');
     this.resumes = JSON.parse(localStorage.getItem('resumex_resumes') || '[]');
     this.currentUser = JSON.parse(localStorage.getItem('resumex_current_user') || 'null');
