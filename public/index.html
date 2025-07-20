@@ -142,6 +142,37 @@
 
                 <!-- Step 1: Personal Information & Job Target -->
                 <div id="step1" class="form-step active">
+                    <div class="form-group">
+                        <label><i class="fas fa-cloud-upload-alt"></i> Upload Existing Resume (Optional)</label>
+                        <div class="file-upload-area" id="resumeUploadArea">
+                            <input type="file" id="existingResume" accept=".pdf,.doc,.docx,.txt" style="display: none;">
+                            <div class="upload-placeholder">
+                                <i class="fas fa-cloud-upload-alt"></i>
+                                <p>Click to upload your existing resume or drag and drop</p>
+                                <small>Supports PDF, DOC, DOCX, TXT files - AI will enhance it for you!</small>
+                            </div>
+                            <div class="uploaded-file" id="uploadedFileInfo" style="display: none;">
+                                <i class="fas fa-file-alt"></i>
+                                <span id="fileName"></span>
+                                <button type="button" class="btn-remove" onclick="removeUploadedFile()">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <button type="button" class="btn-secondary btn-small" onclick="enhanceExistingResume()" id="enhanceBtn" style="display: none;">
+                            <i class="fas fa-magic"></i> Enhance with AI
+                        </button>
+                    </div>
+                    <div class="form-group">
+                        <label>Job Description (Optional - for AI optimization)</label>
+                        <textarea id="targetJobDescription" rows="4" placeholder="Paste the job description you're targeting for better AI optimization"></textarea>
+                        <button type="button" class="btn-secondary btn-small" onclick="analyzeJobDescription()">
+                            <i class="fas fa-search"></i> Analyze Job
+                        </button>
+                    </div>
+                    <div id="jobAnalysis" class="job-analysis" style="display: none;">
+                        <!-- Job analysis results will appear here -->
+                    </div>
                     <div class="form-group required">
                         <label>Full Name</label>
                         <div class="input-group">
@@ -192,37 +223,6 @@
                             <option value="retail">Retail</option>
                             <option value="other">Other</option>
                         </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Upload Existing Resume (Optional)</label>
-                        <div class="file-upload-area" id="resumeUploadArea">
-                            <input type="file" id="existingResume" accept=".pdf,.doc,.docx,.txt" style="display: none;">
-                            <div class="upload-placeholder">
-                                <i class="fas fa-cloud-upload-alt"></i>
-                                <p>Click to upload your existing resume or drag and drop</p>
-                                <small>Supports PDF, DOC, DOCX, TXT files</small>
-                            </div>
-                            <div class="uploaded-file" id="uploadedFileInfo" style="display: none;">
-                                <i class="fas fa-file-alt"></i>
-                                <span id="fileName"></span>
-                                <button type="button" class="btn-remove" onclick="removeUploadedFile()">
-                                    <i class="fas fa-times"></i>
-                                </button>
-                            </div>
-                        </div>
-                        <button type="button" class="btn-secondary btn-small" onclick="enhanceExistingResume()" id="enhanceBtn" style="display: none;">
-                            <i class="fas fa-magic"></i> Enhance Resume
-                        </button>
-                    </div>
-                    <div class="form-group">
-                        <label>Job Description (Optional - for AI optimization)</label>
-                        <textarea id="targetJobDescription" rows="4" placeholder="Paste the job description you're targeting for better AI optimization"></textarea>
-                        <button type="button" class="btn-secondary btn-small" onclick="analyzeJobDescription()">
-                            <i class="fas fa-search"></i> Analyze Job
-                        </button>
-                    </div>
-                    <div id="jobAnalysis" class="job-analysis" style="display: none;">
-                        <!-- Job analysis results will appear here -->
                     </div>
                     <div class="form-actions">
                         <button class="btn-primary" onclick="nextStep()">Next</button>
