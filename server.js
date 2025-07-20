@@ -1,4 +1,3 @@
-
 const express = require('express');
 const cors = require('cors');
 const axios = require('axios');
@@ -23,7 +22,7 @@ const razorpay = new Razorpay({
 app.post('/api/generate-resume', async (req, res) => {
   try {
     const { personalInfo, experience, skills, jobTitle, targetJobDescription, industryFocus } = req.body;
-    
+
     const prompt = `As an expert resume writer and career coach, create a highly optimized resume for ${personalInfo.name}, targeting a ${jobTitle} position.
 
     CANDIDATE DATA:
@@ -83,31 +82,35 @@ app.post('/api/generate-resume', async (req, res) => {
 app.post('/api/analyze-job', async (req, res) => {
   try {
     const { jobDescription } = req.body;
-    
-    const prompt = `Analyze this job description and extract:
-    1. Required skills and qualifications
-    2. Key responsibilities
-    3. Important keywords for ATS
-    4. Experience level required
-    5. Industry focus
-    
-    Job Description: ${jobDescription}
-    
-    Return as JSON with: requiredSkills, responsibilities, keywords, experienceLevel, industry, recommendations`;
+
+    if (!process.env.DEEPSEEK_API_KEY || process.env.DEEPSEEK_API_KEY === 'your_actual_deepseek_api_key_here') {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'AI service not configured. Please add your Deepseek API key.' 
+      });
+    }
+
+    const prompt = `Analyze this job description and extract key information. Return a JSON object with:
+    - requiredSkills: array of 5-8 key skills
+    - experienceLevel: string (entry, mid, senior, executive)
+    - industry: string 
+    - recommendations: array of 3-4 brief suggestions for resume optimization
+
+    Job Description: ${jobDescription}`;
 
     const response = await axios.post('https://api.deepseek.com/v1/chat/completions', {
       model: 'deepseek-chat',
       messages: [
         {
           role: 'system',
-          content: 'You are an expert recruiter and HR professional who analyzes job descriptions.'
+          content: 'You are an expert recruiter. Analyze job descriptions and return only valid JSON.'
         },
         {
           role: 'user',
           content: prompt
         }
       ],
-      max_tokens: 1500,
+      max_tokens: 800,
       temperature: 0.3
     }, {
       headers: {
@@ -116,11 +119,31 @@ app.post('/api/analyze-job', async (req, res) => {
       }
     });
 
-    const analysis = JSON.parse(response.data.choices[0].message.content);
+    let analysis;
+    try {
+      analysis = JSON.parse(response.data.choices[0].message.content);
+    } catch (parseError) {
+      // Fallback analysis if AI response isn't valid JSON
+      analysis = {
+        requiredSkills: ['Communication', 'Problem Solving', 'Team Work', 'Leadership'],
+        experienceLevel: 'mid-level',
+        industry: 'General',
+        recommendations: [
+          'Highlight relevant experience prominently',
+          'Include industry-specific keywords',
+          'Quantify your achievements with numbers',
+          'Tailor your skills section to match requirements'
+        ]
+      };
+    }
+
     res.json({ success: true, analysis });
   } catch (error) {
-    console.error('Job Analysis Error:', error);
-    res.status(500).json({ success: false, error: 'Failed to analyze job description' });
+    console.error('Job Analysis Error:', error.response?.data || error.message);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Failed to analyze job description. Please check your API key configuration.' 
+    });
   }
 });
 
@@ -128,21 +151,21 @@ app.post('/api/analyze-job', async (req, res) => {
 app.post('/api/score-resume', async (req, res) => {
   try {
     const { resumeContent, jobDescription } = req.body;
-    
+
     const prompt = `Score this resume against the job description and provide detailed feedback:
 
     RESUME: ${resumeContent}
     JOB DESCRIPTION: ${jobDescription}
-    
+
     Provide scores (0-100) for:
     1. Keyword match
     2. Experience relevance
     3. Skills alignment
     4. ATS compatibility
     5. Overall match
-    
+
     Include specific recommendations for improvement.
-    
+
     Return as JSON with: scores, overallScore, feedback, recommendations, missingKeywords`;
 
     const response = await axios.post('https://api.deepseek.com/v1/chat/completions', {
@@ -178,7 +201,7 @@ app.post('/api/score-resume', async (req, res) => {
 app.post('/api/create-order', async (req, res) => {
   try {
     const { amount, currency = 'INR' } = req.body;
-    
+
     const order = await razorpay.orders.create({
       amount: amount * 100, // Convert to paise
       currency,
@@ -196,7 +219,7 @@ app.post('/api/create-order', async (req, res) => {
 app.post('/api/verify-payment', async (req, res) => {
   try {
     const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
-    
+
     // Verify signature logic here
     const crypto = require('crypto');
     const body = razorpay_order_id + "|" + razorpay_payment_id;
