@@ -1,18 +1,20 @@
-// Global variables
-let currentStep = 1;
-let resumeData = {
-    personalInfo: {},
-    experience: [],
-    skills: [],
-    jobTitle: '',
-    targetJobDescription: ''
-};
-let uploadedResumeFile = null;
-let enhancedResumeData = null;
-let isProcessing = false;
-let selectedTemplate = 'modern';
-let jobAnalysisData = null;
-let hasUsedAI = false;
+// Global variables (check if already declared to prevent errors)
+if (typeof currentStep === 'undefined') {
+    var currentStep = 1;
+    var resumeData = {
+        personalInfo: {},
+        experience: [],
+        skills: [],
+        jobTitle: '',
+        targetJobDescription: ''
+    };
+    var uploadedResumeFile = null;
+    var enhancedResumeData = null;
+    var isProcessing = false;
+    var selectedTemplate = 'modern';
+    var jobAnalysisData = null;
+    var hasUsedAI = false;
+}
 
 // DOM elements
 let modal, previewModal, loadingOverlay;
@@ -164,9 +166,10 @@ function handleFileUpload(file) {
     placeholder.style.display = 'none';
     uploadedInfo.style.display = 'flex';
     fileName.textContent = file.name;
-    enhanceBtn.style.display = 'inline-block';
+    enhanceBtn.style.display = 'block';
+    enhanceBtn.style.marginTop = '10px';
 
-    showToast('Resume uploaded successfully!', 'success');
+    showToast('Resume uploaded successfully! Click "Enhance with AI" to improve it.', 'success');
 }
 
 function removeUploadedFile() {

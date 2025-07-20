@@ -1023,8 +1023,21 @@ body {
 
 .option-cards {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 24px;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1rem;
+    margin: 2rem 0;
+}
+
+.single-option {
+    display: flex;
+    justify-content: center;
+    margin: 2rem 0;
+}
+
+.single-option .option-card {
+    max-width: 400px;
+    text-align: center;
+    padding: 2rem;
 }
 
 .option-card {
