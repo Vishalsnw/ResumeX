@@ -57,7 +57,7 @@ router.post('/generate-content', async (req, res) => {
     }
 
     console.log('Making DeepSeek API request with prompt:', prompt.substring(0, 100) + '...');
-    
+
     const response = await fetch(DEEPSEEK_API_URL, {
       method: 'POST',
       headers: {
@@ -83,7 +83,7 @@ router.post('/generate-content', async (req, res) => {
 
     const data = await response.json();
     console.log('DeepSeek API response status:', response.status);
-    
+
     if (!response.ok) {
       console.error('DeepSeek API error:', data);
       throw new Error(data.error?.message || `DeepSeek API error: ${response.status}`);
@@ -127,8 +127,6 @@ router.post('/analyze-resume', upload.single('resume'), async (req, res) => {
 
     console.log('Analyzing uploaded file:', req.file.originalname, 'Size:', req.file.size);
 
-    // For demonstration, we'll use AI to generate realistic resume data
-    // In production, you'd parse the actual file content using pdf-parse or mammoth
     const analysisPrompt = `Create realistic resume data for analysis. Return a JSON object with:
     {
       "personalInfo": {
@@ -160,96 +158,8 @@ router.post('/analyze-resume', upload.single('resume'), async (req, res) => {
     Create professional, realistic data for a ${req.file.originalname} resume.`;
 
     if (!DEEPSEEK_API_KEY) {
-      // Return demo data if no API key
-      return res.json({
-        personalInfo: {
-          fullName: 'Sarah Johnson',
-          email: 'sarah.johnson@email.com',
-          phone: '+1 (555) 987-6543',
-          location: 'San Francisco, CA',
-          summary: 'Results-driven marketing professional with 8+ years of experience in digital marketing, brand strategy, and team leadership. Proven track record of increasing ROI by 150% and managing multi-million dollar campaigns.'
-        },
-        experience: [
-          {
-            title: 'Senior Marketing Manager',
-            company: 'Digital Innovations Corp',
-            startDate: '2021-03',
-            endDate: '2024-01',
-            description: 'Led comprehensive digital marketing strategies resulting in 45% increase in lead generation. Managed cross-functional teams of 12 members and optimized campaign performance across multiple channels.'
-          },
-          {
-            title: 'Marketing Specialist',
-            company: 'Growth Solutions LLC',
-            startDate: '2019-01',
-            endDate: '2021-02',
-            description: 'Developed and executed integrated marketing campaigns that increased brand awareness by 60%. Collaborated with sales teams to create targeted content and improve conversion rates.'
-          }
-        ],
-        skills: [
-          'Digital Marketing',
-          'Brand Strategy',
-          'Google Analytics',
-          'SEO/SEM',
-          'Social Media Marketing',
-          'Project Management',
-          'Team Leadership',
-          'Data Analysis'
-        ],
-        education: [
-          {
-            degree: 'Master of Business Administration (MBA)',
-            school: 'Stanford Graduate School of Business',
-            year: '2018'
-          },
-          {
-            degree: 'Bachelor of Arts in Marketing',
-            school: 'University of California, Berkeley',
-            year: '2016'
-          }
-        ]
-      });
-    }
-
-    if (!DEEPSEEK_API_KEY) {
-      console.log('No DeepSeek API key, using fallback data');
-      // Return realistic fallback data
-      return res.json({
-        personalInfo: {
-          fullName: 'Alex Thompson',
-          email: 'alex.thompson@email.com',
-          phone: '+1 (555) 987-6543',
-          location: 'San Francisco, CA',
-          summary: 'Results-driven professional with 5+ years of experience in technology and project management. Proven track record of leading cross-functional teams and delivering innovative solutions that drive business growth.'
-        },
-        experience: [
-          {
-            title: 'Senior Project Manager',
-            company: 'TechCorp Solutions',
-            startDate: '2021-03',
-            endDate: '2024-01',
-            description: 'Led development of enterprise software solutions, managing teams of 8+ developers. Improved project delivery time by 30% and reduced costs by 20% through process optimization.'
-          },
-          {
-            title: 'Business Analyst',
-            company: 'DataFlow Inc.',
-            startDate: '2019-06',
-            endDate: '2021-02',
-            description: 'Analyzed business requirements and translated them into technical specifications. Collaborated with stakeholders to implement process improvements that increased efficiency by 25%.'
-          }
-        ],
-        skills: ['Project Management', 'Agile Methodologies', 'Data Analysis', 'Team Leadership', 'Strategic Planning', 'Process Optimization'],
-        education: [
-          {
-            degree: 'Master of Business Administration',
-            school: 'Stanford University',
-            year: '2019'
-          },
-          {
-            degree: 'Bachelor of Science in Computer Science',
-            school: 'UC Berkeley',
-            year: '2017'
-          }
-        ]
+       return res.status(500).json({
+        message: 'DeepSeek API key not configured.  Please add DEEPSEEK_API_KEY to your environment variables.'
       });
     }
 
@@ -288,18 +198,10 @@ router.post('/analyze-resume', upload.single('resume'), async (req, res) => {
       const analyzedData = JSON.parse(data.choices[0].message.content);
       res.json(analyzedData);
     } catch (parseError) {
-      // Return structured demo data if parsing fails
-      res.json({
-        personalInfo: {
-          fullName: 'Professional Candidate',
-          email: 'candidate@email.com',
-          phone: '+1 (555) 123-4567',
-          location: 'New York, NY',
-          summary: 'Experienced professional with demonstrated expertise in industry best practices and innovative solution development.'
-        },
-        experience: [],
-        skills: ['Communication', 'Problem Solving', 'Leadership', 'Project Management'],
-        education: []
+       console.error('JSON parsing error:', parseError);
+      return res.status(500).json({
+        message: 'Failed to parse AI response',
+        error: parseError.message
       });
     }
   } catch (error) {

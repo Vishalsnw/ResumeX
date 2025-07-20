@@ -137,46 +137,7 @@ const ResumeEditor = () => {
       } catch (fetchError) {
         console.error('Analysis fetch error:', fetchError);
         
-        // Use fallback data if API fails
-        const fallbackData = {
-          personalInfo: {
-            fullName: 'Professional User',
-            email: 'user@email.com',
-            phone: '+1 (555) 123-4567',
-            location: 'Your City, State',
-            summary: 'Experienced professional with expertise in leadership and innovation. Demonstrated ability to drive results and exceed expectations in dynamic environments.'
-          },
-          experience: [
-            {
-              title: 'Senior Professional',
-              company: 'Your Company',
-              startDate: '2020-01',
-              endDate: '2024-01',
-              description: 'Led key initiatives and managed projects that delivered significant business value. Collaborated with cross-functional teams to achieve organizational objectives.'
-            }
-          ],
-          skills: ['Leadership', 'Project Management', 'Strategic Planning', 'Communication', 'Problem Solving'],
-          education: [
-            {
-              degree: 'Your Degree',
-              school: 'Your University',
-              year: '2020'
-            }
-          ]
-        };
-
-        setResume({
-          ...resume,
-          personalInfo: {
-            ...resume.personalInfo,
-            ...fallbackData.personalInfo
-          },
-          experience: fallbackData.experience,
-          education: fallbackData.education,
-          skills: fallbackData.skills
-        });
-
-        setError('Resume analysis completed with demo data. Please review and update your information.');
+        setError('Failed to analyze resume. Please upload a different file or fill the form manually.');
       }
     } catch (error) {
       console.error('Upload error:', error);
@@ -451,7 +412,7 @@ const ResumeEditor = () => {
                   type="text"
                   value={resume.personalInfo.fullName}
                   onChange={(e) => updatePersonalInfo('fullName', e.target.value)}
-                  placeholder="John Doe"
+                  placeholder="Enter your full name"
                 />
               </div>
               <div className="form-group">
@@ -460,7 +421,7 @@ const ResumeEditor = () => {
                   type="email"
                   value={resume.personalInfo.email}
                   onChange={(e) => updatePersonalInfo('email', e.target.value)}
-                  placeholder="john@example.com"
+                  placeholder="your.email@example.com"
                 />
               </div>
               <div className="form-group">
@@ -469,7 +430,7 @@ const ResumeEditor = () => {
                   type="tel"
                   value={resume.personalInfo.phone}
                   onChange={(e) => updatePersonalInfo('phone', e.target.value)}
-                  placeholder="+1 (555) 123-4567"
+                  placeholder="Your phone number"
                 />
               </div>
               <div className="form-group">
@@ -478,7 +439,7 @@ const ResumeEditor = () => {
                   type="text"
                   value={resume.personalInfo.location}
                   onChange={(e) => updatePersonalInfo('location', e.target.value)}
-                  placeholder="New York, NY"
+                  placeholder="Your city, state"
                 />
               </div>
               <div className="form-group">
@@ -487,7 +448,7 @@ const ResumeEditor = () => {
                   type="url"
                   value={resume.personalInfo.linkedin}
                   onChange={(e) => updatePersonalInfo('linkedin', e.target.value)}
-                  placeholder="https://linkedin.com/in/johndoe"
+                  placeholder="https://linkedin.com/in/yourprofile"
                 />
               </div>
               <div className="form-group">
@@ -496,7 +457,7 @@ const ResumeEditor = () => {
                   type="url"
                   value={resume.personalInfo.website}
                   onChange={(e) => updatePersonalInfo('website', e.target.value)}
-                  placeholder="https://johndoe.com"
+                  placeholder="https://yourportfolio.com"
                 />
               </div>
             </div>
@@ -541,7 +502,7 @@ const ResumeEditor = () => {
                       type="text"
                       value={exp.title}
                       onChange={(e) => updateExperience(index, 'title', e.target.value)}
-                      placeholder="Software Engineer"
+                      placeholder="Job Title"
                     />
                   </div>
                   <div className="form-group">
@@ -550,7 +511,7 @@ const ResumeEditor = () => {
                       type="text"
                       value={exp.company}
                       onChange={(e) => updateExperience(index, 'company', e.target.value)}
-                      placeholder="Tech Corp"
+                      placeholder="Company Name"
                     />
                   </div>
                   <div className="form-group">
