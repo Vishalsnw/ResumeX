@@ -1,25 +1,23 @@
-// Global variables (avoid redeclaration)
-if (typeof window.currentStep === 'undefined') window.currentStep = 1;
-if (typeof window.resumeData === 'undefined') {
-    window.resumeData = {
-        personalInfo: {},
-        experience: [],
-        skills: [],
-        jobTitle: '',
-        targetJobDescription: ''
-    };
-}
-if (typeof window.uploadedResumeFile === 'undefined') window.uploadedResumeFile = null;
-if (typeof window.enhancedResumeData === 'undefined') window.enhancedResumeData = null;
-if (typeof window.isProcessing === 'undefined') window.isProcessing = false;
-if (typeof window.selectedTemplate === 'undefined') window.selectedTemplate = 'modern';
-if (typeof window.jobAnalysisData === 'undefined') window.jobAnalysisData = null;
-if (typeof window.hasUsedAI === 'undefined') window.hasUsedAI = false;
+// Global variables (initialize only once)
+window.currentStep = window.currentStep || 1;
+window.resumeData = window.resumeData || {
+    personalInfo: {},
+    experience: [],
+    skills: [],
+    jobTitle: '',
+    targetJobDescription: ''
+};
+window.uploadedResumeFile = window.uploadedResumeFile || null;
+window.enhancedResumeData = window.enhancedResumeData || null;
+window.isProcessing = window.isProcessing || false;
+window.selectedTemplate = window.selectedTemplate || 'modern';
+window.jobAnalysisData = window.jobAnalysisData || null;
+window.hasUsedAI = window.hasUsedAI || false;
 
 // DOM elements
-if (typeof window.modal === 'undefined') window.modal = null;
-if (typeof window.previewModal === 'undefined') window.previewModal = null;
-if (typeof window.loadingOverlay === 'undefined') window.loadingOverlay = null;
+window.modal = window.modal || null;
+window.previewModal = window.previewModal || null;
+window.loadingOverlay = window.loadingOverlay || null;
 
 // Initialize the application
 document.addEventListener('DOMContentLoaded', function() {
@@ -950,12 +948,38 @@ function createModernTemplate() {
     const experience = window.resumeData.experience || [];
     const skills = window.resumeData.skills || [];
     
-    // Filter out empty experiences
+    // Filter out empty experiences and ensure proper structure
     const validExperiences = experience.filter(exp => 
         exp && exp.company && exp.position && 
         exp.company.trim() !== '' && exp.position.trim() !== '' &&
         exp.company !== 'Company Name' && exp.position !== 'Position Title'
     );
+    
+    // Format description properly with bullet points
+    function formatDescription(description) {
+        if (!description || description.trim() === '') {
+            return '<p>• Key responsibilities and achievements</p>';
+        }
+        
+        // Split by sentences or periods and create bullet points
+        const sentences = description.split(/[.!?]+/).filter(s => s.trim().length > 10);
+        if (sentences.length > 1) {
+            return sentences.map(sentence => `<p>• ${sentence.trim()}</p>`).join('');
+        } else {
+            // Split long text into logical chunks
+            const words = description.trim().split(' ');
+            if (words.length > 20) {
+                const chunks = [];
+                for (let i = 0; i < words.length; i += 15) {
+                    const chunk = words.slice(i, i + 15).join(' ');
+                    if (chunk.trim()) chunks.push(chunk.trim());
+                }
+                return chunks.map(chunk => `<p>• ${chunk}</p>`).join('');
+            } else {
+                return `<p>• ${description.trim()}</p>`;
+            }
+        }
+    }
     
     return `
         <div class="resume-container modern-template">
@@ -974,8 +998,8 @@ function createModernTemplate() {
                     <div class="resume-section">
                         <h2><i class="fas fa-briefcase"></i> Professional Experience</h2>
                         ${validExperiences.length > 0 ? validExperiences.map(exp => {
-                            const startDate = exp.startDate ? new Date(exp.startDate).toLocaleDateString('en-US', { year: 'numeric', month: 'short' }) : 'Start Date';
-                            const endDate = exp.endDate ? new Date(exp.endDate).toLocaleDateString('en-US', { year: 'numeric', month: 'short' }) : 'Present';
+                            const startDate = exp.startDate ? formatDate(exp.startDate) : 'Present';
+                            const endDate = exp.endDate ? formatDate(exp.endDate) : 'Present';
                             
                             return `
                                 <div class="experience-item modern-experience">
@@ -987,7 +1011,7 @@ function createModernTemplate() {
                                         <div class="dates">${startDate} - ${endDate}</div>
                                     </div>
                                     <div class="description">
-                                        ${exp.description ? exp.description.split('\n').map(line => line.trim() ? `<p>• ${line.trim()}</p>` : '').join('') : '<p>• Key responsibilities and achievements</p>'}
+                                        ${formatDescription(exp.description)}
                                     </div>
                                 </div>
                             `;
@@ -1016,20 +1040,20 @@ function createModernTemplate() {
                         </div>
                     </div>
 
-                    ${resumeData.education ? `
+                    ${window.resumeData.education && window.resumeData.education !== 'NA' ? `
                         <div class="resume-section">
                             <h2><i class="fas fa-graduation-cap"></i> Education</h2>
                             <div class="education-item">
-                                <p>${resumeData.education}</p>
+                                <p>${window.resumeData.education}</p>
                             </div>
                         </div>
                     ` : ''}
 
-                    ${resumeData.certifications ? `
+                    ${window.resumeData.certifications && window.resumeData.certifications !== 'NA' ? `
                         <div class="resume-section">
                             <h2><i class="fas fa-certificate"></i> Certifications</h2>
                             <div class="certifications-item">
-                                <p>${resumeData.certifications}</p>
+                                <p>${window.resumeData.certifications}</p>
                             </div>
                         </div>
                     ` : ''}
@@ -1553,6 +1577,17 @@ function performDownload() {
     }
 }
 
+// Helper function to format dates properly
+function formatDate(dateString) {
+    if (!dateString) return 'Present';
+    try {
+        const date = new Date(dateString);
+        return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short' });
+    } catch {
+        return dateString;
+    }
+}
+
 function getResumeStyles() {
     return `
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -1874,9 +1909,9 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
 
 // Add animation styles only if not already added
 if (!document.querySelector('style[data-animations]')) {
-    const animationStyleElement = document.createElement('style');
-    animationStyleElement.setAttribute('data-animations', 'true');
-    animationStyleElement.textContent = `
+    const animationsStyle = document.createElement('style');
+    animationsStyle.setAttribute('data-animations', 'true');
+    animationsStyle.textContent = `
         @keyframes slideIn {
             from {
                 transform: translateX(100%);
@@ -1888,7 +1923,7 @@ if (!document.querySelector('style[data-animations]')) {
             }
         }
     `;
-    document.head.appendChild(animationStyleElement);
+    document.head.appendChild(animationsStyle);
 }
 
 // Make all functions globally available for HTML onclick handlers
