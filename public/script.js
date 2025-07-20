@@ -168,7 +168,7 @@ function handleFileUpload(file) {
     enhanceBtn.style.marginTop = '10px';
 
     showToast('Resume uploaded successfully! AI enhancement starting...', 'success');
-    
+
     // Auto-start AI enhancement
     setTimeout(() => {
         enhanceExistingResume();
@@ -238,7 +238,7 @@ async function enhanceExistingResume() {
             populateFormWithEnhancedData(result.enhancedData);
             localStorage.setItem('usedAIEnhancement', 'true');
             showToast('Resume enhanced successfully!', 'success');
-            
+
             // Hide enhance button and show success indicator
             const enhanceBtn = document.getElementById('enhanceBtn');
             if (enhanceBtn) {
@@ -251,14 +251,14 @@ async function enhanceExistingResume() {
         }
     } catch (error) {
         console.error('Resume enhancement error:', error);
-        
+
         // Try basic extraction as fallback
         try {
             const fileText = await readFileAsText(uploadedResumeFile);
             const basicData = extractBasicResumeInfo(fileText);
             populateFormWithEnhancedData(basicData);
             showToast('Resume processed (AI enhancement unavailable)', 'info');
-            
+
             const enhanceBtn = document.getElementById('enhanceBtn');
             if (enhanceBtn) {
                 enhanceBtn.innerHTML = '<i class="fas fa-info"></i> Basic Processing';
@@ -276,15 +276,15 @@ async function enhanceExistingResume() {
 // Helper function for basic resume info extraction
 function extractBasicResumeInfo(resumeText) {
     const lines = resumeText.split('\n').filter(line => line.trim().length > 0);
-    
+
     // Extract email
     const emailMatch = resumeText.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/);
     const email = emailMatch ? emailMatch[0] : '';
-    
+
     // Extract phone
     const phoneMatch = resumeText.match(/[\+]?[(]?[\d\s\-\(\)]{10,}/);
     const phone = phoneMatch ? phoneMatch[0].trim() : '';
-    
+
     // Extract name (first meaningful line)
     let name = '';
     for (const line of lines.slice(0, 5)) {
@@ -293,13 +293,13 @@ function extractBasicResumeInfo(resumeText) {
             break;
         }
     }
-    
+
     // Extract skills
     const skillKeywords = ['javascript', 'python', 'java', 'react', 'node', 'html', 'css', 'sql'];
     const foundSkills = skillKeywords.filter(skill => 
         resumeText.toLowerCase().includes(skill)
     ).map(skill => skill.charAt(0).toUpperCase() + skill.slice(1));
-    
+
     return {
         personalInfo: {
             name: name || 'Your Name',
@@ -772,7 +772,7 @@ async function generateAIResume() {
         }
     } catch (error) {
         console.error('AI Resume generation error:', error);
-        
+
         // Always show a resume even if AI fails
         try {
             const basicHTML = createBasicResumeHTML();
@@ -1574,6 +1574,82 @@ window.selectTemplate = selectTemplate;
 window.addExperience = addExperience;
 window.removeExperience = removeExperience;
 window.analyzeJobDescription = analyzeJobDescription;
+window.enhanceUploadedResume = enhanceUploadedResume;
+
+function populateFormWithEnhancedData(data) {
+    // Populate personal info
+    if (data.personalInfo) {
+        if (data.personalInfo.name) document.getElementById('fullName').value = data.personalInfo.name;
+        if (data.personalInfo.email) document.getElementById('email').value = data.personalInfo.email;
+        if (data.personalInfo.phone) document.getElementById('phone').value = data.personalInfo.phone;
+        if (data.personalInfo.location) document.getElementById('location').value = data.personalInfo.location;
+    }
+
+    // Populate job title
+    if (data.jobTitle) {
+        document.getElementById('jobTitle').value = data.jobTitle;
+    }
+
+    // Clear existing experience items
+    const experienceContainer = document.getElementById('experienceContainer');
+    experienceContainer.innerHTML = '';
+
+    // Add experiences
+    if (data.experience && data.experience.length > 0) {
+        data.experience.forEach((exp, index) => {
+            if (index === 0) {
+                // Use first experience item
+                addExperienceItem(exp.company, exp.position, exp.startDate, exp.endDate, exp.description);
+            } else {
+                // Add additional experience items
+                addExperience();
+                const items = document.querySelectorAll('.experience-item');
+                const lastItem = items[items.length - 1];
+                lastItem.querySelector('.company').value = exp.company || '';
+                lastItem.querySelector('.position').value = exp.position || '';
+                lastItem.querySelector('.startDate').value = exp.startDate || '';
+                lastItem.querySelector('.endDate').value = exp.endDate || '';
+                lastItem.querySelector('.description').value = exp.description || '';
+            }
+        });
+    }
+
+    // Populate skills
+    if (data.skills && data.skills.length > 0) {
+        document.getElementById('skills').value = data.skills.join(', ');
+    }
+
+    // Store enhanced data for resume generation
+    resumeData = {
+        personalInfo: data.personalInfo || {},
+        jobTitle: data.jobTitle || 'Professional',
+        experience: data.experience || [],
+        skills: data.skills || [],
+        education: data.education || '',
+        certifications: data.certifications || ''
+    };
+}
+
+function addExperienceItem(company = '', position = '', startDate = '', endDate = '', description = '') {
+    const container = document.getElementById('experienceContainer');
+    const item = document.createElement('div');
+    item.className = 'experience-item';
+    item.innerHTML = `
+        <div class="form-row">
+            <input type="text" class="company" placeholder="Company Name" value="${company}">
+            <input type="text" class="position" placeholder="Job Title" value="${position}">
+        </div>
+        <div class="form-row">
+            <input type="date" class="startDate" value="${startDate}">
+            <input type="date" class="endDate" value="${endDate}">
+        </div>
+        <textarea class="description" placeholder="Describe your responsibilities and achievements..." rows="3">${description}</textarea>
+        <button type="button" class="remove-btn" onclick="removeExperience(this)">
+            <i class="fas fa-trash"></i> Remove
+        </button>
+    `;
+    container.appendChild(item);
+}
 
 async function enhanceResume() {
     const jobTitle = document.getElementById('jobTitle').value;

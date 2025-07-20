@@ -837,8 +837,7 @@ app.post('/api/create-order', async (req, res) => {
   } catch (error) {
     console.error('Payment Error Details:', {
       message: error.message,
-      response: error.response?.data,
-      status: error.response?.status
+      response: error.response?.data,      status: error.response?.status
     });
 
     let errorMessage = 'Failed to create payment order';
@@ -849,8 +848,7 @@ app.post('/api/create-order', async (req, res) => {
     res.status(500).json({ 
       success: false, 
       error: errorMessage,
-      details:```text
- process.env.NODE_ENV === 'development' ? error.message : undefined
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
 });

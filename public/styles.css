@@ -794,12 +794,8 @@ body {
 }
 
 .form-actions {
-    display: flex;
-    justify-content: space-between;
-    margin-top: 48px;
-    gap: 16px;
-    padding-top: 32px;
-    border-top: 1px solid #f1f5f9;
+    margin-top: 30px;
+    text-align: center;
 }
 
 .experience-item {
@@ -1595,4 +1591,33 @@ body {
         flex-wrap: wrap;
         justify-content: center;
     }
+}
+
+/* CSS styles for generate button */
+.add-btn:hover {
+    background: #27ae60;
+    transform: translateY(-1px);
+}
+
+.form-actions {
+    margin-top: 30px;
+    text-align: center;
+}
+
+.generate-btn {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    padding: 15px 30px;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+}
+
+.generate-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
 }
