@@ -64,6 +64,8 @@ app.post('/api/generate-resume', async (req, res) => {
     - improvementSuggestions (array of specific recommendations)
     - keywordMatches (analysis of job description keywords if provided)`;
 
+    const apiKey = process.env.DEEPSEEK_API_KEY;
+
     const response = await axios.post('https://api.deepseek.com/v1/chat/completions', {
       model: 'deepseek-chat',
       messages: [
@@ -80,7 +82,7 @@ app.post('/api/generate-resume', async (req, res) => {
       temperature: 0.6
     }, {
       headers: {
-        'Authorization': `Bearer ${process.env.DEEPSEEK_API_KEY}`,
+        'Authorization': `Bearer ${apiKey}`,
         'Content-Type': 'application/json'
       }
     });
@@ -136,12 +138,14 @@ app.post('/api/analyze-job', async (req, res) => {
 Job Description: ${jobDescription.substring(0, 2000)}`;
 
     console.log('Making API call to Deepseek...');
-    
+
+    const apiKey = process.env.DEEPSEEK_API_KEY;
+
     const apiResponse = await axios({
       method: 'POST',
       url: 'https://api.deepseek.com/chat/completions',
       headers: {
-        'Authorization': `Bearer ${process.env.DEEPSEEK_API_KEY}`,
+        'Authorization': `Bearer ${apiKey}`,
         'Content-Type': 'application/json',
         'Accept': 'application/json',
         'User-Agent': 'AI-Resume-Builder/1.0'
@@ -172,7 +176,7 @@ Job Description: ${jobDescription.substring(0, 2000)}`;
 
     console.log('API Response status:', apiResponse.status);
     console.log('API Response data:', JSON.stringify(apiResponse.data, null, 2));
-    
+
     // Handle different response status codes
     if (apiResponse.status === 404) {
       console.error('API endpoint not found. Trying alternative endpoint...');
@@ -181,7 +185,7 @@ Job Description: ${jobDescription.substring(0, 2000)}`;
         method: 'POST',
         url: 'https://api.deepseek.com/v1/chat/completions',
         headers: {
-          'Authorization': `Bearer ${process.env.DEEPSEEK_API_KEY}`,
+          'Authorization': `Bearer ${apiKey}`,
           'Content-Type': 'application/json',
           'Accept': 'application/json'
         },
@@ -202,7 +206,7 @@ Job Description: ${jobDescription.substring(0, 2000)}`;
         },
         timeout: 30000
       });
-      
+
       if (altResponse.status === 200 && altResponse.data) {
         apiResponse.data = altResponse.data;
         apiResponse.status = altResponse.status;
@@ -216,7 +220,7 @@ Job Description: ${jobDescription.substring(0, 2000)}`;
     } else if (apiResponse.status >= 400) {
       throw new Error(`API error ${apiResponse.status}: ${JSON.stringify(apiResponse.data)}`);
     }
-    
+
     if (!apiResponse.data || !apiResponse.data.choices || !apiResponse.data.choices[0]) {
       throw new Error('Invalid API response structure');
     }
@@ -233,15 +237,15 @@ Job Description: ${jobDescription.substring(0, 2000)}`;
       } else if (cleanContent.startsWith('```')) {
         cleanContent = cleanContent.replace(/^```\s*/, '').replace(/\s*```$/, '');
       }
-      
+
       // Extract JSON object
       const jsonMatch = cleanContent.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
         cleanContent = jsonMatch[0];
       }
-      
+
       analysis = JSON.parse(cleanContent);
-      
+
       // Validate required fields
       if (!analysis.requiredSkills || !Array.isArray(analysis.requiredSkills)) {
         throw new Error('Invalid requiredSkills field');
@@ -255,18 +259,18 @@ Job Description: ${jobDescription.substring(0, 2000)}`;
       if (!analysis.recommendations || !Array.isArray(analysis.recommendations)) {
         throw new Error('Invalid recommendations field');
       }
-      
+
       console.log('Successfully parsed analysis:', analysis);
-      
+
     } catch (parseError) {
       console.warn('Failed to parse AI response:', parseError.message);
       console.warn('AI response was:', aiContent);
-      
+
       // Extract skills and keywords from job description as fallback
       const jobText = jobDescription.toLowerCase();
       const commonSkills = ['communication', 'leadership', 'teamwork', 'problem solving', 'organization', 'microsoft office', 'teaching', 'training', 'presentation', 'curriculum', 'education', 'computer skills', 'technology'];
       const foundSkills = commonSkills.filter(skill => jobText.includes(skill));
-      
+
       // Determine experience level based on job description
       let experienceLevel = 'entry-level';
       if (jobText.includes('senior') || jobText.includes('lead') || jobText.includes('manager')) {
@@ -274,7 +278,7 @@ Job Description: ${jobDescription.substring(0, 2000)}`;
       } else if (jobText.includes('mid') || jobText.includes('experienced') || jobText.includes('3-5') || jobText.includes('5+')) {
         experienceLevel = 'mid-level';
       }
-      
+
       // Determine industry
       let industry = 'Education';
       if (jobText.includes('technology') || jobText.includes('software') || jobText.includes('it ')) {
@@ -284,7 +288,7 @@ Job Description: ${jobDescription.substring(0, 2000)}`;
       } else if (jobText.includes('healthcare') || jobText.includes('medical')) {
         industry = 'Healthcare';
       }
-      
+
       // Provide intelligent fallback analysis
       analysis = {
         requiredSkills: foundSkills.length > 0 ? foundSkills.slice(0, 5).map(skill => 
@@ -300,12 +304,12 @@ Job Description: ${jobDescription.substring(0, 2000)}`;
           'Use action verbs to describe your accomplishments'
         ]
       };
-      
+
       console.log('Using fallback analysis:', analysis);
     }
 
     res.json({ success: true, analysis });
-    
+
   } catch (error) {
     console.error('Job Analysis Error:', error.message);
     console.error('Error details:', {
@@ -318,10 +322,10 @@ Job Description: ${jobDescription.substring(0, 2000)}`;
         data: error.response.data
       } : 'No response data'
     });
-    
+
     let errorMessage = 'Failed to analyze job description';
     let statusCode = 500;
-    
+
     if (error.code === 'ENOTFOUND' || error.code === 'ECONNREFUSED') {
       errorMessage = 'Network error - Unable to connect to AI service';
       statusCode = 503;
@@ -338,13 +342,13 @@ Job Description: ${jobDescription.substring(0, 2000)}`;
       errorMessage = 'Request timeout - Please try again';
       statusCode = 408;
     }
-    
+
     console.log('=== Sending Error Response ===');
     console.log('Status Code:', statusCode);
     console.log('Error Message:', errorMessage);
     console.log('Error Code:', error.code || 'UNKNOWN_ERROR');
     console.log('==============================');
-    
+
     res.status(statusCode).json({ 
       success: false, 
       error: errorMessage,
@@ -375,6 +379,8 @@ app.post('/api/score-resume', async (req, res) => {
 
     Return as JSON with: scores, overallScore, feedback, recommendations, missingKeywords`;
 
+    const apiKey = process.env.DEEPSEEK_API_KEY;
+
     const response = await axios.post('https://api.deepseek.com/v1/chat/completions', {
       model: 'deepseek-chat',
       messages: [
@@ -391,7 +397,7 @@ app.post('/api/score-resume', async (req, res) => {
       temperature: 0.4
     }, {
       headers: {
-        'Authorization': `Bearer ${process.env.DEEPSEEK_API_KEY}`,
+        'Authorization': `Bearer ${apiKey}`,
         'Content-Type': 'application/json'
       }
     });
@@ -444,12 +450,12 @@ app.post('/api/create-order', async (req, res) => {
       response: error.response?.data,
       status: error.response?.status
     });
-    
+
     let errorMessage = 'Failed to create payment order';
     if (error.error && error.error.code === 'BAD_REQUEST_ERROR') {
       errorMessage = 'Invalid payment request - Please check your details';
     }
-    
+
     res.status(500).json({ 
       success: false, 
       error: errorMessage,
