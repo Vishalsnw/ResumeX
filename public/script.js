@@ -1,6 +1,28 @@
 // Global variables
 let currentStep = 1;
-let resumeData = {};
+let resumeData = {
+    personalInfo: {},
+    experience: [],
+    skills: [],
+    jobTitle: '',
+    targetJobDescription: ''
+};
+
+// Start building function - opens the resume builder modal
+function startBuilding() {
+    console.log('Starting resume building process...');
+    const modal = document.getElementById('resumeBuilder');
+    if (modal) {
+        modal.style.display = 'block';
+        document.body.style.overflow = 'hidden';
+        // Reset to first step
+        currentStep = 1;
+        showStep(1);
+        updateProgress();
+    } else {
+        console.error('Resume builder modal not found');
+    }
+}
 let isProcessing = false;
 let selectedTemplate = 'modern';
 let jobAnalysisData = null;
@@ -68,12 +90,6 @@ function initializeMobileMenu() {
 }
 
 // Navigation functions
-function startBuilding() {
-    modal.style.display = 'block';
-    document.body.style.overflow = 'hidden';
-    resetForm();
-}
-
 function viewTemplates() {
     alert('Template gallery coming soon! For now, you can create resumes with our AI-powered builder.');
 }
@@ -204,7 +220,7 @@ async function analyzeJobDescription() {
         console.log('Response status:', response.status);
         console.log('Response ok:', response.ok);
         console.log('Response headers:', Object.fromEntries(response.headers.entries()));
-        
+
         if (!response.ok) {
             let errorText;
             try {
@@ -215,11 +231,11 @@ async function analyzeJobDescription() {
             }
             throw new Error(`Server error ${response.status}: ${errorText}`);
         }
-        
+
         let result;
         const responseText = await response.text();
         console.log('Raw response text:', responseText);
-        
+
         try {
             result = JSON.parse(responseText);
         } catch (parseError) {
@@ -246,9 +262,9 @@ async function analyzeJobDescription() {
             toString: error.toString(),
             cause: error.cause
         });
-        
+
         let errorMessage = 'Failed to analyze job description';
-        
+
         if (error.name === 'TypeError' && error.message.includes('Failed to fetch')) {
             errorMessage = 'Network error - Unable to connect to server';
         } else if (error.message.includes('Invalid server response')) {
@@ -262,7 +278,7 @@ async function analyzeJobDescription() {
         } else if (error.message) {
             errorMessage = error.message;
         }
-        
+
         showToast(errorMessage, 'error');
     } finally {
         hideLoading();
@@ -987,7 +1003,7 @@ function createAIResumeHTML(aiContent) {
                 <h2>${section.title}</h2>
                 <p>${section.content}</p>
             </div>
-        `).join('') : ''}
+        `).join('')` : ''}
     `;
 }
 
@@ -1093,7 +1109,7 @@ async function initiatePayment(amount, planName) {
             // Get Razorpay key from backend
             const keyResponse = await fetch('/api/razorpay-key');
             const keyData = await keyResponse.json();
-            
+
             const options = {
                 key: keyData.key,
                 amount: result.order.amount,
@@ -1129,7 +1145,7 @@ async function initiatePayment(amount, planName) {
     } catch (error) {
         console.error('Payment initialization error:', error);
         let errorMessage = 'Payment initialization failed';
-        
+
         if (error.message.includes('Failed to fetch')) {
             errorMessage = 'Network error - Please check your connection';
         } else if (error.message.includes('Payment service error')) {
@@ -1137,7 +1153,7 @@ async function initiatePayment(amount, planName) {
         } else if (error.message) {
             errorMessage = error.message;
         }
-        
+
         showToast(errorMessage, 'error');
     } finally {
         hideLoading();
