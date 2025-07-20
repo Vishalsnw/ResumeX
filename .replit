@@ -23,6 +23,7 @@ args = "cd client && npm start"
 
 [nix]
 channel = "stable-24_05"
+packages = ["tree"]
 
 [[ports]]
 localPort = 3000
