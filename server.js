@@ -13,10 +13,14 @@ app.use(express.json());
 app.use(express.static('public'));
 
 // Initialize Razorpay
-const razorpay = new Razorpay({
-  key_id: process.env.RAZORPAY_KEY_ID,
-  key_secret: process.env.RAZORPAY_KEY_SECRET
-});
+let razorpay = null;
+if (process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET && 
+    process.env.RAZORPAY_KEY_ID !== 'your_actual_razorpay_key_id_here') {
+  razorpay = new Razorpay({
+    key_id: process.env.RAZORPAY_KEY_ID,
+    key_secret: process.env.RAZORPAY_KEY_SECRET
+  });
+}
 
 // Enhanced AI Resume Generation with multiple features
 app.post('/api/generate-resume', async (req, res) => {
@@ -98,6 +102,8 @@ app.post('/api/analyze-job', async (req, res) => {
 
     Job Description: ${jobDescription}`;
 
+    console.log('Making API call to Deepseek with key:', process.env.DEEPSEEK_API_KEY ? 'Present' : 'Missing');
+    
     const response = await axios.post('https://api.deepseek.com/v1/chat/completions', {
       model: 'deepseek-chat',
       messages: [
@@ -116,7 +122,8 @@ app.post('/api/analyze-job', async (req, res) => {
       headers: {
         'Authorization': `Bearer ${process.env.DEEPSEEK_API_KEY}`,
         'Content-Type': 'application/json'
-      }
+      },
+      timeout: 30000
     });
 
     let analysis;
@@ -139,10 +146,17 @@ app.post('/api/analyze-job', async (req, res) => {
 
     res.json({ success: true, analysis });
   } catch (error) {
-    console.error('Job Analysis Error:', error.response?.data || error.message);
+    console.error('Job Analysis Error Details:', {
+      message: error.message,
+      response: error.response?.data,
+      status: error.response?.status,
+      headers: error.response?.headers,
+      apiKey: process.env.DEEPSEEK_API_KEY ? 'Set' : 'Not set'
+    });
     res.status(500).json({ 
       success: false, 
-      error: 'Failed to analyze job description. Please check your API key configuration.' 
+      error: error.response?.data?.error?.message || 'Failed to analyze job description. Please check your API key configuration.',
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
 });
@@ -239,6 +253,21 @@ app.post('/api/verify-payment', async (req, res) => {
   }
 });
 
+// Health check and environment status endpoint
+app.get('/api/status', (req, res) => {
+  res.json({
+    status: 'running',
+    environment: process.env.NODE_ENV || 'development',
+    hasDeepseekKey: !!(process.env.DEEPSEEK_API_KEY && process.env.DEEPSEEK_API_KEY !== 'your_actual_deepseek_api_key_here'),
+    hasRazorpayKeys: !!(process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET && 
+                       process.env.RAZORPAY_KEY_ID !== 'your_actual_razorpay_key_id_here'),
+    timestamp: new Date().toISOString()
+  });
+});
+
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`Server running on port ${PORT}`);
+  console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`Deepseek API Key: ${process.env.DEEPSEEK_API_KEY ? 'Configured' : 'Missing'}`);
+  console.log(`Razorpay Keys: ${process.env.RAZORPAY_KEY_ID ? 'Configured' : 'Missing'}`);
 });

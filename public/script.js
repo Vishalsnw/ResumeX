@@ -1,4 +1,3 @@
-
 // Global variables
 let currentStep = 1;
 let resumeData = {};
@@ -37,7 +36,7 @@ function initializeEventListeners() {
     // Mobile menu toggle
     const mobileToggle = document.querySelector('.mobile-menu-toggle');
     const navMenu = document.querySelector('.nav-menu');
-    
+
     if (mobileToggle) {
         mobileToggle.onclick = function() {
             navMenu.style.display = navMenu.style.display === 'flex' ? 'none' : 'flex';
@@ -48,7 +47,7 @@ function initializeEventListeners() {
 function initializeMobileMenu() {
     const navMenu = document.querySelector('.nav-menu');
     const mobileToggle = document.querySelector('.mobile-menu-toggle');
-    
+
     // Close mobile menu when clicking on nav items
     document.querySelectorAll('.nav-menu a').forEach(link => {
         link.onclick = function() {
@@ -57,7 +56,7 @@ function initializeMobileMenu() {
             }
         };
     });
-    
+
     // Handle window resize
     window.addEventListener('resize', function() {
         if (window.innerWidth > 768) {
@@ -132,7 +131,7 @@ function updateProgress() {
 function validateCurrentStep() {
     const currentFormStep = document.getElementById(`step${currentStep}`);
     const requiredInputs = currentFormStep.querySelectorAll('[required]');
-    
+
     for (let input of requiredInputs) {
         if (!input.value.trim()) {
             input.focus();
@@ -190,7 +189,10 @@ async function analyzeJobDescription() {
 
     showLoading();
     try {
-        const response = await fetch('/api/analyze-job', {
+        // Get base URL for API calls
+        const baseURL = window.location.origin;
+
+        const response = await fetch(`${baseURL}/api/analyze-job`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -199,6 +201,8 @@ async function analyzeJobDescription() {
         });
 
         const result = await response.json();
+        console.log('Job analysis response:', result);
+
         if (result.success) {
             jobAnalysisData = result.analysis;
             displayJobAnalysis(result.analysis);
@@ -247,13 +251,13 @@ function displayJobAnalysis(analysis) {
 // Template Selection
 function selectTemplate(templateName) {
     selectedTemplate = templateName;
-    
+
     // Update UI to show selected template
     document.querySelectorAll('.template-card').forEach(card => {
         card.classList.remove('selected');
     });
     document.querySelector(`[data-template="${templateName}"]`).classList.add('selected');
-    
+
     // All templates are now free to use
     showToast(`${templateName.charAt(0).toUpperCase() + templateName.slice(1)} template selected!`, 'success');
 }
@@ -303,12 +307,12 @@ function collectFormData() {
 // Resume generation
 async function generateResume(type) {
     if (isProcessing) return;
-    
+
     isProcessing = true;
     resumeData = collectFormData();
-    
+
     showLoading();
-    
+
     try {
         if (type === 'basic') {
             await generateBasicResume();
@@ -347,7 +351,10 @@ async function generateBasicResume() {
 
 async function generateAIResume() {
     try {
-        const response = await fetch('/api/generate-resume', {
+        // Get base URL for API calls
+        const baseURL = window.location.origin;
+
+        const response = await fetch(`${baseURL}/api/generate-resume`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -360,7 +367,7 @@ async function generateAIResume() {
         }
 
         const result = await response.json();
-        
+
         if (result.success) {
             const resumeHTML = createAIResumeHTML(result.content);
             showResumePreview(resumeHTML, result.content);
@@ -377,7 +384,7 @@ async function generateAIPlusResume() {
     try {
         // First generate the AI resume
         await generateAIResume();
-        
+
         // Then get scoring and feedback if job description provided
         if (resumeData.targetJobDescription) {
             await scoreResume();
@@ -391,8 +398,11 @@ async function generateAIPlusResume() {
 async function scoreResume() {
     try {
         const resumeContent = document.getElementById('resumeContent').innerText;
-        
-        const response = await fetch('/api/score-resume', {
+
+        // Get base URL for API calls
+        const baseURL = window.location.origin;
+
+        const response = await fetch(`${baseURL}/api/score-resume`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -404,7 +414,7 @@ async function scoreResume() {
         });
 
         const result = await response.json();
-        
+
         if (result.success) {
             displayResumeScoring(result.scoring);
         }
@@ -470,14 +480,14 @@ function displayResumeScoring(scoring) {
             </div>
         ` : ''}
     `;
-    
+
     const previewModal = document.getElementById('resumePreview');
     previewModal.querySelector('.modal-body').appendChild(scoringDiv);
 }
 
 function createBasicResumeHTML() {
     const templateClass = `template-${selectedTemplate}`;
-    
+
     switch(selectedTemplate) {
         case 'modern':
             return createModernTemplate();
@@ -508,7 +518,7 @@ function createModernTemplate() {
                     <span><i class="fas fa-map-marker-alt"></i> ${resumeData.personalInfo.location}</span>
                 </div>
             </div>
-            
+
             <div class="resume-body modern-body">
                 <div class="main-content">
                     <div class="resume-section">
@@ -527,7 +537,7 @@ function createModernTemplate() {
                         `).join('')}
                     </div>
                 </div>
-                
+
                 <div class="sidebar">
                     <div class="resume-section">
                         <h2><i class="fas fa-cog"></i> Skills</h2>
@@ -535,14 +545,14 @@ function createModernTemplate() {
                             ${resumeData.skills.map(skill => `<span class="skill-tag">${skill}</span>`).join('')}
                         </div>
                     </div>
-                    
+
                     ${resumeData.education ? `
                         <div class="resume-section">
                             <h2><i class="fas fa-graduation-cap"></i> Education</h2>
                             <p>${resumeData.education}</p>
                         </div>
                     ` : ''}
-                    
+
                     ${resumeData.certifications ? `
                         <div class="resume-section">
                             <h2><i class="fas fa-certificate"></i> Certifications</h2>
@@ -568,7 +578,7 @@ function createClassicTemplate() {
                     <strong>${resumeData.jobTitle}</strong>
                 </div>
             </div>
-            
+
             <div class="resume-section classic-section">
                 <h2>PROFESSIONAL EXPERIENCE</h2>
                 ${resumeData.experience.map(exp => `
@@ -583,19 +593,19 @@ function createClassicTemplate() {
                     </div>
                 `).join('')}
             </div>
-            
+
             <div class="resume-section classic-section">
                 <h2>CORE COMPETENCIES</h2>
                 <p>${resumeData.skills.join(' • ')}</p>
             </div>
-            
+
             ${resumeData.education ? `
                 <div class="resume-section classic-section">
                     <h2>EDUCATION</h2>
                     <p>${resumeData.education}</p>
                 </div>
             ` : ''}
-            
+
             ${resumeData.certifications ? `
                 <div class="resume-section classic-section">
                     <h2>CERTIFICATIONS</h2>
@@ -617,7 +627,7 @@ function createCreativeTemplate() {
                     <h1>${resumeData.personalInfo.name}</h1>
                     <div class="title">${resumeData.jobTitle}</div>
                 </div>
-                
+
                 <div class="contact-section">
                     <h3>Contact</h3>
                     <div class="contact-item">
@@ -633,7 +643,7 @@ function createCreativeTemplate() {
                         <span>${resumeData.personalInfo.location}</span>
                     </div>
                 </div>
-                
+
                 <div class="skills-section">
                     <h3>Skills</h3>
                     ${resumeData.skills.map(skill => `
@@ -646,7 +656,7 @@ function createCreativeTemplate() {
                     `).join('')}
                 </div>
             </div>
-            
+
             <div class="creative-main">
                 <div class="resume-section">
                     <h2>Experience</h2>
@@ -661,7 +671,7 @@ function createCreativeTemplate() {
                         </div>
                     `).join('')}
                 </div>
-                
+
                 ${resumeData.education ? `
                     <div class="resume-section">
                         <h2>Education</h2>
@@ -687,12 +697,12 @@ function createExecutiveTemplate() {
                     <div>${resumeData.personalInfo.location}</div>
                 </div>
             </div>
-            
+
             <div class="executive-summary">
                 <h2>Executive Summary</h2>
                 <p>Accomplished ${resumeData.jobTitle} with extensive experience in driving business growth and operational excellence.</p>
             </div>
-            
+
             <div class="resume-section executive-section">
                 <h2>Professional Experience</h2>
                 ${resumeData.experience.map(exp => `
@@ -712,7 +722,7 @@ function createExecutiveTemplate() {
                     </div>
                 `).join('')}
             </div>
-            
+
             <div class="executive-footer">
                 <div class="footer-section">
                     <h3>Core Competencies</h3>
@@ -720,7 +730,7 @@ function createExecutiveTemplate() {
                         ${resumeData.skills.map(skill => `<span>${skill}</span>`).join('')}
                     </div>
                 </div>
-                
+
                 ${resumeData.education ? `
                     <div class="footer-section">
                         <h3>Education</h3>
@@ -741,11 +751,11 @@ function createMinimalistTemplate() {
                     ${resumeData.personalInfo.email} | ${resumeData.personalInfo.phone} | ${resumeData.personalInfo.location}
                 </div>
             </header>
-            
+
             <section class="minimalist-section">
                 <h2>${resumeData.jobTitle}</h2>
             </section>
-            
+
             <section class="minimalist-section">
                 <h2>Experience</h2>
                 ${resumeData.experience.map(exp => `
@@ -759,12 +769,12 @@ function createMinimalistTemplate() {
                     </div>
                 `).join('')}
             </section>
-            
+
             <section class="minimalist-section">
                 <h2>Skills</h2>
                 <p>${resumeData.skills.join(', ')}</p>
             </section>
-            
+
             ${resumeData.education ? `
                 <section class="minimalist-section">
                     <h2>Education</h2>
@@ -789,7 +799,7 @@ function createTechTemplate() {
                     </div>
                 </div>
             </div>
-            
+
             <div class="tech-grid">
                 <div class="tech-main">
                     <div class="code-block">
@@ -833,7 +843,7 @@ function createTechTemplate() {
                         </div>
                     </div>
                 </div>
-                
+
                 <div class="tech-sidebar">
                     <div class="tech-skills">
                         <h3>// Tech Stack</h3>
@@ -846,7 +856,7 @@ function createTechTemplate() {
                             `).join('')}
                         </div>
                     </div>
-                    
+
                     ${resumeData.education ? `
                         <div class="tech-education">
                             <h3>// Education</h3>
@@ -869,14 +879,14 @@ function createAIResumeHTML(aiContent) {
             <p>${resumeData.jobTitle}</p>
             <p>${resumeData.personalInfo.email} | ${resumeData.personalInfo.phone} | ${resumeData.personalInfo.location}</p>
         </div>
-        
+
         ${aiContent.summary ? `
             <div class="resume-section">
                 <h2>Professional Summary</h2>
                 <p>${aiContent.summary}</p>
             </div>
         ` : ''}
-        
+
         <div class="resume-section">
             <h2>Experience</h2>
             ${aiContent.enhancedExperience ? aiContent.enhancedExperience.map((exp, index) => `
@@ -901,26 +911,26 @@ function createAIResumeHTML(aiContent) {
                 </div>
             `).join('')}
         </div>
-        
+
         <div class="resume-section">
             <h2>Skills</h2>
             <p>${aiContent.optimizedSkills ? aiContent.optimizedSkills.join(', ') : resumeData.skills.join(', ')}</p>
         </div>
-        
+
         ${resumeData.education ? `
             <div class="resume-section">
                 <h2>Education</h2>
                 <p>${resumeData.education}</p>
             </div>
         ` : ''}
-        
+
         ${resumeData.certifications ? `
             <div class="resume-section">
                 <h2>Certifications</h2>
                 <p>${resumeData.certifications}</p>
             </div>
         ` : ''}
-        
+
         ${aiContent.additionalSections ? aiContent.additionalSections.map(section => `
             <div class="resume-section">
                 <h2>${section.title}</h2>
@@ -949,7 +959,7 @@ function downloadPDF() {
         upgradeToPremium();
         return;
     }
-    
+
     // Simple print functionality - in production, you'd use a proper PDF library
     const printContent = document.getElementById('resumeContent').innerHTML;
     const printWindow = window.open('', '_blank');
@@ -1002,8 +1012,11 @@ async function upgradeToPro() {
 async function initiatePayment(amount, planName) {
     try {
         showLoading();
-        
-        const response = await fetch('/api/create-order', {
+
+        // Get base URL for API calls
+        const baseURL = window.location.origin;
+
+        const response = await fetch(`${baseURL}/api/create-order`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -1012,7 +1025,7 @@ async function initiatePayment(amount, planName) {
         });
 
         const result = await response.json();
-        
+
         if (result.success) {
             const options = {
                 key: 'rzp_test_your_actual_key_here', // Replace with your actual Razorpay key_id
@@ -1048,7 +1061,10 @@ async function initiatePayment(amount, planName) {
 
 async function verifyPayment(paymentResponse) {
     try {
-        const response = await fetch('/api/verify-payment', {
+        // Get base URL for API calls
+        const baseURL = window.location.origin;
+
+        const response = await fetch(`${baseURL}/api/verify-payment`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -1057,7 +1073,7 @@ async function verifyPayment(paymentResponse) {
         });
 
         const result = await response.json();
-        
+
         if (result.success) {
             localStorage.setItem('premiumAccess', 'true');
             showToast('Payment successful! Premium features activated.', 'success');
@@ -1097,9 +1113,9 @@ function showToast(message, type = 'info') {
         z-index: 4000;
         animation: slideIn 0.3s ease;
     `;
-    
+
     document.body.appendChild(toast);
-    
+
     setTimeout(() => {
         toast.remove();
     }, 5000);
@@ -1111,7 +1127,7 @@ function resetForm() {
     document.querySelectorAll('input, textarea').forEach(input => {
         input.value = '';
     });
-    
+
     // Reset experience items to just one
     const container = document.getElementById('experienceContainer');
     const firstItem = container.querySelector('.experience-item');
