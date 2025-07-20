@@ -1,0 +1,290 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Resume Builder - Create Professional Resumes</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="styles.css" rel="stylesheet">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <nav class="navbar">
+            <div class="nav-brand">
+                <i class="fas fa-file-alt"></i>
+                <span>AI Resume Builder</span>
+            </div>
+            <div class="nav-menu">
+                <a href="#features">Features</a>
+                <a href="#pricing">Pricing</a>
+                <button class="btn-primary" onclick="startBuilding()">Build Resume</button>
+            </div>
+            <div class="mobile-menu-toggle">
+                <i class="fas fa-bars"></i>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <div class="hero-content">
+                <h1>Create Professional Resumes with <span class="gradient-text">AI Power</span></h1>
+                <p>Build ATS-optimized resumes in minutes using advanced AI. Stand out from the competition with professionally crafted content.</p>
+                <div class="hero-buttons">
+                    <button class="btn-primary btn-large" onclick="startBuilding()">
+                        <i class="fas fa-magic"></i> Start Building
+                    </button>
+                    <button class="btn-secondary btn-large" onclick="viewTemplates()">
+                        <i class="fas fa-eye"></i> View Templates
+                    </button>
+                </div>
+            </div>
+            <div class="hero-image">
+                <div class="resume-preview">
+                    <i class="fas fa-file-alt fa-8x"></i>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="features">
+        <div class="container">
+            <h2>Powerful Features</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <i class="fas fa-robot"></i>
+                    <h3>AI-Powered Content</h3>
+                    <p>Generate professional content with advanced AI that understands your industry</p>
+                </div>
+                <div class="feature-card">
+                    <i class="fas fa-mobile-alt"></i>
+                    <h3>Mobile Responsive</h3>
+                    <p>Build and edit your resume on any device - desktop, tablet, or mobile</p>
+                </div>
+                <div class="feature-card">
+                    <i class="fas fa-search"></i>
+                    <h3>ATS Optimized</h3>
+                    <p>Resumes optimized for Applicant Tracking Systems to pass initial screenings</p>
+                </div>
+                <div class="feature-card">
+                    <i class="fas fa-palette"></i>
+                    <h3>Multiple Templates</h3>
+                    <p>Choose from professionally designed templates for different industries</p>
+                </div>
+                <div class="feature-card">
+                    <i class="fas fa-download"></i>
+                    <h3>PDF Export</h3>
+                    <p>Download your resume as a high-quality PDF ready for job applications</p>
+                </div>
+                <div class="feature-card">
+                    <i class="fas fa-shield-alt"></i>
+                    <h3>Secure & Private</h3>
+                    <p>Your data is encrypted and secure. We never share your information</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Pricing Section -->
+    <section id="pricing" class="pricing">
+        <div class="container">
+            <h2>Choose Your Plan</h2>
+            <div class="pricing-grid">
+                <div class="pricing-card">
+                    <h3>Basic</h3>
+                    <div class="price">₹0<span>/month</span></div>
+                    <ul>
+                        <li><i class="fas fa-check"></i> 1 Resume</li>
+                        <li><i class="fas fa-check"></i> Basic Templates</li>
+                        <li><i class="fas fa-check"></i> PDF Download</li>
+                        <li><i class="fas fa-times"></i> AI Content Generation</li>
+                        <li><i class="fas fa-times"></i> Premium Templates</li>
+                    </ul>
+                    <button class="btn-secondary">Get Started</button>
+                </div>
+                <div class="pricing-card featured">
+                    <div class="popular-badge">Most Popular</div>
+                    <h3>Premium</h3>
+                    <div class="price">₹299<span>/month</span></div>
+                    <ul>
+                        <li><i class="fas fa-check"></i> Unlimited Resumes</li>
+                        <li><i class="fas fa-check"></i> All Templates</li>
+                        <li><i class="fas fa-check"></i> AI Content Generation</li>
+                        <li><i class="fas fa-check"></i> ATS Optimization</li>
+                        <li><i class="fas fa-check"></i> Priority Support</li>
+                    </ul>
+                    <button class="btn-primary" onclick="upgradeToPremium()">Upgrade Now</button>
+                </div>
+                <div class="pricing-card">
+                    <h3>Pro</h3>
+                    <div class="price">₹599<span>/month</span></div>
+                    <ul>
+                        <li><i class="fas fa-check"></i> Everything in Premium</li>
+                        <li><i class="fas fa-check"></i> Custom Branding</li>
+                        <li><i class="fas fa-check"></i> LinkedIn Integration</li>
+                        <li><i class="fas fa-check"></i> Career Coaching</li>
+                        <li><i class="fas fa-check"></i> 24/7 Support</li>
+                    </ul>
+                    <button class="btn-secondary" onclick="upgradeToPro()">Choose Pro</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Resume Builder Modal -->
+    <div id="resumeBuilder" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Build Your Resume</h2>
+                <span class="close">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="form-steps">
+                    <div class="step active" data-step="1">Personal Info</div>
+                    <div class="step" data-step="2">Experience</div>
+                    <div class="step" data-step="3">Skills</div>
+                    <div class="step" data-step="4">Generate</div>
+                </div>
+
+                <!-- Step 1: Personal Information -->
+                <div id="step1" class="form-step active">
+                    <div class="form-group">
+                        <label>Full Name</label>
+                        <input type="text" id="fullName" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="email" id="email" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Phone</label>
+                        <input type="tel" id="phone" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Job Title</label>
+                        <input type="text" id="jobTitle" placeholder="e.g., Software Developer" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Location</label>
+                        <input type="text" id="location" placeholder="City, Country">
+                    </div>
+                    <button class="btn-primary" onclick="nextStep()">Next</button>
+                </div>
+
+                <!-- Step 2: Experience -->
+                <div id="step2" class="form-step">
+                    <div id="experienceContainer">
+                        <div class="experience-item">
+                            <div class="form-group">
+                                <label>Company</label>
+                                <input type="text" class="company" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Position</label>
+                                <input type="text" class="position" required>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Start Date</label>
+                                    <input type="date" class="startDate" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>End Date</label>
+                                    <input type="date" class="endDate">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>Description</label>
+                                <textarea class="description" rows="3" placeholder="Describe your responsibilities and achievements"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    <button class="btn-secondary btn-small" onclick="addExperience()">+ Add Experience</button>
+                    <div class="form-actions">
+                        <button class="btn-secondary" onclick="prevStep()">Previous</button>
+                        <button class="btn-primary" onclick="nextStep()">Next</button>
+                    </div>
+                </div>
+
+                <!-- Step 3: Skills -->
+                <div id="step3" class="form-step">
+                    <div class="form-group">
+                        <label>Skills (comma separated)</label>
+                        <textarea id="skills" rows="4" placeholder="JavaScript, Python, React, Node.js, etc."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Education</label>
+                        <input type="text" id="education" placeholder="Degree, University, Year">
+                    </div>
+                    <div class="form-group">
+                        <label>Certifications</label>
+                        <textarea id="certifications" rows="2" placeholder="List your certifications"></textarea>
+                    </div>
+                    <div class="form-actions">
+                        <button class="btn-secondary" onclick="prevStep()">Previous</button>
+                        <button class="btn-primary" onclick="nextStep()">Next</button>
+                    </div>
+                </div>
+
+                <!-- Step 4: Generate -->
+                <div id="step4" class="form-step">
+                    <div class="generate-options">
+                        <h3>Choose Generation Option</h3>
+                        <div class="option-cards">
+                            <div class="option-card" onclick="generateResume('basic')">
+                                <i class="fas fa-file-alt"></i>
+                                <h4>Basic Resume</h4>
+                                <p>Standard formatting with your information</p>
+                                <span class="price-tag">Free</span>
+                            </div>
+                            <div class="option-card premium" onclick="generateResume('ai')">
+                                <i class="fas fa-magic"></i>
+                                <h4>AI-Enhanced Resume</h4>
+                                <p>AI-optimized content for better results</p>
+                                <span class="price-tag">Premium</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button class="btn-secondary" onclick="prevStep()">Previous</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="loading-content">
+            <div class="spinner"></div>
+            <p>Generating your AI-powered resume...</p>
+        </div>
+    </div>
+
+    <!-- Resume Preview Modal -->
+    <div id="resumePreview" class="modal">
+        <div class="modal-content large">
+            <div class="modal-header">
+                <h2>Your Resume</h2>
+                <div class="preview-actions">
+                    <button class="btn-secondary" onclick="editResume()">Edit</button>
+                    <button class="btn-primary" onclick="downloadPDF()">Download PDF</button>
+                    <span class="close">&times;</span>
+                </div>
+            </div>
+            <div class="modal-body">
+                <div id="resumeContent" class="resume-content">
+                    <!-- Generated resume will appear here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
