@@ -99,10 +99,15 @@ app.post('/api/analyze-job', async (req, res) => {
     const { jobDescription } = req.body;
 
     console.log('=== Job Analysis Request ===');
-    console.log('Job analysis request received');
+    console.log('Timestamp:', new Date().toISOString());
+    console.log('Method:', req.method);
+    console.log('URL:', req.url);
     console.log('Job description length:', jobDescription?.length || 0);
     console.log('Environment check - DEEPSEEK_API_KEY exists:', !!process.env.DEEPSEEK_API_KEY);
+    console.log('DEEPSEEK_API_KEY starts with:', process.env.DEEPSEEK_API_KEY?.substring(0, 8) || 'undefined');
     console.log('Request body keys:', Object.keys(req.body));
+    console.log('User-Agent:', req.get('User-Agent'));
+    console.log('Content-Type:', req.get('Content-Type'));
     console.log('============================');
 
     if (!jobDescription || jobDescription.trim().length === 0) {
@@ -257,10 +262,17 @@ Job Description: ${jobDescription.substring(0, 2000)}`;
       statusCode = 408;
     }
     
+    console.log('=== Sending Error Response ===');
+    console.log('Status Code:', statusCode);
+    console.log('Error Message:', errorMessage);
+    console.log('Error Code:', error.code || 'UNKNOWN_ERROR');
+    console.log('==============================');
+    
     res.status(statusCode).json({ 
       success: false, 
       error: errorMessage,
-      code: error.code || 'UNKNOWN_ERROR'
+      code: error.code || 'UNKNOWN_ERROR',
+      timestamp: new Date().toISOString()
     });
   }
 });

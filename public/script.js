@@ -202,19 +202,33 @@ async function analyzeJobDescription() {
         });
 
         console.log('Response status:', response.status);
-        console.log('Response headers:', response.headers);
+        console.log('Response ok:', response.ok);
+        console.log('Response headers:', Object.fromEntries(response.headers.entries()));
+        
+        if (!response.ok) {
+            let errorText;
+            try {
+                errorText = await response.text();
+                console.error('Error response text:', errorText);
+            } catch (e) {
+                errorText = 'Unable to read error response';
+            }
+            throw new Error(`Server error ${response.status}: ${errorText}`);
+        }
         
         let result;
+        const responseText = await response.text();
+        console.log('Raw response text:', responseText);
+        
         try {
-            result = await response.json();
+            result = JSON.parse(responseText);
         } catch (parseError) {
             console.error('Failed to parse response as JSON:', parseError);
-            const textResponse = await response.text();
-            console.error('Raw response:', textResponse);
-            throw new Error('Invalid server response format');
+            console.error('Response was:', responseText);
+            throw new Error('Invalid server response format - not valid JSON');
         }
 
-        console.log('Job analysis response:', result);
+        console.log('Parsed job analysis response:', result);
 
         if (result.success && result.analysis) {
             jobAnalysisData = result.analysis;
@@ -228,8 +242,9 @@ async function analyzeJobDescription() {
         console.error('Job analysis error details:', {
             message: error.message,
             name: error.name,
-            stack: error.stack,
-            response: error.response
+            stack: error.stack?.split('\n').slice(0, 3),
+            toString: error.toString(),
+            cause: error.cause
         });
         
         let errorMessage = 'Failed to analyze job description';
