@@ -17,9 +17,7 @@ let razorpay = null;
 console.log('Razorpay Key ID:', process.env.RAZORPAY_KEY_ID ? `${process.env.RAZORPAY_KEY_ID.substring(0, 10)}...` : 'Missing');
 console.log('Razorpay Key Secret:', process.env.RAZORPAY_KEY_SECRET ? `${process.env.RAZORPAY_KEY_SECRET.substring(0, 10)}...` : 'Missing');
 
-if (process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET && 
-    process.env.RAZORPAY_KEY_ID !== 'your_actual_razorpay_key_id_here' &&
-    process.env.RAZORPAY_KEY_SECRET !== 'your_actual_razorpay_secret_here') {
+if (process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET) {
   try {
     razorpay = new Razorpay({
       key_id: process.env.RAZORPAY_KEY_ID,
@@ -119,7 +117,7 @@ app.post('/api/analyze-job', async (req, res) => {
       });
     }
 
-    if (!process.env.DEEPSEEK_API_KEY || process.env.DEEPSEEK_API_KEY.includes('your_actual_deepseek_api_key_here')) {
+    if (!process.env.DEEPSEEK_API_KEY) {
       console.error('DEEPSEEK_API_KEY not configured properly');
       return res.status(500).json({ 
         success: false, 
@@ -493,9 +491,8 @@ app.get('/api/status', (req, res) => {
   res.json({
     status: 'running',
     environment: process.env.NODE_ENV || 'development',
-    hasDeepseekKey: !!(process.env.DEEPSEEK_API_KEY && process.env.DEEPSEEK_API_KEY !== 'your_actual_deepseek_api_key_here'),
-    hasRazorpayKeys: !!(process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET && 
-                       process.env.RAZORPAY_KEY_ID !== 'your_actual_razorpay_key_id_here'),
+    hasDeepseekKey: !!process.env.DEEPSEEK_API_KEY,
+    hasRazorpayKeys: !!(process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET),
     timestamp: new Date().toISOString()
   });
 });
