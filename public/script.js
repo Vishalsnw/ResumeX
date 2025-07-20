@@ -673,21 +673,14 @@ async function generateResume(type) {
     showLoading();
 
     try {
-        if (type === 'basic') {
-            await generateBasicResume();
-        } else if (type === 'ai') {
-            if (!checkPremiumAccess()) {
-                await upgradeToPremium();
-                return;
-            }
-            await generateAIResume();
-        } else if (type === 'ai-plus') {
-            if (!checkProAccess()) {
-                await upgradeToPro();
-                return;
-            }
-            await generateAIPlusResume();
+        // Check if user has paid access
+        if (!checkPremiumAccess()) {
+            await upgradeToPremium();
+            return;
         }
+        
+        // Generate AI-enhanced resume
+        await generateAIResume();
     } catch (error) {
         console.error('Resume generation error:', error);
         showToast('Failed to generate resume. Please try again.', 'error');

@@ -307,41 +307,41 @@
                                 <p>Traditional and elegant</p>
                                 <span class="template-tag">Free</span>
                             </div>
-                            <div class="template-card premium" data-template="creative" onclick="selectTemplate('creative')">
+                            <div class="template-card" data-template="creative" onclick="selectTemplate('creative')">
                                 <div class="template-preview creative-preview">
                                     <div class="template-header"></div>
                                     <div class="template-content"></div>
                                 </div>
                                 <h4>Creative</h4>
                                 <p>Eye-catching design</p>
-                                <span class="template-tag premium">Premium</span>
+                                <span class="template-tag">Free</span>
                             </div>
-                            <div class="template-card premium" data-template="executive" onclick="selectTemplate('executive')">
+                            <div class="template-card" data-template="executive" onclick="selectTemplate('executive')">
                                 <div class="template-preview executive-preview">
                                     <div class="template-header"></div>
                                     <div class="template-content"></div>
                                 </div>
                                 <h4>Executive</h4>
                                 <p>Senior-level professional</p>
-                                <span class="template-tag premium">Premium</span>
+                                <span class="template-tag">Free</span>
                             </div>
-                            <div class="template-card premium" data-template="minimalist" onclick="selectTemplate('minimalist')">
+                            <div class="template-card" data-template="minimalist" onclick="selectTemplate('minimalist')">
                                 <div class="template-preview minimalist-preview">
                                     <div class="template-header"></div>
                                     <div class="template-content"></div>
                                 </div>
                                 <h4>Minimalist</h4>
                                 <p>Simple and clean</p>
-                                <span class="template-tag premium">Premium</span>
+                                <span class="template-tag">Free</span>
                             </div>
-                            <div class="template-card premium" data-template="tech" onclick="selectTemplate('tech')">
+                            <div class="template-card" data-template="tech" onclick="selectTemplate('tech')">
                                 <div class="template-preview tech-preview">
                                     <div class="template-header"></div>
                                     <div class="template-content"></div>
                                 </div>
                                 <h4>Tech Pro</h4>
                                 <p>Perfect for developers</p>
-                                <span class="template-tag premium">Premium</span>
+                                <span class="template-tag">Free</span>
                             </div>
                         </div>
                     </div>
@@ -354,8 +354,54 @@
                 <!-- Step 5: Generate -->
                 <div id="step5" class="form-step">
                     <div class="generate-options">
-                        <h3>Choose Generation Option</h3>
+                        <h3>Generate Your Resume</h3>
                         <div class="option-cards">
+                            <div class="option-card" onclick="generateResume('ai')">
+                                <i class="fas fa-robot"></i>
+                                <h4>AI-Powered Resume</h4>
+                                <p>Create a professional resume optimized for your target job with AI assistance</p>
+                                <div class="option-price">₹99</div>
+                                <button class="btn-primary">Generate Resume</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button class="btn-secondary" onclick="prevStep()">Previous</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Resume Preview Modal -->
+        <div id="resumePreview" class="modal">
+            <div class="modal-content resume-modal">
+                <div class="modal-header">
+                    <h2><i class="fas fa-file-alt"></i> Resume Preview</h2>
+                    <span class="close">&times;</span>
+                </div>
+                <div class="modal-body">
+                    <div id="resumeContent"></div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn-secondary" onclick="editResume()">Edit Resume</button>
+                    <button class="btn-primary" onclick="downloadPDF()">Download PDF</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Loading Overlay -->
+        <div id="loadingOverlay" class="loading-overlay">
+            <div class="loading-spinner">
+                <i class="fas fa-spinner fa-spin"></i>
+                <p>Processing your request...</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>ards">
                             <div class="option-card" onclick="generateResume('basic')">
                                 <i class="fas fa-file-alt"></i>
                                 <h4>Basic Resume</h4>

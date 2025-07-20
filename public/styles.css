@@ -905,6 +905,18 @@ body {
     line-height: 1.5;
 }
 
+.option-price {
+    font-size: 24px;
+    font-weight: 700;
+    color: #2563eb;
+    margin: 16px 0;
+}
+
+.option-card .btn-primary {
+    margin-top: 16px;
+    width: 100%;
+}
+
 .price-tag {
     position: absolute;
     top: 16px;
