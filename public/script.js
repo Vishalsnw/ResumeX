@@ -1103,7 +1103,7 @@ async function initiatePayment(amount, planName) {
         if (result.success && result.order) {
             // Check if Razorpay is loaded
             if (typeof Razorpay === 'undefined') {
-                throw new Error('Razorpay SDK not loaded. Please refresh the page and try again.');ain.');
+                throw new Error('Razorpay SDK not loaded. Please refresh the page and try again.');
             }
 
             // Get Razorpay key from backend
