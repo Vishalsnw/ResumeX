@@ -139,11 +139,12 @@ Job Description: ${jobDescription.substring(0, 2000)}`;
     
     const apiResponse = await axios({
       method: 'POST',
-      url: 'https://api.deepseek.com/v1/chat/completions',
+      url: 'https://api.deepseek.com/chat/completions',
       headers: {
         'Authorization': `Bearer ${process.env.DEEPSEEK_API_KEY}`,
         'Content-Type': 'application/json',
-        'Accept': 'application/json'
+        'Accept': 'application/json',
+        'User-Agent': 'AI-Resume-Builder/1.0'
       },
       data: {
         model: 'deepseek-chat',
@@ -163,10 +164,58 @@ Job Description: ${jobDescription.substring(0, 2000)}`;
         frequency_penalty: 0,
         presence_penalty: 0
       },
-      timeout: 25000
+      timeout: 30000,
+      validateStatus: function (status) {
+        return status < 500; // Resolve only if the status code is less than 500
+      }
     });
 
     console.log('API Response status:', apiResponse.status);
+    console.log('API Response data:', JSON.stringify(apiResponse.data, null, 2));
+    
+    // Handle different response status codes
+    if (apiResponse.status === 404) {
+      console.error('API endpoint not found. Trying alternative endpoint...');
+      // Try alternative endpoint structure
+      const altResponse = await axios({
+        method: 'POST',
+        url: 'https://api.deepseek.com/v1/chat/completions',
+        headers: {
+          'Authorization': `Bearer ${process.env.DEEPSEEK_API_KEY}`,
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        data: {
+          model: 'deepseek-chat',
+          messages: [
+            {
+              role: 'system',
+              content: 'You are an expert recruiter and HR analyst. Analyze job descriptions and return only valid JSON without any additional text, markdown formatting, or explanations.'
+            },
+            {
+              role: 'user',
+              content: prompt
+            }
+          ],
+          max_tokens: 1000,
+          temperature: 0.1
+        },
+        timeout: 30000
+      });
+      
+      if (altResponse.status === 200 && altResponse.data) {
+        apiResponse.data = altResponse.data;
+        apiResponse.status = altResponse.status;
+      } else {
+        throw new Error(`API endpoint not found. Status: ${apiResponse.status}`);
+      }
+    } else if (apiResponse.status === 401) {
+      throw new Error('Invalid API key - Please check your Deepseek API configuration');
+    } else if (apiResponse.status === 429) {
+      throw new Error('Rate limit exceeded - Please try again in a moment');
+    } else if (apiResponse.status >= 400) {
+      throw new Error(`API error ${apiResponse.status}: ${JSON.stringify(apiResponse.data)}`);
+    }
     
     if (!apiResponse.data || !apiResponse.data.choices || !apiResponse.data.choices[0]) {
       throw new Error('Invalid API response structure');
@@ -213,18 +262,46 @@ Job Description: ${jobDescription.substring(0, 2000)}`;
       console.warn('Failed to parse AI response:', parseError.message);
       console.warn('AI response was:', aiContent);
       
-      // Provide fallback analysis
+      // Extract skills and keywords from job description as fallback
+      const jobText = jobDescription.toLowerCase();
+      const commonSkills = ['communication', 'leadership', 'teamwork', 'problem solving', 'organization', 'microsoft office', 'teaching', 'training', 'presentation', 'curriculum', 'education', 'computer skills', 'technology'];
+      const foundSkills = commonSkills.filter(skill => jobText.includes(skill));
+      
+      // Determine experience level based on job description
+      let experienceLevel = 'entry-level';
+      if (jobText.includes('senior') || jobText.includes('lead') || jobText.includes('manager')) {
+        experienceLevel = 'senior-level';
+      } else if (jobText.includes('mid') || jobText.includes('experienced') || jobText.includes('3-5') || jobText.includes('5+')) {
+        experienceLevel = 'mid-level';
+      }
+      
+      // Determine industry
+      let industry = 'Education';
+      if (jobText.includes('technology') || jobText.includes('software') || jobText.includes('it ')) {
+        industry = 'Technology';
+      } else if (jobText.includes('marketing') || jobText.includes('advertising')) {
+        industry = 'Marketing';
+      } else if (jobText.includes('healthcare') || jobText.includes('medical')) {
+        industry = 'Healthcare';
+      }
+      
+      // Provide intelligent fallback analysis
       analysis = {
-        requiredSkills: ['Communication', 'Problem Solving', 'Teamwork', 'Leadership', 'Technical Skills'],
-        experienceLevel: 'mid-level',
-        industry: 'Technology',
+        requiredSkills: foundSkills.length > 0 ? foundSkills.slice(0, 5).map(skill => 
+          skill.split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')
+        ) : ['Communication', 'Problem Solving', 'Teamwork', 'Leadership', 'Technical Skills'],
+        experienceLevel: experienceLevel,
+        industry: industry,
         recommendations: [
-          'Highlight relevant experience prominently',
-          'Include industry-specific keywords',
-          'Quantify your achievements with numbers',
-          'Tailor your skills section to match requirements'
+          'Highlight relevant experience prominently in your resume',
+          'Include industry-specific keywords from the job description',
+          'Quantify your achievements with specific numbers and metrics',
+          'Tailor your skills section to match the job requirements',
+          'Use action verbs to describe your accomplishments'
         ]
       };
+      
+      console.log('Using fallback analysis:', analysis);
     }
 
     res.json({ success: true, analysis });
