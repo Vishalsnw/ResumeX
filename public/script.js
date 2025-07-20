@@ -1,3 +1,4 @@
+
 // Global variables
 let currentStep = 1;
 let resumeData = {
@@ -23,6 +24,7 @@ function startBuilding() {
         console.error('Resume builder modal not found');
     }
 }
+
 let isProcessing = false;
 let selectedTemplate = 'modern';
 let jobAnalysisData = null;
@@ -31,8 +33,6 @@ let jobAnalysisData = null;
 const modal = document.getElementById('resumeBuilder');
 const previewModal = document.getElementById('resumePreview');
 const loadingOverlay = document.getElementById('loadingOverlay');
-const steps = document.querySelectorAll('.step');
-const formSteps = document.querySelectorAll('.form-step');
 
 // Initialize the application
 document.addEventListener('DOMContentLoaded', function() {
@@ -95,33 +95,20 @@ function viewTemplates() {
 }
 
 function closeModal() {
-    modal.style.display = 'none';
-    previewModal.style.display = 'none';
-    loadingOverlay.style.display = 'none';
+    if (modal) modal.style.display = 'none';
+    if (previewModal) previewModal.style.display = 'none';
+    if (loadingOverlay) loadingOverlay.style.display = 'none';
     document.body.style.overflow = 'auto';
 }
 
 // Step navigation
-function nextStep() {
-    if (validateCurrentStep()) {
-        currentStep++;
-        updateStepDisplay();
-        updateProgress();
-    }
-}
+function showStep(stepNumber) {
+    const steps = document.querySelectorAll('.step');
+    const formSteps = document.querySelectorAll('.form-step');
 
-function prevStep() {
-    if (currentStep > 1) {
-        currentStep--;
-        updateStepDisplay();
-        updateProgress();
-    }
-}
-
-function updateStepDisplay() {
     // Update step indicators
     steps.forEach((step, index) => {
-        if (index + 1 <= currentStep) {
+        if (index + 1 <= stepNumber) {
             step.classList.add('active');
         } else {
             step.classList.remove('active');
@@ -130,12 +117,28 @@ function updateStepDisplay() {
 
     // Update form steps
     formSteps.forEach((step, index) => {
-        if (index + 1 === currentStep) {
+        if (index + 1 === stepNumber) {
             step.classList.add('active');
         } else {
             step.classList.remove('active');
         }
     });
+}
+
+function nextStep() {
+    if (validateCurrentStep()) {
+        currentStep++;
+        showStep(currentStep);
+        updateProgress();
+    }
+}
+
+function prevStep() {
+    if (currentStep > 1) {
+        currentStep--;
+        showStep(currentStep);
+        updateProgress();
+    }
 }
 
 function updateProgress() {
@@ -146,6 +149,8 @@ function updateProgress() {
 // Form validation
 function validateCurrentStep() {
     const currentFormStep = document.getElementById(`step${currentStep}`);
+    if (!currentFormStep) return true;
+    
     const requiredInputs = currentFormStep.querySelectorAll('[required]');
 
     for (let input of requiredInputs) {
@@ -206,8 +211,7 @@ async function analyzeJobDescription() {
     showLoading();
     try {
         console.log('Starting job analysis...');
-        console.log('Job description length:', jobDescription.length);
-
+        
         const response = await fetch('/api/analyze-job', {
             method: 'POST',
             headers: {
@@ -217,64 +221,31 @@ async function analyzeJobDescription() {
             body: JSON.stringify({ jobDescription: jobDescription.trim() })
         });
 
-        console.log('Response status:', response.status);
-        console.log('Response ok:', response.ok);
-        console.log('Response headers:', Object.fromEntries(response.headers.entries()));
-
         if (!response.ok) {
             let errorText;
             try {
                 errorText = await response.text();
-                console.error('Error response text:', errorText);
             } catch (e) {
                 errorText = 'Unable to read error response';
             }
             throw new Error(`Server error ${response.status}: ${errorText}`);
         }
 
-        let result;
-        const responseText = await response.text();
-        console.log('Raw response text:', responseText);
-
-        try {
-            result = JSON.parse(responseText);
-        } catch (parseError) {
-            console.error('Failed to parse response as JSON:', parseError);
-            console.error('Response was:', responseText);
-            throw new Error('Invalid server response format - not valid JSON');
-        }
-
-        console.log('Parsed job analysis response:', result);
+        const result = await response.json();
 
         if (result.success && result.analysis) {
             jobAnalysisData = result.analysis;
             displayJobAnalysis(result.analysis);
             showToast('Job description analyzed successfully!', 'success');
         } else {
-            console.error('Analysis failed:', result);
-            throw new Error(result.error || 'Analysis failed - no data received');
+            throw new Error(result.error || 'Analysis failed');
         }
     } catch (error) {
-        console.error('Job analysis error details:', {
-            message: error.message,
-            name: error.name,
-            stack: error.stack?.split('\n').slice(0, 3),
-            toString: error.toString(),
-            cause: error.cause
-        });
-
+        console.error('Job analysis error:', error);
         let errorMessage = 'Failed to analyze job description';
-
+        
         if (error.name === 'TypeError' && error.message.includes('Failed to fetch')) {
             errorMessage = 'Network error - Unable to connect to server';
-        } else if (error.message.includes('Invalid server response')) {
-            errorMessage = 'Server returned invalid response - Please try again';
-        } else if (error.message.includes('API key not configured')) {
-            errorMessage = 'AI service not configured - Please check environment variables';
-        } else if (error.message.includes('Rate limit exceeded')) {
-            errorMessage = 'Too many requests - Please wait a moment and try again';
-        } else if (error.message.includes('Network error')) {
-            errorMessage = 'Unable to connect to AI service - Please try again';
         } else if (error.message) {
             errorMessage = error.message;
         }
@@ -323,9 +294,11 @@ function selectTemplate(templateName) {
     document.querySelectorAll('.template-card').forEach(card => {
         card.classList.remove('selected');
     });
-    document.querySelector(`[data-template="${templateName}"]`).classList.add('selected');
+    const templateCard = document.querySelector(`[data-template="${templateName}"]`);
+    if (templateCard) {
+        templateCard.classList.add('selected');
+    }
 
-    // All templates are now free to use
     showToast(`${templateName.charAt(0).toUpperCase() + templateName.slice(1)} template selected!`, 'success');
 }
 
@@ -384,14 +357,12 @@ async function generateResume(type) {
         if (type === 'basic') {
             await generateBasicResume();
         } else if (type === 'ai') {
-            // Check if user has premium access
             if (!checkPremiumAccess()) {
                 await upgradeToPremium();
                 return;
             }
             await generateAIResume();
         } else if (type === 'ai-plus') {
-            // Check if user has pro access
             if (!checkProAccess()) {
                 await upgradeToPro();
                 return;
@@ -407,6 +378,10 @@ async function generateResume(type) {
     }
 }
 
+function checkPremiumAccess() {
+    return localStorage.getItem('premiumAccess') === 'true';
+}
+
 function checkProAccess() {
     return localStorage.getItem('proAccess') === 'true';
 }
@@ -418,10 +393,7 @@ async function generateBasicResume() {
 
 async function generateAIResume() {
     try {
-        // Get base URL for API calls
-        const baseURL = window.location.origin;
-
-        const response = await fetch(`${baseURL}/api/generate-resume`, {
+        const response = await fetch('/api/generate-resume', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -449,10 +421,8 @@ async function generateAIResume() {
 
 async function generateAIPlusResume() {
     try {
-        // First generate the AI resume
         await generateAIResume();
-
-        // Then get scoring and feedback if job description provided
+        
         if (resumeData.targetJobDescription) {
             await scoreResume();
         }
@@ -466,10 +436,7 @@ async function scoreResume() {
     try {
         const resumeContent = document.getElementById('resumeContent').innerText;
 
-        // Get base URL for API calls
-        const baseURL = window.location.origin;
-
-        const response = await fetch(`${baseURL}/api/score-resume`, {
+        const response = await fetch('/api/score-resume', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -538,7 +505,7 @@ function displayResumeScoring(scoring) {
                 ${scoring.recommendations.map(rec => `<li>${rec}</li>`).join('')}
             </ul>
         </div>
-        ${scoring.missingKeywords.length > 0 ? `
+        ${scoring.missingKeywords && scoring.missingKeywords.length > 0 ? `
             <div class="missing-keywords">
                 <h4>Consider Adding These Keywords:</h4>
                 <div class="keyword-suggestions">
@@ -553,8 +520,6 @@ function displayResumeScoring(scoring) {
 }
 
 function createBasicResumeHTML() {
-    const templateClass = `template-${selectedTemplate}`;
-
     switch(selectedTemplate) {
         case 'modern':
             return createModernTemplate();
@@ -1003,31 +968,29 @@ function createAIResumeHTML(aiContent) {
                 <h2>${section.title}</h2>
                 <p>${section.content}</p>
             </div>
-        `).join('')` : ''}
-`;
+        `).join('') : ''}
+    `;
 }
 
 // Preview and export functions
 function showResumePreview(htmlContent) {
     document.getElementById('resumeContent').innerHTML = htmlContent;
-    modal.style.display = 'none';
-    previewModal.style.display = 'block';
+    if (modal) modal.style.display = 'none';
+    if (previewModal) previewModal.style.display = 'block';
 }
 
 function editResume() {
-    previewModal.style.display = 'none';
-    modal.style.display = 'block';
+    if (previewModal) previewModal.style.display = 'none';
+    if (modal) modal.style.display = 'block';
 }
 
 function downloadPDF() {
-    // Check for premium access for downloads
     if (!checkPremiumAccess()) {
         showToast('PDF download requires premium access. Upgrade to download your resume!', 'info');
         upgradeToPremium();
         return;
     }
 
-    // Simple print functionality - in production, you'd use a proper PDF library
     const printContent = document.getElementById('resumeContent').innerHTML;
     const printWindow = window.open('', '_blank');
     printWindow.document.write(`
@@ -1063,11 +1026,6 @@ function getResumeStyles() {
 }
 
 // Payment functions
-function checkPremiumAccess() {
-    // In a real app, this would check user's subscription status
-    return localStorage.getItem('premiumAccess') === 'true';
-}
-
 async function upgradeToPremium() {
     await initiatePayment(299, 'Premium Plan');
 }
@@ -1089,8 +1047,6 @@ async function initiatePayment(amount, planName) {
             body: JSON.stringify({ amount })
         });
 
-        console.log('Payment response status:', response.status);
-
         if (!response.ok) {
             const errorText = await response.text();
             console.error('Payment error response:', errorText);
@@ -1098,15 +1054,12 @@ async function initiatePayment(amount, planName) {
         }
 
         const result = await response.json();
-        console.log('Payment order result:', result);
 
         if (result.success && result.order) {
-            // Check if Razorpay is loaded
             if (typeof Razorpay === 'undefined') {
                 throw new Error('Razorpay SDK not loaded. Please refresh the page and try again.');
             }
 
-            // Get Razorpay key from backend
             const keyResponse = await fetch('/api/razorpay-key');
             const keyData = await keyResponse.json();
 
@@ -1162,10 +1115,7 @@ async function initiatePayment(amount, planName) {
 
 async function verifyPayment(paymentResponse) {
     try {
-        // Get base URL for API calls
-        const baseURL = window.location.origin;
-
-        const response = await fetch(`${baseURL}/api/verify-payment`, {
+        const response = await fetch('/api/verify-payment', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -1178,7 +1128,6 @@ async function verifyPayment(paymentResponse) {
         if (result.success) {
             localStorage.setItem('premiumAccess', 'true');
             showToast('Payment successful! Premium features activated.', 'success');
-            // Continue with AI resume generation
             await generateAIResume();
         } else {
             throw new Error(result.error || 'Payment verification failed');
@@ -1191,15 +1140,14 @@ async function verifyPayment(paymentResponse) {
 
 // Utility functions
 function showLoading() {
-    loadingOverlay.style.display = 'block';
+    if (loadingOverlay) loadingOverlay.style.display = 'block';
 }
 
 function hideLoading() {
-    loadingOverlay.style.display = 'none';
+    if (loadingOverlay) loadingOverlay.style.display = 'none';
 }
 
 function showToast(message, type = 'info') {
-    // Simple toast notification - in production, use a proper toast library
     const toast = document.createElement('div');
     toast.className = `toast toast-${type}`;
     toast.textContent = message;
@@ -1224,12 +1172,11 @@ function showToast(message, type = 'info') {
 
 function resetForm() {
     currentStep = 1;
-    updateStepDisplay();
+    showStep(currentStep);
     document.querySelectorAll('input, textarea').forEach(input => {
         input.value = '';
     });
 
-    // Reset experience items to just one
     const container = document.getElementById('experienceContainer');
     const firstItem = container.querySelector('.experience-item');
     container.innerHTML = '';
