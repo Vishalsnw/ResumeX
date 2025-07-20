@@ -305,38 +305,52 @@ function selectTemplate(templateName) {
 // Data collection
 function collectFormData() {
     const personalInfo = {
-        name: document.getElementById('fullName').value,
-        email: document.getElementById('email').value,
-        phone: document.getElementById('phone').value,
-        location: document.getElementById('location').value
+        name: document.getElementById('fullName')?.value || 'Your Name',
+        email: document.getElementById('email')?.value || 'your.email@example.com',
+        phone: document.getElementById('phone')?.value || '+91 9999999999',
+        location: document.getElementById('location')?.value || 'Your Location'
     };
 
-    const jobTitle = document.getElementById('jobTitle').value;
-    const industryFocus = document.getElementById('industryFocus').value;
-    const targetJobDescription = document.getElementById('targetJobDescription').value;
+    const jobTitle = document.getElementById('jobTitle')?.value || 'Software Engineer';
+    const industryFocus = document.getElementById('industryFocus')?.value || 'Technology';
+    const targetJobDescription = document.getElementById('targetJobDescription')?.value || '';
 
     const experiences = [];
     document.querySelectorAll('.experience-item').forEach(item => {
+        const company = item.querySelector('.company')?.value || 'Company Name';
+        const position = item.querySelector('.position')?.value || 'Position Title';
+        const startDate = item.querySelector('.startDate')?.value || '2023-01-01';
+        const endDate = item.querySelector('.endDate')?.value || '';
+        const description = item.querySelector('.description')?.value || 'Key responsibilities and achievements';
+        
         experiences.push({
-            company: item.querySelector('.company').value,
-            position: item.querySelector('.position').value,
-            startDate: item.querySelector('.startDate').value,
-            endDate: item.querySelector('.endDate').value,
-            description: item.querySelector('.description').value
+            company,
+            position,
+            startDate,
+            endDate,
+            description
         });
     });
 
-    const skills = document.getElementById('skills').value;
-    const education = document.getElementById('education').value;
-    const certifications = document.getElementById('certifications').value;
+    const skillsInput = document.getElementById('skills')?.value || 'JavaScript, Python, React, Node.js';
+    const skills = skillsInput.split(',').map(skill => skill.trim()).filter(skill => skill.length > 0);
+    
+    const education = document.getElementById('education')?.value || 'Bachelor of Technology in Computer Science';
+    const certifications = document.getElementById('certifications')?.value || '';
 
     return {
         personalInfo,
         jobTitle,
         industryFocus,
         targetJobDescription,
-        experience: experiences,
-        skills: skills.split(',').map(skill => skill.trim()),
+        experience: experiences.length > 0 ? experiences : [{
+            company: 'Your Company',
+            position: jobTitle,
+            startDate: '2023-01-01',
+            endDate: '',
+            description: 'Key responsibilities and achievements in your role'
+        }],
+        skills: skills.length > 0 ? skills : ['JavaScript', 'Python', 'React', 'Node.js'],
         education,
         certifications,
         selectedTemplate,
@@ -839,39 +853,49 @@ function createTechTemplate() {
                             <span class="code-tab">experience.js</span>
                         </div>
                         <div class="code-content">
-                            ${resumeData.experience.map((exp, index) => `
+                            ${resumeData.experience.map((exp, index) => {
+                                const varName = exp.position.replace(/[^a-zA-Z0-9]/g, '').toLowerCase() || 'experience';
+                                const lineStart = index * 6 + 1;
+                                return `
                                 <div class="tech-experience">
                                     <div class="code-line">
-                                        <span class="line-number">${(index + 1).toString().padStart(2, '0')}</span>
+                                        <span class="line-number">${lineStart.toString().padStart(2, '0')}</span>
                                         <span class="code-text">
                                             <span class="keyword">const</span> 
-                                            <span class="variable">${exp.position.replace(/\s+/g, '')}</span> = {
+                                            <span class="variable">${varName}</span> = {
                                         </span>
                                     </div>
                                     <div class="code-line indent">
-                                        <span class="line-number">${(index + 2).toString().padStart(2, '0')}</span>
+                                        <span class="line-number">${(lineStart + 1).toString().padStart(2, '0')}</span>
+                                        <span class="code-text">
+                                            position: <span class="string">"${exp.position}"</span>,
+                                        </span>
+                                    </div>
+                                    <div class="code-line indent">
+                                        <span class="line-number">${(lineStart + 2).toString().padStart(2, '0')}</span>
                                         <span class="code-text">
                                             company: <span class="string">"${exp.company}"</span>,
                                         </span>
                                     </div>
                                     <div class="code-line indent">
-                                        <span class="line-number">${(index + 3).toString().padStart(2, '0')}</span>
+                                        <span class="line-number">${(lineStart + 3).toString().padStart(2, '0')}</span>
                                         <span class="code-text">
                                             period: <span class="string">"${exp.startDate} - ${exp.endDate || 'Present'}"</span>,
                                         </span>
                                     </div>
                                     <div class="code-line indent">
-                                        <span class="line-number">${(index + 4).toString().padStart(2, '0')}</span>
+                                        <span class="line-number">${(lineStart + 4).toString().padStart(2, '0')}</span>
                                         <span class="code-text">
-                                            achievements: <span class="string">"${exp.description || 'Key contributions'}"</span>
+                                            achievements: <span class="string">"${exp.description}"</span>
                                         </span>
                                     </div>
                                     <div class="code-line">
-                                        <span class="line-number">${(index + 5).toString().padStart(2, '0')}</span>
+                                        <span class="line-number">${(lineStart + 5).toString().padStart(2, '0')}</span>
                                         <span class="code-text">};</span>
                                     </div>
                                 </div>
-                            `).join('')}
+                            `;
+                            }).join('')}
                         </div>
                     </div>
                 </div>
@@ -883,18 +907,27 @@ function createTechTemplate() {
                             ${resumeData.skills.map(skill => `
                                 <div class="tech-skill">
                                     <span class="skill-icon">⚡</span>
-                                    <span>${skill}</span>
+                                    <span>${skill.trim()}</span>
                                 </div>
                             `).join('')}
                         </div>
                     </div>
 
-                    ${resumeData.education ? `
-                        <div class="tech-education">
-                            <h3>// Education</h3>
-                            <div class="edu-item">
-                                <span class="keyword">import</span> knowledge <span class="keyword">from</span> 
-                                <span class="string">"${resumeData.education}"</span>;
+                    <div class="tech-education">
+                        <h3>// Education</h3>
+                        <div class="edu-item">
+                            <span class="keyword">import</span> knowledge <span class="keyword">from</span> 
+                            <span class="string">"${resumeData.education}"</span>;
+                        </div>
+                    </div>
+
+                    ${resumeData.certifications ? `
+                        <div class="tech-certifications">
+                            <h3>// Certifications</h3>
+                            <div class="cert-item">
+                                <span class="keyword">const</span> certifications = [
+                                <span class="string">"${resumeData.certifications}"</span>
+                                ];
                             </div>
                         </div>
                     ` : ''}
