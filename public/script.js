@@ -1,18 +1,20 @@
-// Global variables
-let currentStep = 1;
-let resumeData = {
-    personalInfo: {},
-    experience: [],
-    skills: [],
-    jobTitle: '',
-    targetJobDescription: ''
-};
-let uploadedResumeFile = null;
-let enhancedResumeData = null;
-let isProcessing = false;
-let selectedTemplate = 'modern';
-let jobAnalysisData = null;
-let hasUsedAI = false;
+// Global variables (avoid redeclaration)
+if (typeof currentStep === 'undefined') {
+    var currentStep = 1;
+    var resumeData = {
+        personalInfo: {},
+        experience: [],
+        skills: [],
+        jobTitle: '',
+        targetJobDescription: ''
+    };
+    var uploadedResumeFile = null;
+    var enhancedResumeData = null;
+    var isProcessing = false;
+    var selectedTemplate = 'modern';
+    var jobAnalysisData = null;
+    var hasUsedAI = false;
+}
 
 // DOM elements
 let modal, previewModal, loadingOverlay;
@@ -404,47 +406,90 @@ function loadPDFJS() {
 }
 
 function populateFormWithEnhancedData(data) {
-    if (data.personalInfo) {
-        if (data.personalInfo.name) document.getElementById('fullName').value = data.personalInfo.name;
-        if (data.personalInfo.email) document.getElementById('email').value = data.personalInfo.email;
-        if (data.personalInfo.phone) document.getElementById('phone').value = data.personalInfo.phone;
-        if (data.personalInfo.location) document.getElementById('location').value = data.personalInfo.location;
-    }
+    try {
+        // Populate personal info
+        if (data.personalInfo) {
+            if (data.personalInfo.name) document.getElementById('fullName').value = data.personalInfo.name;
+            if (data.personalInfo.email) document.getElementById('email').value = data.personalInfo.email;
+            if (data.personalInfo.phone) document.getElementById('phone').value = data.personalInfo.phone;
+            if (data.personalInfo.location) document.getElementById('location').value = data.personalInfo.location;
+        }
 
-    if (data.jobTitle && !document.getElementById('jobTitle').value) {
-        document.getElementById('jobTitle').value = data.jobTitle;
-    }
+        // Populate job title
+        if (data.jobTitle) {
+            document.getElementById('jobTitle').value = data.jobTitle;
+        }
 
-    if (data.experience && data.experience.length > 0) {
-        const container = document.getElementById('experienceContainer');
-        container.innerHTML = '';
+        // Clear and populate experience properly
+        if (data.experience && data.experience.length > 0) {
+            const container = document.getElementById('experienceContainer');
+            container.innerHTML = '';
 
-        data.experience.forEach((exp, index) => {
-            if (index > 0) addExperience();
+            data.experience.forEach((exp, index) => {
+                // Create new experience item
+                const experienceItem = document.createElement('div');
+                experienceItem.className = 'experience-item';
+                experienceItem.innerHTML = `
+                    <div class="form-group">
+                        <label>Company</label>
+                        <input type="text" class="company" value="${exp.company || ''}" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Position</label>
+                        <input type="text" class="position" value="${exp.position || ''}" required>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Start Date</label>
+                            <input type="date" class="startDate" value="${exp.startDate || ''}" required>
+                        </div>
+                        <div class="form-group">
+                            <label>End Date</label>
+                            <input type="date" class="endDate" value="${exp.endDate || ''}">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Description</label>
+                        <textarea class="description" rows="3" placeholder="Describe your responsibilities and achievements">${exp.description || ''}</textarea>
+                    </div>
+                    ${index > 0 ? '<button type="button" class="btn-secondary btn-small" onclick="removeExperience(this)">Remove</button>' : ''}
+                `;
+                container.appendChild(experienceItem);
+            });
+        }
 
-            const items = container.querySelectorAll('.experience-item');
-            const currentItem = items[index];
+        // Populate skills
+        if (data.skills) {
+            const skillsValue = Array.isArray(data.skills) ? data.skills.join(', ') : data.skills;
+            document.getElementById('skills').value = skillsValue;
+        }
 
-            if (currentItem) {
-                currentItem.querySelector('.company').value = exp.company || '';
-                currentItem.querySelector('.position').value = exp.position || '';
-                currentItem.querySelector('.startDate').value = exp.startDate || '';
-                currentItem.querySelector('.endDate').value = exp.endDate || '';
-                currentItem.querySelector('.description').value = exp.description || '';
-            }
-        });
-    }
+        // Populate education
+        if (data.education) {
+            document.getElementById('education').value = data.education;
+        }
 
-    if (data.skills) {
-        document.getElementById('skills').value = Array.isArray(data.skills) ? data.skills.join(', ') : data.skills;
-    }
+        // Populate certifications
+        if (data.certifications) {
+            document.getElementById('certifications').value = data.certifications;
+        }
 
-    if (data.education) {
-        document.getElementById('education').value = data.education;
-    }
+        // Update global resumeData
+        resumeData = {
+            personalInfo: data.personalInfo || resumeData.personalInfo,
+            jobTitle: data.jobTitle || resumeData.jobTitle,
+            experience: data.experience || resumeData.experience,
+            skills: data.skills || resumeData.skills,
+            education: data.education || resumeData.education,
+            certifications: data.certifications || resumeData.certifications,
+            selectedTemplate: selectedTemplate,
+            targetJobDescription: resumeData.targetJobDescription
+        };
 
-    if (data.certifications) {
-        document.getElementById('certifications').value = data.certifications;
+        console.log('Form populated with enhanced data:', resumeData);
+    } catch (error) {
+        console.error('Error populating form:', error);
+        showToast('Error loading resume data', 'error');
     }
 }
 
@@ -805,56 +850,84 @@ function createBasicResumeHTML() {
 }
 
 function createModernTemplate() {
+    const personalInfo = resumeData.personalInfo || {};
+    const experience = resumeData.experience || [];
+    const skills = resumeData.skills || [];
+    
     return `
         <div class="resume-container modern-template">
             <div class="resume-header modern-header">
-                <h1>${resumeData.personalInfo.name}</h1>
-                <div class="subtitle">${resumeData.jobTitle}</div>
+                <h1>${personalInfo.name || 'Your Name'}</h1>
+                <div class="subtitle">${resumeData.jobTitle || 'Professional'}</div>
                 <div class="contact-info">
-                    <span><i class="fas fa-envelope"></i> ${resumeData.personalInfo.email}</span>
-                    <span><i class="fas fa-phone"></i> ${resumeData.personalInfo.phone}</span>
-                    <span><i class="fas fa-map-marker-alt"></i> ${resumeData.personalInfo.location}</span>
+                    <span><i class="fas fa-envelope"></i> ${personalInfo.email || 'your.email@example.com'}</span>
+                    <span><i class="fas fa-phone"></i> ${personalInfo.phone || '+91 9999999999'}</span>
+                    <span><i class="fas fa-map-marker-alt"></i> ${personalInfo.location || 'Your Location'}</span>
                 </div>
             </div>
 
             <div class="resume-body modern-body">
                 <div class="main-content">
                     <div class="resume-section">
-                        <h2><i class="fas fa-briefcase"></i> Experience</h2>
-                        ${resumeData.experience.map(exp => `
+                        <h2><i class="fas fa-briefcase"></i> Professional Experience</h2>
+                        ${experience.length > 0 ? experience.map(exp => {
+                            const startDate = exp.startDate ? new Date(exp.startDate).toLocaleDateString('en-US', { year: 'numeric', month: 'short' }) : 'Start Date';
+                            const endDate = exp.endDate ? new Date(exp.endDate).toLocaleDateString('en-US', { year: 'numeric', month: 'short' }) : 'Present';
+                            
+                            return `
+                                <div class="experience-item modern-experience">
+                                    <div class="experience-header">
+                                        <div class="position-company">
+                                            <h3>${exp.position || 'Position'}</h3>
+                                            <h4>${exp.company || 'Company'}</h4>
+                                        </div>
+                                        <div class="dates">${startDate} - ${endDate}</div>
+                                    </div>
+                                    <div class="description">
+                                        ${exp.description ? exp.description.split('\n').map(line => `<p>• ${line.trim()}</p>`).join('') : '<p>• Key responsibilities and achievements</p>'}
+                                    </div>
+                                </div>
+                            `;
+                        }).join('') : `
                             <div class="experience-item modern-experience">
                                 <div class="experience-header">
                                     <div class="position-company">
-                                        <h3>${exp.position}</h3>
-                                        <h4>${exp.company}</h4>
+                                        <h3>${resumeData.jobTitle || 'Professional'}</h3>
+                                        <h4>Your Company</h4>
                                     </div>
-                                    <div class="dates">${exp.startDate} - ${exp.endDate || 'Present'}</div>
+                                    <div class="dates">2023 - Present</div>
                                 </div>
-                                <p>${exp.description || 'Key responsibilities and achievements will be listed here.'}</p>
+                                <div class="description">
+                                    <p>• Key responsibilities and achievements in your role</p>
+                                </div>
                             </div>
-                        `).join('')}
+                        `}
                     </div>
                 </div>
 
                 <div class="sidebar">
                     <div class="resume-section">
-                        <h2><i class="fas fa-cog"></i> Skills</h2>
+                        <h2><i class="fas fa-cog"></i> Core Skills</h2>
                         <div class="skills-grid">
-                            ${resumeData.skills.map(skill => `<span class="skill-tag">${skill}</span>`).join('')}
+                            ${skills.length > 0 ? skills.map(skill => `<span class="skill-tag">${skill.trim()}</span>`).join('') : '<span class="skill-tag">Professional Skills</span>'}
                         </div>
                     </div>
 
                     ${resumeData.education ? `
                         <div class="resume-section">
                             <h2><i class="fas fa-graduation-cap"></i> Education</h2>
-                            <p>${resumeData.education}</p>
+                            <div class="education-item">
+                                <p>${resumeData.education}</p>
+                            </div>
                         </div>
                     ` : ''}
 
                     ${resumeData.certifications ? `
                         <div class="resume-section">
                             <h2><i class="fas fa-certificate"></i> Certifications</h2>
-                            <p>${resumeData.certifications}</p>
+                            <div class="certifications-item">
+                                <p>${resumeData.certifications}</p>
+                            </div>
                         </div>
                     ` : ''}
                 </div>
@@ -1349,16 +1422,139 @@ function performDownload() {
 
 function getResumeStyles() {
     return `
-        body { font-family: 'Times New Roman', serif; line-height: 1.6; color: #333; margin: 0; padding: 20px; }
-        .resume-header { text-align: center; border-bottom: 2px solid #4f46e5; padding-bottom: 1rem; margin-bottom: 2rem; }
-        .resume-header h1 { font-size: 2rem; margin-bottom: 0.5rem; color: #1e293b; }
-        .resume-section { margin-bottom: 2rem; }
-        .resume-section h2 { color: #4f46e5; border-bottom: 1px solid #e2e8f0; padding-bottom: 0.5rem; margin-bottom: 1rem; }
-        .experience-item-resume { margin-bottom: 1.5rem; }
-        .experience-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem; }
-        .company-position { font-weight: bold; color: #1e293b; }
-        .dates { color: #64748b; font-style: italic; }
-        @media print { body { margin: 0; padding: 0; } }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: 'Arial', sans-serif; 
+            line-height: 1.4; 
+            color: #333; 
+            margin: 0; 
+            padding: 15px; 
+            background: white;
+        }
+        
+        .resume-container { max-width: 800px; margin: 0 auto; background: white; }
+        
+        .resume-header { 
+            text-align: center; 
+            border-bottom: 2px solid #4f46e5; 
+            padding-bottom: 15px; 
+            margin-bottom: 20px; 
+        }
+        .resume-header h1 { 
+            font-size: 24px; 
+            font-weight: bold; 
+            margin-bottom: 5px; 
+            color: #1e293b; 
+        }
+        .subtitle { 
+            font-size: 16px; 
+            color: #4f46e5; 
+            font-weight: 600; 
+            margin-bottom: 10px;
+        }
+        .contact-info { 
+            font-size: 12px; 
+            color: #666; 
+        }
+        .contact-info span { 
+            margin: 0 10px; 
+            display: inline-block;
+        }
+        
+        .resume-body { 
+            display: flex; 
+            gap: 20px; 
+            align-items: flex-start;
+        }
+        .main-content { 
+            flex: 2; 
+        }
+        .sidebar { 
+            flex: 1; 
+            background: #f8fafc; 
+            padding: 15px; 
+            border-radius: 5px;
+        }
+        
+        .resume-section { 
+            margin-bottom: 20px; 
+        }
+        .resume-section h2 { 
+            font-size: 16px; 
+            color: #4f46e5; 
+            border-bottom: 1px solid #e2e8f0; 
+            padding-bottom: 5px; 
+            margin-bottom: 10px; 
+        }
+        
+        .experience-item { 
+            margin-bottom: 15px; 
+            page-break-inside: avoid;
+        }
+        .experience-header { 
+            margin-bottom: 8px; 
+        }
+        .experience-header h3 { 
+            font-size: 14px; 
+            font-weight: bold; 
+            color: #1e293b; 
+            margin-bottom: 2px;
+        }
+        .experience-header h4 { 
+            font-size: 13px; 
+            color: #4f46e5; 
+            font-weight: 600;
+            margin-bottom: 2px;
+        }
+        .dates { 
+            font-size: 12px; 
+            color: #64748b; 
+            font-style: italic; 
+        }
+        .description p { 
+            font-size: 12px; 
+            margin-bottom: 3px; 
+            line-height: 1.3;
+        }
+        
+        .skills-grid { 
+            display: flex; 
+            flex-wrap: wrap; 
+            gap: 5px; 
+        }
+        .skill-tag { 
+            background: #4f46e5; 
+            color: white; 
+            padding: 3px 8px; 
+            border-radius: 3px; 
+            font-size: 11px; 
+            font-weight: 500;
+        }
+        
+        .education-item, .certifications-item { 
+            font-size: 12px; 
+            line-height: 1.3;
+        }
+        
+        @media print { 
+            body { 
+                margin: 0; 
+                padding: 10px; 
+                font-size: 12px;
+            }
+            .resume-body { 
+                display: block; 
+            }
+            .sidebar { 
+                margin-top: 20px; 
+                background: white;
+            }
+            .skill-tag { 
+                border: 1px solid #4f46e5; 
+                color: #4f46e5; 
+                background: white;
+            }
+        }
     `;
 }
 
@@ -1559,10 +1755,16 @@ style.textContent = `
 `;
 document.head.appendChild(style);
 
+// Add the missing enhanceUploadedResume function
+function enhanceUploadedResume() {
+    enhanceExistingResume();
+}
+
 // Make all functions globally available for HTML onclick handlers
 window.startBuilding = startBuilding;
 window.viewTemplates = viewTemplates;
 window.enhanceExistingResume = enhanceExistingResume;
+window.enhanceUploadedResume = enhanceUploadedResume;
 window.removeUploadedFile = removeUploadedFile;
 window.nextStep = nextStep;
 window.prevStep = prevStep;
@@ -1574,7 +1776,6 @@ window.selectTemplate = selectTemplate;
 window.addExperience = addExperience;
 window.removeExperience = removeExperience;
 window.analyzeJobDescription = analyzeJobDescription;
-window.enhanceUploadedResume = enhanceUploadedResume;
 
 function populateFormWithEnhancedData(data) {
     // Populate personal info
