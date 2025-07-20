@@ -98,9 +98,12 @@ app.post('/api/analyze-job', async (req, res) => {
   try {
     const { jobDescription } = req.body;
 
+    console.log('=== Job Analysis Request ===');
     console.log('Job analysis request received');
     console.log('Job description length:', jobDescription?.length || 0);
     console.log('Environment check - DEEPSEEK_API_KEY exists:', !!process.env.DEEPSEEK_API_KEY);
+    console.log('Request body keys:', Object.keys(req.body));
+    console.log('============================');
 
     if (!jobDescription || jobDescription.trim().length === 0) {
       return res.status(400).json({ 

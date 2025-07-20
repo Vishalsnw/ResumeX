@@ -225,7 +225,13 @@ async function analyzeJobDescription() {
             throw new Error(result.error || 'Analysis failed - no data received');
         }
     } catch (error) {
-        console.error('Job analysis error:', error);
+        console.error('Job analysis error details:', {
+            message: error.message,
+            name: error.name,
+            stack: error.stack,
+            response: error.response
+        });
+        
         let errorMessage = 'Failed to analyze job description';
         
         if (error.name === 'TypeError' && error.message.includes('Failed to fetch')) {
