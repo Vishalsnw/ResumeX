@@ -28,12 +28,6 @@ const ResumeEditor = () => {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
-  useEffect(() => {
-    if (id) {
-      fetchResume();
-    }
-  }, [id, fetchResume]);
-
   const fetchResume = useCallback(() => {
     setLoading(true);
     try {
@@ -53,6 +47,12 @@ const ResumeEditor = () => {
       setLoading(false);
     }
   }, [id]);
+
+  useEffect(() => {
+    if (id) {
+      fetchResume();
+    }
+  }, [id, fetchResume]);
 
   const saveResume = () => {
     setSaving(true);
