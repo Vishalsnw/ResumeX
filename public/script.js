@@ -1231,3 +1231,84 @@ window.addExperience = addExperience;
 window.removeExperience = removeExperience;
 window.analyzeJobDescription = analyzeJobDescription;
 window.enhanceUploadedResume = enhanceExistingResume; //Alias for compatibility
+
+// Global variables
+let currentTemplate = 'modern';
+let resumeData = {};
+let isEnhancing = false;
+
+// Add missing startBuilding function
+function startBuilding() {
+    console.log('Starting resume building process...');
+
+    // Get the form data
+    const formData = getFormData();
+
+    if (!validateFormData(formData)) {
+        showToast('Please fill in all required fields', 'error');
+        return;
+    }
+
+    // Store the data and proceed to generation
+    resumeData = formData;
+    generateResume();
+}
+
+// Get form data function
+function getFormData() {
+    const personalInfo = {
+        name: document.getElementById('name')?.value || '',
+        email: document.getElementById('email')?.value || '',
+        phone: document.getElementById('phone')?.value || '',
+        location: document.getElementById('location')?.value || ''
+    };
+
+    const experience = [];
+    const experienceItems = document.querySelectorAll('.experience-item');
+    experienceItems.forEach(item => {
+        const company = item.querySelector('.company')?.value || '';
+        const position = item.querySelector('.position')?.value || '';
+        const startDate = item.querySelector('.startDate')?.value || '';
+        const endDate = item.querySelector('.endDate')?.value || '';
+        const description = item.querySelector('.description')?.value || '';
+
+        if (company && position) {
+            experience.push({
+                company,
+                position,
+                startDate,
+                endDate,
+                description
+            });
+        }
+    });
+
+    const skillsText = document.getElementById('skills')?.value || '';
+    const skills = skillsText.split(',').map(skill => skill.trim()).filter(skill => skill);
+
+    const jobTitle = document.getElementById('jobTitle')?.value || '';
+    const targetJobDescription = document.getElementById('targetJobDescription')?.value || '';
+
+    return {
+        personalInfo,
+        experience,
+        skills,
+        jobTitle,
+        targetJobDescription,
+        industryFocus: 'General'
+    };
+}
+
+// Validate form data
+function validateFormData(data) {
+    if (!data.personalInfo.name || !data.personalInfo.email) {
+        return false;
+    }
+    if (!data.jobTitle) {
+        return false;
+    }
+    if (data.experience.length === 0) {
+        return false;
+    }
+    return true;
+}
