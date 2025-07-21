@@ -988,7 +988,30 @@ async function generateAIResume() {
             // Check if we have AI content or need to use basic template
             if (result.content && typeof result.content === 'object') {
                 const resumeHTML = createAIResumeHTML(result.content);
-                showResumeThe code sets the default template to 'ats_bold_accounting' and maintains the functionality of the resume builder.
+                showResumePreview(resumeHTML, result.content);
+            } else {
+                // Fallback to basic resume if AI content is not available
+                const basicHTML = createBasicResumeHTML();
+                showResumePreview(basicHTML);
+            }
+            showToast('Resume generated successfully!', 'success');
+        } else {
+            throw new Error(result.error || 'AI generation failed');
+        }
+    } catch (error) {
+        console.error('AI Resume generation error:', error);
+
+        // Always show a resume even if AI fails
+        try {
+            const basicHTML = createBasicResumeHTML();
+            showResumePreview(basicHTML);
+            showToast('Resume generated using basic template (AI unavailable)', 'info');
+        } catch (fallbackError) {
+            console.error('Fallback generation error:', fallbackError);
+            showToast('Failed to generate resume. Please check your information and try again.', 'error');
+        }
+    }
+}
 <replit_final_file>
 // Global variables - Initialize only if not already defined
 if (typeof window.currentStep === 'undefined') {
