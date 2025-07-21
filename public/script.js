@@ -1014,177 +1014,77 @@ async function generateAIResume() {
 }
 
 function createBasicResumeHTML() {
+    // Use templates from templates.js if available
+    if (window.resumeTemplates && window.resumeTemplates[selectedTemplate]) {
+        return window.resumeTemplates[selectedTemplate].html(window.resumeData);
+    }
+    
+    // Fallback to built-in templates
     switch(selectedTemplate) {
-        case 'modern':
-            return createModernTemplate();
-        case 'classic':
-            return createClassicTemplate();
-        case 'creative':
-            return createCreativeTemplate();
-        case 'executive':
-            return createExecutiveTemplate();
-        case 'minimalist':
-            return createMinimalistTemplate();
-        case 'tech':
-            return createTechTemplate();
         case 'ats_bold_accounting':
             return createAtsBoldAccountingTemplate();
+        case 'ats_classic_hr':
+            return window.resumeTemplates?.ats_classic_hr?.html(window.resumeData) || createAtsBoldAccountingTemplate();
+        case 'attorney_resume':
+            return window.resumeTemplates?.attorney_resume?.html(window.resumeData) || createAtsBoldAccountingTemplate();
+        case 'industry_manager':
+            return window.resumeTemplates?.industry_manager?.html(window.resumeData) || createAtsBoldAccountingTemplate();
+        case 'modern_nursing':
+            return window.resumeTemplates?.modern_nursing?.html(window.resumeData) || createAtsBoldAccountingTemplate();
+        case 'simple_resume':
+            return window.resumeTemplates?.simple_resume?.html(window.resumeData) || createAtsBoldAccountingTemplate();
         default:
             return createAtsBoldAccountingTemplate();
     }
 }
 
 function createAtsBoldAccountingTemplate() {
+    // Use the template from templates.js
+    if (window.resumeTemplates && window.resumeTemplates.ats_bold_accounting) {
+        return window.resumeTemplates.ats_bold_accounting.html(window.resumeData);
+    }
+    
+    // Fallback template if templates.js not loaded
     const personalInfo = window.resumeData.personalInfo || {};
     const experience = window.resumeData.experience || [];
     const skills = window.resumeData.skills || [];
 
-    // Filter out empty experiences and ensure proper structure
-    const validExperiences = experience.filter(exp => 
-        exp && exp.company && exp.position && 
-        exp.company.trim() !== '' && exp.position.trim() !== '' &&
-        exp.company !== 'Company Name' && exp.position !== 'Position Title'
-    );
-
-    // Format description properly with bullet points and better structure
-    function formatDescription(description) {
-        if (!description || description.trim() === '') {
-            return '<p>• Key responsibilities and achievements</p>';
-        }
-
-        let formatted = description.trim();
-
-        // If already has bullet points, preserve them
-        if (formatted.includes('•') || formatted.includes('\n•')) {
-            return formatted.split('\n')
-                .filter(line => line.trim())
-                .map(line => {
-                    line = line.trim();
-                    if (!line.startsWith('•')) {
-                        line = '• ' + line;
-                    }
-                    return `<p>${line}</p>`;
-                })
-                .join('');
-        }
-
-        // Split into logical bullet points
-        let bulletPoints = [];
-
-        // Try splitting by line breaks first
-        if (formatted.includes('\n')) {
-            bulletPoints = formatted.split('\n').filter(line => line.trim().length > 5);
-        }
-        // Split by sentences if no line breaks
-        else if (formatted.includes('. ')) {
-            bulletPoints = formatted.split(/\.\s+/).filter(sentence => sentence.trim().length > 10);
-        }
-        // Split very long single sentences into chunks
-        else if (formatted.length > 150) {
-            const words = formatted.split(' ');
-            const chunks = [];
-            for (let i = 0; i < words.length; i += 20) {
-                const chunk = words.slice(i, i + 20).join(' ');
-                if (chunk.trim()) chunks.push(chunk.trim());
-            }
-            bulletPoints = chunks;
-        }
-        else {
-            bulletPoints = [formatted];
-        }
-
-        // Format as bullet points
-        return bulletPoints
-            .filter(point => point.trim().length > 5)
-            .map(point => {
-                point = point.trim();
-                if (!point.endsWith('.') && !point.endsWith('!') && !point.endsWith('?')) {
-                    point += '.';
-                }
-                return `<p>• ${point}</p>`;
-            })
-            .join('');
-    }
     return `
-    <div class="resume-container ats_bold_accounting-template">
-        <div class="resume-header ats_bold_accounting-header">
-            <h1>${personalInfo.name || 'Your Name'}</h1>
-            <div class="subtitle">${window.resumeData.jobTitle || 'Professional'}</div>
-            <div class="contact-info">
-                <span><i class="fas fa-envelope"></i> ${personalInfo.email || 'your.email@example.com'}</span>
-                <span><i class="fas fa-phone"></i> ${personalInfo.phone || '+91 9999999999'}</span>
-                <span><i class="fas fa-map-marker-alt"></i> ${personalInfo.location || 'Your Location'}</span>
+        <div class="resume-container ats-bold-template">
+            <div class="ats-header">
+                <h1>${personalInfo.name || 'Your Name'}</h1>
+                <div class="ats-subtitle">${window.resumeData.jobTitle || 'Professional'}</div>
+                <div class="ats-contact">
+                    <span>${personalInfo.email || 'your.email@example.com'}</span>
+                    <span>${personalInfo.phone || '+91 9999999999'}</span>
+                    <span>${personalInfo.location || 'Your Location'}</span>
+                </div>
             </div>
-        </div>
-
-        <div class="resume-body ats_bold_accounting-body">
-            <div class="main-content">
-                <div class="resume-section">
-                    <h2><i class="fas fa-briefcase"></i> Professional Experience</h2>
-                    ${validExperiences.length > 0 ? validExperiences.map(exp => {
-                        const startDate = exp.startDate ? formatDate(exp.startDate) : 'Present';
-                        const endDate = exp.endDate ? formatDate(exp.endDate) : 'Present';
-
-                        return `
-                            <div class="experience-item ats_bold_accounting-experience">
-                                <div class="experience-header">
-                                    <div class="position-company">
-                                        <h3>${exp.position}</h3>
-                                        <h4>${exp.company}</h4>
-                                    </div>
-                                    <div class="dates">${startDate} - ${endDate}</div>
-                                </div>
-                                <div class="description">
-                                    ${formatDescription(exp.description)}
-                                </div>
-                            </div>
-                        `;
-                    }).join('') : `
-                        <div class="experience-item ats_bold_accounting-experience">
+            <div class="ats-body">
+                <section class="ats-section">
+                    <h2>PROFESSIONAL EXPERIENCE</h2>
+                    ${experience.map(exp => `
+                        <div class="ats-experience">
                             <div class="experience-header">
-                                <div class="position-company">
-                                    <h3>${window.resumeData.jobTitle || 'Professional'}</h3>
-                                    <h4>Your Company</h4>
-                                </div>
-                                <div class="dates">2023 - Present</div>
+                                <h3>${exp.position}</h3>
+                                <span class="company">${exp.company}</span>
+                                <span class="dates">${exp.startDate} - ${exp.endDate || 'Present'}</span>
                             </div>
-                            <div class="description">
-                                <p>• Key responsibilities and achievements in your role</p>
+                            <div class="experience-details">
+                                <p>• ${exp.description || 'Key responsibilities and achievements'}</p>
                             </div>
                         </div>
-                    `}
-                </div>
-            </div>
-
-            <div class="sidebar">
-                <div class="resume-section">
-                    <h2><i class="fas fa-cog"></i> Core Skills</h2>
-                    <div class="skills-grid">
-                        ${skills.length > 0 ? skills.map(skill => `<span class="skill-tag">${skill.trim()}</span>`).join('') : '<span class="skill-tag">Professional Skills</span>'}
+                    `).join('')}
+                </section>
+                <section class="ats-section">
+                    <h2>CORE SKILLS</h2>
+                    <div class="skills-list">
+                        ${skills.join(' • ')}
                     </div>
-                </div>
-
-                ${window.resumeData.education && window.resumeData.education !== 'NA' ? `
-                    <div class="resume-section">
-                        <h2><i class="fas fa-graduation-cap"></i> Education</h2>
-                        <div class="education-item">
-                            <p>${window.resumeData.education}</p>
-                        </div>
-                    </div>
-                ` : ''}
-
-                ${window.resumeData.certifications && window.resumeData.certifications !== 'NA' ? `
-                    <div class="resume-section">
-                        <h2><i class="fas fa-certificate"></i> Certifications</h2>
-                        <div class="certifications-item">
-                            <p>${window.resumeData.certifications}</p>
-                        </div>
-                    </div>
-                ` : ''}
+                </section>
             </div>
         </div>
-    </div>
-`;
+    `;
 }
 
 function createModernTemplate() {
