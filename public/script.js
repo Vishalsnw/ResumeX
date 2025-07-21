@@ -1223,119 +1223,213 @@ async function downloadPDF() {
             throw new Error('No resume content to download');
         }
 
-        // Create download content with proper styling
+        // Get all styles from the current page that apply to resume content
+        const allStyles = Array.from(document.styleSheets)
+            .map(styleSheet => {
+                try {
+                    return Array.from(styleSheet.cssRules)
+                        .map(rule => rule.cssText)
+                        .join('\n');
+                } catch (e) {
+                    return '';
+                }
+            })
+            .join('\n');
+
+        // Create download content with all current styles
         const downloadContent = `
             <!DOCTYPE html>
             <html>
             <head>
                 <title>Resume - ${window.resumeData?.personalInfo?.name || 'Resume'}</title>
                 <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
                 <style>
-                    * { box-sizing: border-box; margin: 0; padding: 0; }
+                    ${allStyles}
+                    
+                    /* Override for print */
                     body { 
-                        font-family: 'Arial', sans-serif; 
-                        line-height: 1.4; 
-                        color: #333; 
-                        background: white;
-                        padding: 20px;
-                        font-size: 12px;
+                        font-family: 'Inter', 'Arial', sans-serif !important;
+                        line-height: 1.5 !important;
+                        color: #333 !important;
+                        background: white !important;
+                        padding: 20px !important;
+                        margin: 0 !important;
+                        font-size: 12px !important;
                     }
-                    .modern-template, .ai-enhanced-template { 
-                        max-width: 800px; 
-                        margin: 0 auto; 
-                        background: white;
+                    
+                    .modal { display: none !important; }
+                    .header { display: none !important; }
+                    .hero { display: none !important; }
+                    .features { display: none !important; }
+                    .pricing { display: none !important; }
+                    .loading-overlay { display: none !important; }
+                    
+                    .resume-content,
+                    .modern-template, 
+                    .ai-enhanced-template { 
+                        max-width: 800px !important;
+                        margin: 0 auto !important;
+                        background: white !important;
+                        box-shadow: none !important;
+                        padding: 0 !important;
                     }
+                    
                     .resume-header, .ai-header { 
-                        text-align: center; 
-                        margin-bottom: 20px; 
-                        border-bottom: 2px solid #4f46e5;
-                        padding-bottom: 15px;
+                        text-align: center !important;
+                        margin-bottom: 25px !important;
+                        border-bottom: 3px solid #4f46e5 !important;
+                        padding-bottom: 20px !important;
                     }
+                    
                     .resume-header h1, .ai-header h1 { 
-                        color: #4f46e5; 
-                        font-size: 24px; 
-                        margin-bottom: 5px; 
+                        color: #2d3748 !important;
+                        font-size: 28px !important;
+                        margin-bottom: 8px !important;
+                        font-weight: 700 !important;
+                        letter-spacing: 0.5px !important;
                     }
+                    
                     .subtitle, .ai-subtitle { 
-                        font-size: 14px; 
-                        color: #666; 
-                        margin-bottom: 10px;
+                        font-size: 16px !important;
+                        color: #4f46e5 !important;
+                        margin-bottom: 15px !important;
+                        font-weight: 600 !important;
                     }
+                    
                     .contact-info, .ai-contact { 
-                        font-size: 11px; 
-                        color: #555; 
+                        font-size: 13px !important;
+                        color: #4a5568 !important;
+                        display: flex !important;
+                        justify-content: center !important;
+                        gap: 20px !important;
+                        flex-wrap: wrap !important;
                     }
+                    
                     .contact-info span, .ai-contact span { 
-                        margin: 0 10px; 
+                        margin: 0 !important;
                     }
+                    
                     .resume-section, .ai-section { 
-                        margin-bottom: 20px; 
+                        margin-bottom: 25px !important;
+                        page-break-inside: avoid !important;
                     }
+                    
                     .resume-section h2, .ai-section h2 { 
-                        color: #4f46e5; 
-                        font-size: 16px; 
-                        margin-bottom: 10px; 
-                        border-bottom: 1px solid #ddd;
-                        padding-bottom: 3px;
+                        color: #2d3748 !important;
+                        font-size: 18px !important;
+                        margin-bottom: 15px !important;
+                        border-bottom: 2px solid #4f46e5 !important;
+                        padding-bottom: 5px !important;
+                        font-weight: 700 !important;
+                        text-transform: uppercase !important;
+                        letter-spacing: 0.5px !important;
                     }
+                    
                     .experience-item { 
-                        margin-bottom: 15px; 
-                        page-break-inside: avoid;
+                        margin-bottom: 20px !important;
+                        padding-bottom: 15px !important;
+                        border-bottom: 1px solid #e2e8f0 !important;
+                        page-break-inside: avoid !important;
                     }
+                    
+                    .experience-item:last-child {
+                        border-bottom: none !important;
+                    }
+                    
                     .experience-header { 
-                        margin-bottom: 5px; 
+                        margin-bottom: 10px !important;
                     }
+                    
                     .experience-header h3 { 
-                        color: #333; 
-                        font-size: 14px; 
-                        margin-bottom: 2px;
+                        color: #2d3748 !important;
+                        font-size: 16px !important;
+                        margin-bottom: 5px !important;
+                        font-weight: 600 !important;
                     }
+                    
                     .company-date { 
-                        display: flex; 
-                        justify-content: space-between; 
-                        font-size: 11px; 
-                        color: #666; 
+                        display: flex !important;
+                        justify-content: space-between !important;
+                        font-size: 13px !important;
+                        color: #4a5568 !important;
+                        margin-bottom: 8px !important;
                     }
-                    .experience-description p { 
-                        margin: 3px 0; 
-                        font-size: 11px;
-                        line-height: 1.3;
+                    
+                    .company {
+                        color: #4f46e5 !important;
+                        font-weight: 500 !important;
                     }
+                    
+                    .date {
+                        color: #718096 !important;
+                        font-style: italic !important;
+                    }
+                    
+                    .experience-description p,
+                    .experience-details p { 
+                        margin: 5px 0 !important;
+                        font-size: 13px !important;
+                        line-height: 1.4 !important;
+                        color: #4a5568 !important;
+                    }
+                    
                     .skills-container { 
-                        display: flex; 
-                        flex-wrap: wrap; 
-                        gap: 5px; 
+                        display: flex !important;
+                        flex-wrap: wrap !important;
+                        gap: 8px !important;
+                        margin-top: 10px !important;
                     }
+                    
                     .skill-tag { 
-                        background: #f0f0f0; 
-                        padding: 3px 8px; 
-                        border-radius: 3px; 
-                        font-size: 10px; 
-                        color: #555;
+                        background: #f7fafc !important;
+                        border: 1px solid #e2e8f0 !important;
+                        color: #2d3748 !important;
+                        padding: 5px 12px !important;
+                        border-radius: 15px !important;
+                        font-size: 12px !important;
+                        font-weight: 500 !important;
                     }
+                    
                     @media print {
                         body { 
-                            margin: 0; 
-                            padding: 15px; 
-                            font-size: 11px;
+                            margin: 0 !important;
+                            padding: 20px !important;
+                            font-size: 11px !important;
                         }
-                        .modern-template, .ai-enhanced-template { 
-                            max-width: none; 
+                        
+                        .resume-content,
+                        .modern-template, 
+                        .ai-enhanced-template { 
+                            max-width: none !important;
+                            margin: 0 !important;
                         }
-                        .experience-item {
-                            page-break-inside: avoid;
+                        
+                        .experience-item,
+                        .resume-section,
+                        .ai-section {
+                            page-break-inside: avoid !important;
+                        }
+                        
+                        .skill-tag {
+                            background: white !important;
+                            border: 1px solid #cbd5e0 !important;
+                            color: #2d3748 !important;
                         }
                     }
                 </style>
             </head>
             <body>
-                ${resumeContent.innerHTML}
+                <div class="resume-content">
+                    ${resumeContent.innerHTML}
+                </div>
             </body>
             </html>
         `;
 
         // Create a new window for printing
-        const printWindow = window.open('', '_blank', 'width=800,height=600');
+        const printWindow = window.open('', '_blank', 'width=900,height=700');
         
         if (!printWindow) {
             throw new Error('Popup blocked. Please allow popups and try again.');
@@ -1344,24 +1438,24 @@ async function downloadPDF() {
         printWindow.document.write(downloadContent);
         printWindow.document.close();
         
-        // Wait for content to load, then print
+        // Wait for content and fonts to load, then print
         printWindow.onload = function() {
+            // Give extra time for fonts and styles to load
             setTimeout(() => {
                 printWindow.print();
-                // Don't close immediately to allow user to save/cancel
-                showToast('Resume download dialog opened!', 'success');
+                showToast('Resume download dialog opened! Save as PDF from the print dialog.', 'success');
                 hideLoading();
-            }, 500);
+            }, 1000);
         };
         
         // Fallback if onload doesn't fire
         setTimeout(() => {
-            if (printWindow) {
+            if (printWindow && !printWindow.closed) {
                 printWindow.print();
-                showToast('Resume download dialog opened!', 'success');
+                showToast('Resume download dialog opened! Save as PDF from the print dialog.', 'success');
             }
             hideLoading();
-        }, 1000);
+        }, 2000);
         
     } catch (error) {
         console.error('Download error:', error);
