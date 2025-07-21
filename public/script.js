@@ -938,7 +938,8 @@ async function generateAIResume() {
         });
 
         if (!response.ok) {
-            throw new Error('Failed to generate AI resume');
+            const errorText = await response.text();
+            throw new Error(`Server error ${response.status}: ${errorText}`);
         }
 
         const result = await response.json();
@@ -954,22 +955,17 @@ async function generateAIResume() {
                 aiContent: result.content
             };
 
-            try {
-                const resumeHTML = createAIEnhancedResumeHTML(enhancedData);
-                showResumePreview(resumeHTML, result.content);
-                showToast('AI-enhanced resume generated successfully!', 'success');
-            } catch (htmlError) {
-                console.error('HTML generation error:', htmlError);
-                // Fallback to basic template
-                const basicHTML = createBasicResumeHTML(enhancedData);
-                showResumePreview(basicHTML, result.content);
-                showToast('Resume generated successfully (basic format)', 'success');
-            }
+            console.log('Creating AI enhanced resume with data:', enhancedData);
+
+            // Use the AI content directly
+            const resumeHTML = createAIEnhancedResumeHTML(enhancedData);
+            showResumePreview(resumeHTML, result.content);
+            showToast('AI-enhanced resume generated successfully!', 'success');
         } else {
             throw new Error(result.error || 'AI generation failed - no data returned');
         }
     } catch (error) {
-        console.error('AI Resume generation error:', error.message || error);
+        console.error('AI Resume generation error:', error);
 
         // Handle specific error types
         if (error.name === 'AbortError' || error.message.includes('aborted')) {
@@ -1604,28 +1600,6 @@ function createAIResumeHTML(aiContent) {
             </div>
         ` : ''}
 
-        ${aiContent.enhancedExperience ? `
-            <div class="resume-section">
-                <h2>Experience</h2>
-                ${aiContent.enhancedExperience.map(exp => `
-                    <div class="experience-item">
-                        <h3>${exp.position}</h3>
-                        <p><strong>${exp.company}</strong></p>
-                        <p>${Array.isArray(exp.description) ? exp.description.join(' ') : exp.description}</p>
-                    </div>
-                `).join('')}
-            </div>
-        ` : ''}
-
-        ${aiContent.optimizedSkills ? `
-            <div class="resume-section">
-                <h2>Skills</h2>
-                <p>${Array.isArray(aiContent.optimizedSkills) ? aiContent.optimizedSkills.join(', ') : aiContent.optimizedSkills}</p>
-            </div>
-        ` : ''}mmary}</p>
-            </div>
-        ` : ''}
-
         <div class="resume-section">
             <h2>Experience</h2>
             ${aiContent.enhancedExperience ? aiContent.enhancedExperience.map((exp, index) => `
@@ -1636,7 +1610,7 @@ function createAIResumeHTML(aiContent) {
                         </div>
                         <div class="dates">${resumeData.experience[index]?.startDate} - ${resumeData.experience[index]?.endDate || 'Present'}</div>
                     </div>
-                    <p>${exp.description}</p>
+                    <p>${Array.isArray(exp.description) ? exp.description.join(' ') : exp.description}</p>
                 </div>
             `).join('') : resumeData.experience.map(exp => `
                 <div class="experience-item-resume">
@@ -1653,7 +1627,7 @@ function createAIResumeHTML(aiContent) {
 
         <div class="resume-section">
             <h2>Skills</h2>
-            <p>${aiContent.optimizedSkills ? aiContent.optimizedSkills.join(', ') : resumeData.skills.join(', ')}</p>
+            <p>${aiContent.optimizedSkills ? (Array.isArray(aiContent.optimizedSkills) ? aiContent.optimizedSkills.join(', ') : aiContent.optimizedSkills) : resumeData.skills.join(', ')}</p>
         </div>
 
         ${resumeData.education ? `
@@ -1682,6 +1656,32 @@ function createAIResumeHTML(aiContent) {
 function createAIEnhancedResumeHTML(enhancedData) {
     const { personalInfo, experience, skills, jobTitle, education, certifications, aiContent } = enhancedData;
 
+    // Helper function to format description properly
+    function formatDescription(description) {
+        if (!description) return 'Key responsibilities and achievements';
+        
+        if (Array.isArray(description)) {
+            return description.map(item => `<p>• ${item}</p>`).join('');
+        }
+        
+        if (typeof description === 'string') {
+            // If already has bullet points, format as list
+            if (description.includes('•') || description.includes('\n•')) {
+                return description.split('\n')
+                    .filter(line => line.trim())
+                    .map(line => {
+                        line = line.trim();
+                        if (!line.startsWith('•')) line = '• ' + line;
+                        return `<p>${line}</p>`;
+                    })
+                    .join('');
+            }
+            return `<p>${description}</p>`;
+        }
+        
+        return '<p>Key responsibilities and achievements</p>';
+    }
+
     return `
         <div class="resume-container ai-enhanced-template">
             <div class="ai-header">
@@ -1705,15 +1705,24 @@ function createAIEnhancedResumeHTML(enhancedData) {
                 <h2><i class="fas fa-briefcase"></i> Professional Experience</h2>
                 ${(aiContent && aiContent.enhancedExperience ? aiContent.enhancedExperience : experience).map((exp, index) => {
                     const originalExp = experience[index] || exp;
+                    const formattedDate = (date) => {
+                        if (!date) return 'Present';
+                        try {
+                            return new Date(date).toLocaleDateString('en-US', { year: 'numeric', month: 'short' });
+                        } catch {
+                            return date;
+                        }
+                    };
+                    
                     return `
                         <div class="ai-experience">
                             <div class="experience-header">
                                 <h3>${exp.position || originalExp.position}</h3>
                                 <span class="company">${exp.company || originalExp.company}</span>
-                                <span class="dates">${originalExp.startDate || '2023'} - ${originalExp.endDate || 'Present'}</span>
+                                <span class="dates">${formattedDate(originalExp.startDate)} - ${formattedDate(originalExp.endDate)}</span>
                             </div>
                             <div class="experience-details">
-                                <p>${exp.description || originalExp.description || 'Key responsibilities and achievements'}</p>
+                                ${formatDescription(exp.description || originalExp.description)}
                             </div>
                         </div>
                     `;
@@ -1723,7 +1732,9 @@ function createAIEnhancedResumeHTML(enhancedData) {
             <div class="resume-section ai-section">
                 <h2><i class="fas fa-cog"></i> Core Skills</h2>
                 <div class="skills-grid">
-                    ${(aiContent && aiContent.optimizedSkills ? aiContent.optimizedSkills : skills).map(skill => 
+                    ${(aiContent && aiContent.optimizedSkills ? 
+                        (Array.isArray(aiContent.optimizedSkills) ? aiContent.optimizedSkills : [aiContent.optimizedSkills])
+                        : skills).map(skill => 
                         `<span class="skill-tag">${skill}</span>`
                     ).join('')}
                 </div>
@@ -1743,12 +1754,13 @@ function createAIEnhancedResumeHTML(enhancedData) {
                 </div>
             ` : ''}
 
-            ${aiContent && aiContent.additionalSections ? aiContent.additionalSections.map(section => `
-                <div class="resume-section ai-section">
-                    <h2><i class="fas fa-star"></i> ${section.title}</h2>
-                    <p>${section.content}</p>
-                </div>
-            `).join('') : ''}
+            ${aiContent && aiContent.additionalSections && Array.isArray(aiContent.additionalSections) ? 
+                aiContent.additionalSections.map(section => `
+                    <div class="resume-section ai-section">
+                        <h2><i class="fas fa-star"></i> ${section.title}</h2>
+                        <p>${section.content}</p>
+                    </div>
+                `).join('') : ''}
 
             ${aiContent && aiContent.atsScore ? `
                 <div class="ai-footer">
