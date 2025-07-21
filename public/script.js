@@ -954,14 +954,22 @@ async function generateAIResume() {
                 aiContent: result.content
             };
 
-            const resumeHTML = createAIEnhancedResumeHTML(enhancedData);
-            showResumePreview(resumeHTML, result.content);
-            showToast('AI-enhanced resume generated successfully!', 'success');
+            try {
+                const resumeHTML = createAIEnhancedResumeHTML(enhancedData);
+                showResumePreview(resumeHTML, result.content);
+                showToast('AI-enhanced resume generated successfully!', 'success');
+            } catch (htmlError) {
+                console.error('HTML generation error:', htmlError);
+                // Fallback to basic template
+                const basicHTML = createBasicResumeHTML(enhancedData);
+                showResumePreview(basicHTML, result.content);
+                showToast('Resume generated successfully (basic format)', 'success');
+            }
         } else {
             throw new Error(result.error || 'AI generation failed - no data returned');
         }
     } catch (error) {
-        console.error('AI Resume generation error:', error);
+        console.error('AI Resume generation error:', error.message || error);
 
         // Handle specific error types
         if (error.name === 'AbortError' || error.message.includes('aborted')) {
@@ -969,7 +977,7 @@ async function generateAIResume() {
         } else if (error.message.includes('Failed to fetch')) {
             showToast('Network error - Please check your connection and try again', 'error');
         } else {
-            showToast('AI resume generation failed. Please try again.', 'error');
+            showToast(`AI resume generation failed: ${error.message || 'Unknown error'}`, 'error');
         }
     }
 }
@@ -1551,6 +1559,36 @@ function createTechTemplate() {
     `;
 }
 
+function createBasicResumeHTML(data) {
+    const { personalInfo, experience, skills, jobTitle } = data;
+    
+    return `
+        <div class="resume-container basic-template">
+            <div class="resume-header">
+                <h1>${personalInfo?.name || 'Your Name'}</h1>
+                <p>${jobTitle || 'Professional'}</p>
+                <p>${personalInfo?.email || 'your.email@example.com'} | ${personalInfo?.phone || '+91 9999999999'} | ${personalInfo?.location || 'Your Location'}</p>
+            </div>
+
+            <div class="resume-section">
+                <h2>Experience</h2>
+                ${experience?.map(exp => `
+                    <div class="experience-item">
+                        <h3>${exp.position || 'Position'}</h3>
+                        <p><strong>${exp.company || 'Company'}</strong></p>
+                        <p>${exp.description || 'Job description and achievements'}</p>
+                    </div>
+                `).join('') || '<p>No experience data available</p>'}
+            </div>
+
+            <div class="resume-section">
+                <h2>Skills</h2>
+                <p>${skills?.join(', ') || 'Professional skills'}</p>
+            </div>
+        </div>
+    `;
+}
+
 function createAIResumeHTML(aiContent) {
     return `
         <div class="resume-header">
@@ -1563,6 +1601,28 @@ function createAIResumeHTML(aiContent) {
             <div class="resume-section">
                 <h2>Professional Summary</h2>
                 <p>${aiContent.summary}</p>
+            </div>
+        ` : ''}
+
+        ${aiContent.enhancedExperience ? `
+            <div class="resume-section">
+                <h2>Experience</h2>
+                ${aiContent.enhancedExperience.map(exp => `
+                    <div class="experience-item">
+                        <h3>${exp.position}</h3>
+                        <p><strong>${exp.company}</strong></p>
+                        <p>${Array.isArray(exp.description) ? exp.description.join(' ') : exp.description}</p>
+                    </div>
+                `).join('')}
+            </div>
+        ` : ''}
+
+        ${aiContent.optimizedSkills ? `
+            <div class="resume-section">
+                <h2>Skills</h2>
+                <p>${Array.isArray(aiContent.optimizedSkills) ? aiContent.optimizedSkills.join(', ') : aiContent.optimizedSkills}</p>
+            </div>
+        ` : ''}mmary}</p>
             </div>
         ` : ''}
 
