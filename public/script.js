@@ -1659,7 +1659,7 @@ function createAIEnhancedResumeHTML(enhancedData) {
 
     // Helper function to format description properly
     function formatDescription(description) {
-        if (!description) return 'Key responsibilities and achievements';
+        if (!description) return '<p>• Key responsibilities and achievements</p>';
 
         if (Array.isArray(description)) {
             return description.map(item => `<p>• ${item}</p>`).join('');
@@ -1677,10 +1677,11 @@ function createAIEnhancedResumeHTML(enhancedData) {
                     })
                     .join('');
             }
-            return `<p>${description}</p>`;
+            // For single paragraphs, add bullet point
+            return `<p>• ${description}</p>`;
         }
 
-        return '<p>Key responsibilities and achievements</p>';
+        return '<p>• Key responsibilities and achievements</p>';
     }
 
     return `
