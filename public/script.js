@@ -254,7 +254,7 @@ async function enhanceExistingResume() {
             // Validate and clean the enhanced data
             const cleanedData = validateAndCleanEnhancedData(result.enhancedData);
             console.log('Cleaned enhanced data:', cleanedData);
-            
+
             populateFormWithEnhancedData(cleanedData);
             window.enhancedResumeData = cleanedData;
             localStorage.setItem('usedAIEnhancement', 'true');
@@ -274,9 +274,9 @@ async function enhanceExistingResume() {
         }
     } catch (error) {
         console.error('Resume enhancement error:', error);
-        
+
         let errorMessage = 'AI enhancement failed. Please try again.';
-        
+
         if (error.name === 'TimeoutError') {
             errorMessage = 'Enhancement timeout - please try with a shorter resume or check your connection.';
         } else if (error.name === 'AbortError') {
@@ -284,9 +284,9 @@ async function enhanceExistingResume() {
         } else if (error.message.includes('Failed to fetch')) {
             errorMessage = 'Network error - please check your connection and try again.';
         }
-        
+
         showToast(errorMessage, 'error');
-        
+
         // Try to use basic extraction as fallback
         try {
             const fallbackData = extractBasicResumeInfo(fileText);
@@ -972,7 +972,8 @@ function collectFormData() {
         targetJobDescription,
         experience: experiences.length > 0 ? experiences : [{
             company: 'Your Company',
-            position: jobTitle,
+            position:```text
+ 'Software Engineer',
             startDate: '2023-01-01',
             endDate: '',
             description: 'Key responsibilities and achievements in your role'
@@ -1783,11 +1784,11 @@ function createAIEnhancedResumeHTML(enhancedData) {
     // Helper function to extract skills properly
     function extractSkills(skillsData) {
         if (!skillsData) return ['Professional Skills'];
-        
+
         if (Array.isArray(skillsData)) {
             return skillsData.filter(skill => typeof skill === 'string' && skill.trim());
         }
-        
+
         if (typeof skillsData === 'object') {
             // Handle nested skill objects
             const allSkills = [];
@@ -1800,11 +1801,11 @@ function createAIEnhancedResumeHTML(enhancedData) {
             });
             return allSkills.length > 0 ? allSkills : ['Professional Skills'];
         }
-        
+
         if (typeof skillsData === 'string') {
             return skillsData.split(',').map(skill => skill.trim()).filter(skill => skill);
         }
-        
+
         return ['Professional Skills'];
     }
 
@@ -1864,7 +1865,8 @@ function createAIEnhancedResumeHTML(enhancedData) {
             </div></div>
 
             ${education && education !== 'NA' ? `
-                <div class="resume-section ai-section">
+                <div class="resume-section ai-section">```text
+
                     <h2><i class="fas fa-graduation-cap"></i> Education</h2>
                     <p>${education}</p>
                 </div>
@@ -2087,6 +2089,23 @@ function getResumeStyles() {
             line-height: 1.4;
             color: #374151;
             margin-bottom: 10px;
+        }
+
+        .ai-enhanced-template .ai-experience .experience-details {
+            margin-top: 12px;
+        }
+
+        .ai-enhanced-template .ai-experience .experience-details .bullet-point {
+            color: #4a5568;
+            line-height: 1.6;
+            margin-bottom: 8px;
+            padding-left: 0;
+        }
+
+        .ai-enhanced-template .ai-experience .experience-details p {
+            color: #4a5568;
+            line-height: 1.6;
+            margin-top: 10px;
         }
 
         @media print { 
