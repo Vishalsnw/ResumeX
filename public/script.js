@@ -968,12 +968,14 @@ async function generateBasicResume() {
 
 async function generateAIResume() {
     try {
+        console.log('Generating AI resume with data:', window.resumeData);
+        
         const response = await fetch('/api/generate-resume', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify(resumeData)
+            body: JSON.stringify(window.resumeData)
         });
 
         if (!response.ok) {
@@ -981,20 +983,29 @@ async function generateAIResume() {
         }
 
         const result = await response.json();
+        console.log('AI generation result:', result);
 
         if (result.success) {
             localStorage.setItem('usedAIEnhancement', 'true');
+            window.hasUsedAI = true;
 
-            // Check if we have AI content or need to use basic template
+            // Create AI-enhanced resume with the generated content
             if (result.content && typeof result.content === 'object') {
-                const resumeHTML = createAIResumeHTML(result.content);
+                // Merge AI content with user data for complete resume
+                const enhancedData = {
+                    ...window.resumeData,
+                    aiContent: result.content
+                };
+                
+                const resumeHTML = createAIEnhancedResumeHTML(enhancedData);
                 showResumePreview(resumeHTML, result.content);
+                showToast('AI-enhanced resume generated successfully!', 'success');
             } else {
-                // Fallback to basic resume if AI content is not available
+                // Fallback to enhanced basic template
                 const basicHTML = createBasicResumeHTML();
                 showResumePreview(basicHTML);
+                showToast('Resume generated with enhanced formatting!', 'success');
             }
-            showToast('Resume generated successfully!', 'success');
         } else {
             throw new Error(result.error || 'AI generation failed');
         }
@@ -1005,7 +1016,7 @@ async function generateAIResume() {
         try {
             const basicHTML = createBasicResumeHTML();
             showResumePreview(basicHTML);
-            showToast('Resume generated using basic template (AI unavailable)', 'info');
+            showToast('Resume generated using professional template (AI enhancement temporarily unavailable)', 'info');
         } catch (fallbackError) {
             console.error('Fallback generation error:', fallbackError);
             showToast('Failed to generate resume. Please check your information and try again.', 'error');
@@ -1658,6 +1669,89 @@ function createAIResumeHTML(aiContent) {
     `;
 }
 
+function createAIEnhancedResumeHTML(enhancedData) {
+    const { personalInfo, experience, skills, jobTitle, education, certifications, aiContent } = enhancedData;
+    
+    return `
+        <div class="resume-container ai-enhanced-template">
+            <div class="ai-header">
+                <h1>${personalInfo.name || 'Your Name'}</h1>
+                <div class="ai-subtitle">${jobTitle || 'Professional'}</div>
+                <div class="ai-contact">
+                    <span><i class="fas fa-envelope"></i> ${personalInfo.email || 'your.email@example.com'}</span>
+                    <span><i class="fas fa-phone"></i> ${personalInfo.phone || '+91 9999999999'}</span>
+                    <span><i class="fas fa-map-marker-alt"></i> ${personalInfo.location || 'Your Location'}</span>
+                </div>
+            </div>
+
+            ${aiContent && aiContent.summary ? `
+                <div class="resume-section ai-section">
+                    <h2><i class="fas fa-user-tie"></i> Professional Summary</h2>
+                    <p class="ai-summary">${aiContent.summary}</p>
+                </div>
+            ` : ''}
+
+            <div class="resume-section ai-section">
+                <h2><i class="fas fa-briefcase"></i> Professional Experience</h2>
+                ${(aiContent && aiContent.enhancedExperience ? aiContent.enhancedExperience : experience).map((exp, index) => {
+                    const originalExp = experience[index] || exp;
+                    return `
+                        <div class="ai-experience">
+                            <div class="experience-header">
+                                <h3>${exp.position || originalExp.position}</h3>
+                                <span class="company">${exp.company || originalExp.company}</span>
+                                <span class="dates">${originalExp.startDate || '2023'} - ${originalExp.endDate || 'Present'}</span>
+                            </div>
+                            <div class="experience-details">
+                                <p>${exp.description || originalExp.description || 'Key responsibilities and achievements'}</p>
+                            </div>
+                        </div>
+                    `;
+                }).join('')}
+            </div>
+
+            <div class="resume-section ai-section">
+                <h2><i class="fas fa-cog"></i> Core Skills</h2>
+                <div class="skills-grid">
+                    ${(aiContent && aiContent.optimizedSkills ? aiContent.optimizedSkills : skills).map(skill => 
+                        `<span class="skill-tag">${skill}</span>`
+                    ).join('')}
+                </div>
+            </div>
+
+            ${education && education !== 'NA' ? `
+                <div class="resume-section ai-section">
+                    <h2><i class="fas fa-graduation-cap"></i> Education</h2>
+                    <p>${education}</p>
+                </div>
+            ` : ''}
+
+            ${certifications && certifications !== 'NA' ? `
+                <div class="resume-section ai-section">
+                    <h2><i class="fas fa-certificate"></i> Certifications</h2>
+                    <p>${certifications}</p>
+                </div>
+            ` : ''}
+
+            ${aiContent && aiContent.additionalSections ? aiContent.additionalSections.map(section => `
+                <div class="resume-section ai-section">
+                    <h2><i class="fas fa-star"></i> ${section.title}</h2>
+                    <p>${section.content}</p>
+                </div>
+            `).join('') : ''}
+
+            ${aiContent && aiContent.atsScore ? `
+                <div class="ai-footer">
+                    <div class="ats-score">
+                        <i class="fas fa-chart-line"></i>
+                        <span>ATS Compatibility Score: ${aiContent.atsScore}/100</span>
+                    </div>
+                </div>
+            ` : ''}
+        </div>
+    `;
+}
+
 function showResumePreview(htmlContent, aiContent) {
     document.getElementById('resumeContent').innerHTML = htmlContent;
 
@@ -1930,7 +2024,7 @@ async function initiatePayment(amount, planName) {
         });
 
         if (!response.ok) {
-            const errorText = await await response.text();
+            const errorText = await response.text();
             console.error('Payment error response:', errorText);
             throw new Error(`Payment service error: ${response.status}`);
         }

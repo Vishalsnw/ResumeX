@@ -1990,7 +1990,7 @@ body {
     border-radius: 50%;
 }```text
 .timeline-dot::before {
-    content: '';
+        content: '';
     position: absolute;
     left: 5px;
     top: 12px;
@@ -2246,950 +2246,216 @@ body {
     color: #cccccc;
 }
 
-/* ATS Bold Accounting Template Styles */
-.ats-bold-template {
-    background: white;
-    color: #333;
-    font-family: 'Arial', sans-serif;
-    line-height: 1.6;
-}
-
-.ats-bold-header {
-    background: #2c3e50;
-    color: white;
-    padding: 2rem;
-    text-align: center;
-}
-
-.ats-bold-header h1 {
-    font-size: 2.5rem;
-    margin-bottom: 0.5rem;
-    font-weight: bold;
-}
-
-.ats-contact-bar {
-    font-size: 1.1rem;
-    margin-bottom: 1rem;
-}
-
-.objective-section h2 {
-    color: white;
-    font-size: 1.2rem;
-    margin-bottom: 0.5rem;
-    text-align: left;
-}
-
-.ats-body {
-    padding: 2rem;
-}
-
-.ats-experience-item {
-    margin-bottom: 2rem;
-    border-bottom: 1px solid #eee;
-    padding-bottom: 1.5rem;
-}
-
-.ats-experience-item:last-child {
-    border-bottom: none;
-}
-
-.ats-skills-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 0.5rem;
-    margin-top: 1rem;
-}
-
-.ats-skill {
-    background: #f8f9fa;
-    padding: 0.5rem;
-    border-radius: 4px;
-    text-align: center;
-    font-weight: 500;
-}
-
-/* ATS Classic HR Template Styles */
-.ats-hr-template {
-    background: white;
-    color: #333;
-    font-family: 'Times New Roman', serif;
-    line-height: 1.6;
-}
-
-.hr-header {
-    text-align: center;
-    padding: 2rem;
-    background: #f8f9fa;
-    border-bottom: 3px solid #007bff;
-}
-
-.hr-header h1 {
-    font-size: 2.2rem;
-    margin-bottom: 0.5rem;
-    color: #007bff;
-}
-
-.hr-title {
-    font-size: 1.3rem;
-    font-weight: 600;
-    color: #495057;
-    margin-bottom: 1rem;
-}
-
-.hr-summary, .hr-experience, .hr-skills {
-    padding: 1.5rem 2rem;
-}
-
-.hr-job {
-    margin-bottom: 2rem;
-    padding-bottom: 1rem;
-    border-bottom: 1px solid #dee2e6;
-}
-
-.hr-job:last-child {
-    border-bottom: none;
-}
-
-.job-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    margin-bottom: 1rem;
-}
-
-.hr-skills-list {
-    line-height: 1.8;
-}
-
-/* Attorney Template Styles */
-.attorney-template {
-    background: white;
-    color: #2c3e50;
-    font-family: 'Georgia', serif;
-    line-height: 1.6;
-}
-
-.attorney-header {
-    background: linear-gradient(135deg, #1a252f 0%, #2c3e50 100%);
-    color: white;
-    padding: 3rem 2rem;
-    text-align: center;
-}
-
-.attorney-header h1 {
-    font-size: 2.8rem;
-    margin-bottom: 0.5rem;
-    font-weight: normal;
-}
-
-.attorney-subtitle {
-    font-size: 1.3rem;
-    margin-bottom: 2rem;
-    font-style: italic;
-}
-
-.contact-line {
-    margin-bottom: 0.5rem;
-    font-size: 1rem;
-}
-
-.attorney-body {
-    padding: 2rem;
-}
-
-.attorney-section {
-    margin-bottom: 2.5rem;
-}
-
-.attorney-section h2 {
-    color: #2c3e50;
-    border-bottom: 2px solid #34495e;
-    padding-bottom: 0.5rem;
-    margin-bottom: 1.5rem;
-    font-size: 1.4rem;
-}
-
-.attorney-experience {
-    margin-bottom: 2rem;
-    padding-left: 1rem;
-    border-left: 3px solid #3498db;
-}
-
-.practice-areas {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 1rem;
-}
-
-.practice-area {
-    background: #ecf0f1;
-    padding: 1rem;
-    border-radius: 5px;
-    text-align: center;
-    font-weight: 500;
-}
-
-/* Manager Template Styles */
-.manager-template {
-    background: white;
-    color: #2c3e50;
-    font-family: 'Arial', sans-serif;
-    line-height: 1.6;
-}
-
-.manager-header {
-    background: #34495e;
-    color: white;
-    padding: 2.5rem 2rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.manager-name-section h1 {
-    font-size: 2.5rem;
-    margin-bottom: 0.5rem;
-}
-
-.manager-title {
-    font-size: 1.3rem;
-    color: #bdc3c7;
-}
-
-.manager-contact-section {
-    text-align: right;
-}
-
-.manager-summary {
-    background: #ecf0f1;
-    padding: 2rem;
-}
-
-.manager-experience, .manager-competencies {
-    padding: 2rem;
-}
-
-.manager-role {
-    margin-bottom: 2rem;
-    padding-bottom: 1.5rem;
-    border-bottom: 1px solid #bdc3c7;
-}
-
-.role-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    margin-bottom: 1rem;
-}
-
-.competencies-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 1rem;
-}
-
-.competency {
-    background: #3498db;
-    color: white;
-    padding: 0.8rem;
-    border-radius: 5px;
-    text-align: center;
-    font-weight: 500;
-}
-
-/* Nursing Template Styles */
-.nursing-template {
-    background: white;
-    color: #2c3e50;
-    font-family: 'Arial', sans-serif;
-    line-height: 1.6;
-}
-
-.nursing-header {
-    background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
-    color: white;
-    padding: 2.5rem 2rem;
-    text-align: center;
-}
-
-.nursing-header h1 {
-    font-size: 2.3rem;
-    margin-bottom: 0.5rem;
-}
-
-.nursing-credentials {
-    font-size: 1.2rem;
-    margin-bottom: 1.5rem;
-}
-
-.nursing-contact span {
-    margin: 0 1rem;
-}
-
-.nursing-body {
-    display: grid;
-    grid-template-columns: 2fr 1fr;
-    gap: 2rem;
-    padding: 2rem;
-}
-
-.nursing-section {
-    margin-bottom: 2rem;
-}
-
-.nursing-section h2 {
-    color: #27ae60;
-    border-bottom: 2px solid #2ecc71;
-    padding-bottom: 0.5rem;
-    margin-bottom: 1.5rem;
-}
-
-.nursing-experience {
-    margin-bottom: 2rem;
-    padding: 1.5rem;
-    background: #f8f9fa;
-    border-radius: 8px;
-    border-left: 4px solid #27ae60;
-}
-
-.nursing-skills {
-    background: #e8f5e8;
-    padding: 1.5rem;
-    border-radius: 8px;
-}
-
-.nursing-skill {
-    padding: 0.5rem 0;
-    border-bottom: 1px solid #d5e7d5;
-}
-
-.nursing-skill:last-child {
-    border-bottom: none;
-}
-
-/* Simple Template Styles */
-.simple-template {
-    background: white;
-    color: #333;
-    font-family: 'Arial', sans-serif;
-    line-height: 1.6;
-    max-width: 800px;
-    margin: 0 auto;
-}
-
-.simple-header {
-    text-align: center;
-    padding: 2rem;
-    border-bottom: 2px solid #333;
-    margin-bottom: 2rem;
-}
-
-.simple-header h1 {
-    font-size: 2.2rem;
-    margin-bottom: 0.5rem;
-    color: #333;
-}
-
-.simple-contact {
-    font-size: 1rem;
-    color: #666;
-}
-
-.simple-section {
-    margin-bottom: 2rem;
-    padding: 0 2rem;
-}
-
-.simple-section h2 {
-    font-size: 1.3rem;
-    margin-bottom: 1rem;
-    color: #333;
-    text-transform: uppercase;
-    border-bottom: 1px solid #333;
-    padding-bottom: 0.5rem;
-}
-
-.simple-job {
-    margin-bottom: 1.5rem;
-    padding-bottom: 1rem;
-    border-bottom: 1px solid #eee;
-}
-
-.simple-job:last-child {
-    border-bottom: none;
-}
-
-.job-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: baseline;
-    margin-bottom: 0.5rem;
-    flex-wrap: wrap;
-}
-
-.job-header h3 {
-    margin: 0;
-    color: #333;
-}
-
-.job-company {
-    font-style: italic;
-    color: #666;
-}
-
-.job-dates {
-    color: #666;
-    font-size: 0.9rem;
-}
-
-.skill-icon {
-    margin-right: 0.5rem;
-    color: #ffcc02;
-}
-
-/* ATS Bold Accounting Template */
-.ats-bold-template {
-    font-family: 'Arial', sans-serif;
-    line-height: 1.4;
-}
-
-.ats-bold-header {
-    text-align: center;
-    border-bottom: 3px solid #2c3e50;
-    padding-bottom: 1rem;
-    margin-bottom: 1.5rem;
-}
-
-.ats-bold-header h1 {
-    font-size: 2.2rem;
-    font-weight: bold;
-    color: #2c3e50;
-    margin-bottom: 0.5rem;
-}
-
-.ats-contact-bar {
-    font-size: 1rem;
-    color: #34495e;
-    margin-bottom: 1rem;
-}
-
-.objective-section h2 {
-    background: #2c3e50;
-    color: white;
-    padding: 0.5rem;
-    margin: 1rem 0 0.5rem 0;
-    font-size: 1.1rem;
-}
-
-.ats-experience-item {
-    margin-bottom: 1.5rem;
-}
-
-.ats-experience-item .experience-header {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 0.5rem;
-}
-
-.ats-experience-item h3 {
-    font-weight: bold;
-    color: #2c3e50;
-    margin-bottom: 0.2rem;
-}
-
-.ats-experience-item h4 {
-    color: #7f8c8d;
-    font-weight: normal;
-}
-
-.ats-skills-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 0.5rem;
-    margin-top: 1rem;
-}
-
-.ats-skill {
-    padding: 0.3rem 0.8rem;
-    background: #ecf0f1;
-    border-left: 3px solid #3498db;
-    font-weight: 500;
-}
-
-/* ATS HR Template */
-.ats-hr-template {
-    font-family: 'Times New Roman', serif;
-    line-height: 1.5;
-}
-
-.hr-header {
-    text-align: center;
-    border-bottom: 2px solid #34495e;
-    padding-bottom: 1rem;
-}
-
-.hr-header h1 {
-    font-size: 2rem;
-    color: #2c3e50;
-    margin-bottom: 0.3rem;
-}
-
-.hr-title {
-    font-size: 1.2rem;
-    color: #7f8c8d;
-    font-style: italic;
-    margin-bottom: 0.5rem;
-}
-
-.hr-contact {
-    font-size: 0.95rem;
-    color: #34495e;
-}
-
-.hr-summary, .hr-experience, .hr-skills {
-    margin: 1.5rem 0;
-}
-
-.hr-summary h2, .hr-experience h2, .hr-skills h2 {
-    font-size: 1.3rem;
-    color: #2c3e50;
-    border-bottom: 1px solid #bdc3c7;
-    padding-bottom: 0.3rem;
-    margin-bottom: 1rem;
-}
-
-.hr-job {
-    margin-bottom: 1.2rem;
-}
-
-.job-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: baseline;
-    margin-bottom: 0.5rem;
-}
-
-.job-header h3 {
-    color: #34495e;
-    font-weight: bold;
-    margin-bottom: 0.2rem;
-}
-
-.company-name {
-    color: #7f8c8d;
-    font-style: italic;
-}
-
-.job-dates {
-    color: #95a5a6;
-    font-size: 0.9rem;
-}
-
-.hr-skills-list {
-    color: #34495e;
-}
-
-/* Attorney Template */
-.attorney-template {
-    font-family: 'Georgia', serif;
-    line-height: 1.6;
-    color: #2c3e50;
-}
-
-.attorney-header {
-    text-align: center;
-    border-bottom: 3px double #8b4513;
-    padding-bottom: 1.5rem;
-    margin-bottom: 2rem;
-}
-
-.attorney-header h1 {
-    font-size: 2.5rem;
-    color: #8b4513;
-    margin-bottom: 0.5rem;
-}
-
-.attorney-subtitle {
-    font-size: 1.2rem;
-    color: #a0522d;
-    font-style: italic;
-    margin-bottom: 1rem;
-}
-
-.attorney-contact {
-    display: flex;
-    justify-content: center;
-    gap: 2rem;
-    flex-wrap: wrap;
-}
-
-.contact-line {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    color: #5d4e75;
-}
-
-.attorney-section {
-    margin-bottom: 2rem;
-}
-
-.attorney-section h2 {
-    font-size: 1.4rem;
-    color: #8b4513;
-    border-bottom: 2px solid #deb887;
-    padding-bottom: 0.5rem;
-    margin-bottom: 1rem;
-}
-
-.attorney-experience {
-    margin-bottom: 1.5rem;
-}
-
-.experience-title {
-    display: flex;
-    justify-content: space-between;
-    align-items: baseline;
-}
-
-.experience-title h3 {
-    color: #a0522d;
-    font-weight: bold;
-}
-
-.firm-name {
-    color: #8b7355;
-    font-style: italic;
-}
-
-.experience-dates {
-    color: #696969;
-    font-size: 0.9rem;
-    margin-bottom: 0.5rem;
-}
-
-.practice-areas {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 0.5rem;
-}
-
-.practice-area {
-    padding: 0.5rem;
-    background: #f5f5dc;
-    border-left: 4px solid #8b4513;
-    color: #654321;
-}
-
-/* Industry Manager Template */
-.manager-template {
-    font-family: 'Arial', sans-serif;
-    line-height: 1.5;
-}
-
-.manager-header {
-    display: grid;
-    grid-template-columns: 2fr 1fr;
-    gap: 2rem;
-    padding: 1.5rem;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    margin-bottom: 2rem;
-}
-
-.manager-header h1 {
-    font-size: 2.3rem;
-    margin-bottom: 0.5rem;
-}
-
-.manager-title {
-    font-size: 1.3rem;
-    opacity: 0.9;
-}
-
-.manager-contact-section {
-    text-align: right;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    gap: 0.3rem;
-}
-
-.manager-summary {
-    margin-bottom: 2rem;
-}
-
-.manager-summary h2 {
-    color: #667eea;
-    font-size: 1.4rem;
-    margin-bottom: 1rem;
-    border-bottom: 2px solid #667eea;
-    padding-bottom: 0.5rem;
-}
-
-.manager-experience h2 {
-    color: #764ba2;
-    font-size: 1.4rem;
-    margin-bottom: 1.5rem;
-    border-bottom: 2px solid #764ba2;
-    padding-bottom: 0.5rem;
-}
-
-.manager-role {
-    margin-bottom: 2rem;
-    border-left: 4px solid #667eea;
-    padding-left: 1rem;
-}
-
-.role-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: start;
-    margin-bottom: 0.8rem;
-}
-
-.role-title h3 {
-    color: #4a5568;
-    font-size: 1.2rem;
-    margin-bottom: 0.3rem;
-}
-
-.company-name {
-    color: #718096;
-    font-weight: 500;
-}
-
-.role-duration {
-    color: #a0aec0;
-    font-size: 0.9rem;
-}
-
-.competencies-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 1rem;
-    margin-top: 1rem;
-}
-
-.competency {
-    padding: 0.8rem;
-    background: linear-gradient(135deg, #667eea20, #764ba220);
-    border-radius: 6px;
-    text-align: center;
-    font-weight: 500;
-    color: #4a5568;
-}
-
-/* Modern Nursing Template */
-.nursing-template {
-    font-family: 'Arial', sans-serif;
-    line-height: 1.5;
-    color: #2d3748;
-}
-
-.nursing-header {
-    background: linear-gradient(135deg, #48bb78, #38a169);
-    color: white;
-    padding: 2rem;
-    text-align: center;
-    margin-bottom: 2rem;
-}
-
-.nursing-header h1 {
-    font-size: 2.2rem;
-    margin-bottom: 0.5rem;
-}
-
-.nursing-credentials {
-    font-size: 1.2rem;
-    opacity: 0.9;
-    margin-bottom: 1rem;
-}
-
-.nursing-contact {
-    display: flex;
-    justify-content: center;
-    gap: 2rem;
-    flex-wrap: wrap;
-}
-
-.nursing-contact span {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-
-.nursing-body {
-    display: grid;
-    grid-template-columns: 2fr 1fr;
-    gap: 2rem;
-    padding: 0 1rem;
-}
-
-.nursing-section h2 {
-    color: #38a169;
-    font-size: 1.4rem;
-    margin-bottom: 1.5rem;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-
-.nursing-experience {
-    margin-bottom: 1.8rem;
-    border-left: 3px solid #68d391;
-    padding-left: 1rem;
-}
-
-.nursing-experience .experience-header {
-    margin-bottom: 0.8rem;
-}
-
-.nursing-experience h3 {
-    color: #2d3748;
-    font-size: 1.1rem;
-    margin-bottom: 0.3rem;
-}
-
-.facility-name {
-    color: #4a5568;
-    font-weight: 500;
-    margin-right: 1rem;
-}
-
-.experience-dates {
-    color: #718096;
-    font-size: 0.9rem;
-}
-
-.nursing-sidebar {
-    background: #f7fafc;
-    padding: 1.5rem;
-    border-radius: 8px;
-    height: fit-content;
-}
-
-.nursing-sidebar h3 {
-    color: #38a169;
-    margin-bottom: 1rem;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-
-.nursing-skills {
-    display: flex;
-    flex-direction: column;
-    gap: 0.8rem;
-}
-
-.nursing-skill {
-    padding: 0.6rem;
-    background: white;
-    border-left: 3px solid #68d391;
-    border-radius: 4px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-}
-
-/* Simple Template */
-.simple-template {
-    font-family: 'Arial', sans-serif;
-    line-height: 1.6;
-    color: #333;
-    max-width: 800px;
-    margin: 0 auto;
-}
-
-.simple-header {
-    text-align: center;
-    padding-bottom: 1rem;
-    border-bottom: 2px solid #e0e0e0;
-    margin-bottom: 2rem;
-}
-
-.simple-header h1 {
-    font-size: 2rem;
-    color: #2c3e50;
-    margin-bottom: 0.5rem;
-}
-
-.simple-contact {
-    color: #7f8c8d;
-    font-size: 1rem;
-}
-
-.simple-section {
-    margin-bottom: 2rem;
-}
-
-.simple-section h2 {
-    color: #34495e;
-    font-size: 1.3rem;
-    margin-bottom: 1rem;
-    padding-bottom: 0.3rem;
-    border-bottom: 1px solid #bdc3c7;
-}
-
-.simple-job {
-    margin-bottom: 1.5rem;
-}
-
-.job-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: baseline;
-    margin-bottom: 0.5rem;
-    flex-wrap: wrap;
-}
-
-.job-header h3 {
-    color: #2c3e50;
-    font-size: 1.1rem;
-    margin-bottom: 0.2rem;
-}
-
-.job-company {
-    color: #7f8c8d;
-    font-style: italic;
-    margin-right: 1rem;
-}
-
-.job-dates {
-    color: #95a5a6;
-    font-size: 0.9rem;
-}
-
-.simple-skills {
-    color: #34495e;
-    font-size: 1rem;
-}
-
-/* Responsive Design for New Templates */
-@media (max-width: 768px) {
-    .manager-header,
-    .nursing-body {
-        grid-template-columns: 1fr;
-        text-align: center;
-    }
-
-    .attorney-contact {
-        flex-direction: column;
-        align-items: center;
-        gap: 1rem;
-    }
-
-    .job-header {
-        flex-direction: column;
-        align-items: flex-start;
-    }
-
-    .role-header {
-        flex-direction: column;
-        align-items: flex-start;
-    }
-
-    .experience-title {
-        flex-direction: column;
-        align-items: flex-start;
-    }
-}
+.tech-template .tech-sidebar .tech-certifications .cert-item {
+            font-size: 13px;
+            color: #64748b;
+        }
+
+        /* AI Enhanced Template Styles */
+        .ai-enhanced-template {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            padding: 0;
+            margin: 0;
+        }
+
+        .ai-enhanced-template .ai-header {
+            background: white;
+            padding: 30px;
+            text-align: center;
+            border-bottom: 4px solid #667eea;
+            position: relative;
+        }
+
+        .ai-enhanced-template .ai-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+        }
+
+        .ai-enhanced-template .ai-header h1 {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: #2d3748;
+            letter-spacing: -0.5px;
+        }
+
+        .ai-enhanced-template .ai-subtitle {
+            font-size: 18px;
+            color: #667eea;
+            font-weight: 600;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .ai-enhanced-template .ai-contact {
+            display: flex;
+            justify-content: center;
+            gap: 25px;
+            flex-wrap: wrap;
+            font-size: 14px;
+            color: #4a5568;
+        }
+
+        .ai-enhanced-template .ai-contact span {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .ai-enhanced-template .ai-contact i {
+            color: #667eea;
+            width: 16px;
+        }
+
+        .ai-enhanced-template .ai-section {
+            background: white;
+            margin: 20px;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            position: relative;
+        }
+
+        .ai-enhanced-template .ai-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: linear-gradient(180deg, #667eea, #764ba2);
+            border-radius: 2px 0 0 2px;
+        }
+
+        .ai-enhanced-template .ai-section h2 {
+            color: #2d3748;
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .ai-enhanced-template .ai-section h2 i {
+            color: #667eea;
+            font-size: 18px;
+        }
+
+        .ai-enhanced-template .ai-summary {
+            font-size: 16px;
+            line-height: 1.6;
+            color: #4a5568;
+            font-style: italic;
+            border-left: 3px solid #667eea;
+            padding-left: 15px;
+            background: #f7fafc;
+            padding: 15px;
+            border-radius: 8px;
+        }
+
+        .ai-enhanced-template .ai-experience {
+            margin-bottom: 25px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .ai-enhanced-template .ai-experience:last-child {
+            border-bottom: none;
+        }
+
+        .ai-enhanced-template .ai-experience .experience-header {
+            margin-bottom: 12px;
+        }
+
+        .ai-enhanced-template .ai-experience h3 {
+            font-size: 18px;
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 5px;
+        }
+
+        .ai-enhanced-template .ai-experience .company {
+            font-size: 16px;
+            color: #667eea;
+            font-weight: 500;
+            margin-bottom: 5px;
+            display: block;
+        }
+
+        .ai-enhanced-template .ai-experience .dates {
+            font-size: 14px;
+            color: #718096;
+            font-weight: 500;
+        }
+
+        .ai-enhanced-template .ai-experience .experience-details p {
+            color: #4a5568;
+            line-height: 1.6;
+            margin-top: 10px;
+        }
+
+        .ai-enhanced-template .skills-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .ai-enhanced-template .skill-tag {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 500;
+            border: none;
+            text-transform: capitalize;
+        }
+
+        .ai-enhanced-template .ai-footer {
+            background: white;
+            margin: 20px;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .ai-enhanced-template .ats-score {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            background: linear-gradient(135deg, #48bb78, #38a169);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        @media print {
+            .ai-enhanced-template {
+                background: white;
+                margin: 0;
+                padding: 0;
+            }
+
+            .ai-enhanced-template .ai-section {
+                margin: 10px 0;
+                box-shadow: none;
+            }
+
+            .ai-enhanced-template .skill-tag {
+                background: #667eea;
+                border: 1px solid #667eea;
+            }
+        }
