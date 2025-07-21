@@ -1246,6 +1246,138 @@ body {
     display: inline-block;
 }
 
+.ai-enhanced-template {
+    background: white;
+    padding: 40px;
+    margin: 20px auto;
+    max-width: 800px;
+    font-family: 'Arial', sans-serif;
+    line-height: 1.5;
+    color: #333;
+    box-shadow: 0 0 20px rgba(0,0,0,0.1);
+}
+
+.ai-enhanced-template .experience-item {
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #eee;
+}
+
+.ai-enhanced-template .experience-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 10px;
+}
+
+.ai-enhanced-template .experience-header h3 {
+    font-size: 16px;
+    font-weight: bold;
+    margin: 0;
+    color: #2c3e50;
+}
+
+.ai-enhanced-template .company-date {
+    text-align: right;
+    font-size: 14px;
+}
+
+.ai-enhanced-template .company {
+    font-weight: 600;
+    color: #3498db;
+    display: block;
+}
+
+.ai-enhanced-template .date {
+    color: #7f8c8d;
+    font-style: italic;
+}
+
+.ai-enhanced-template .experience-description p {
+    margin: 5px 0;
+    color: #555;
+}
+
+.ai-enhanced-template .skills-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.ai-enhanced-template .skill-tag {
+    background: #3498db;
+    color: white;
+    padding: 4px 12px;
+    border-radius: 15px;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.modern-template {
+    background: white;
+    padding: 40px;
+    margin: 20px auto;
+    max-width: 800px;
+    font-family: 'Arial', sans-serif;
+    line-height: 1.5;
+    color: #333;
+    box-shadow: 0 0 20px rgba(0,0,0,0.1);
+}
+
+.modern-template .experience-item {
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #eee;
+}
+
+.modern-template .experience-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 10px;
+}
+
+.modern-template .experience-header h3 {
+    font-size: 16px;
+    font-weight: bold;
+    margin: 0;
+    color: #2c3e50;
+}
+
+.modern-template .company-date {
+    text-align: right;
+    font-size: 14px;
+}
+
+.modern-template .company {
+    font-weight: 600;
+    color: #3498db;
+    display: block;
+}
+
+.modern-template .date {
+    color: #7f8c8d;
+    font-style: italic;
+}
+
+.modern-template .skills-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.modern-template .skill-tag {
+    background: #e3f2fd;
+    color: #1976d2;
+    border: 1px solid #bbdefb;
+    padding: 4px 12px;
+    border-radius: 15px;
+    font-size: 14px;
+    font-weight: 500;
+}
+
 .experience-item, .ai-experience {
     margin-bottom: 20px;
     padding-bottom: 15px;

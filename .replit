@@ -7,7 +7,7 @@ channel = "stable-24_05"
 run = ["sh", "-c", "npm run dev"]
 
 [workflows]
-runButton = "Start Server"
+runButton = "Start Resume Builder"
 
 [[workflows.workflow]]
 name = "Start Server"
@@ -17,6 +17,19 @@ mode = "sequential"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "npm start"
+
+[[workflows.workflow]]
+name = "Start Resume Builder"
+author = 45339474
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "pkill -f \"node server.js\" || true"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "node server.js"
 
 [[ports]]
 localPort = 5000

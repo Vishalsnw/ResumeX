@@ -1028,25 +1028,174 @@ async function generateAIResume() {
             body: JSON.stringify(window.resumeData)
         });
 
+        if (!response.ok) {
+            throw new Error(`Server error: ${response.status}`);
+        }
+
         const result = await response.json();
 
-        if (result.success) {
-            displayResumePreview(result.resumeHtml);
+        if (result.success && result.content) {
+            // Generate HTML from AI content
+            const resumeHtml = generateResumeHTML(result.content, window.resumeData);
+            displayResumePreview(resumeHtml);
+            showToast('Resume generated successfully!', 'success');
+        } else if (result.success) {
+            // Fallback to basic template
+            const resumeHtml = generateBasicResumeHTML(window.resumeData);
+            displayResumePreview(resumeHtml);
             showToast('Resume generated successfully!', 'success');
         } else {
             throw new Error(result.error || 'Failed to generate resume');
         }
     } catch (error) {
         console.error('AI Resume generation error:', error);
-        showToast('Failed to generate AI-enhanced resume', 'error');
+        // Use fallback template
+        const resumeHtml = generateBasicResumeHTML(window.resumeData);
+        displayResumePreview(resumeHtml);
+        showToast('Resume generated with basic template', 'info');
     }
 }
 
+// Generate HTML from AI-enhanced content
+function generateResumeHTML(aiContent, data) {
+    const { personalInfo, experience, skills } = data;
+    
+    return `
+        <div class="ai-enhanced-template">
+            <div class="ai-header">
+                <h1>${personalInfo.name || 'Your Name'}</h1>
+                <div class="ai-subtitle">${data.jobTitle || 'Professional'}</div>
+                <div class="ai-contact">
+                    <span>${personalInfo.email || 'email@example.com'}</span>
+                    <span>${personalInfo.phone || 'Phone'}</span>
+                    <span>${personalInfo.location || 'Location'}</span>
+                </div>
+            </div>
+
+            ${aiContent.summary ? `
+            <div class="ai-section">
+                <h2>Professional Summary</h2>
+                <p>${aiContent.summary}</p>
+            </div>
+            ` : ''}
+
+            <div class="ai-section">
+                <h2>Professional Experience</h2>
+                ${(aiContent.enhancedExperience || experience).map(exp => `
+                    <div class="experience-item">
+                        <div class="experience-header">
+                            <h3>${exp.position}</h3>
+                            <div class="company-date">
+                                <span class="company">${exp.company}</span>
+                                <span class="date">${formatDate(exp.startDate)} - ${formatDate(exp.endDate)}</span>
+                            </div>
+                        </div>
+                        <div class="experience-description">
+                            ${exp.description ? exp.description.split('\n').map(line => `<p>${line}</p>`).join('') : ''}
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+
+            <div class="ai-section">
+                <h2>Skills</h2>
+                <div class="skills-container">
+                    ${(aiContent.optimizedSkills || skills).map(skill => `<span class="skill-tag">${skill}</span>`).join('')}
+                </div>
+            </div>
+
+            ${data.education ? `
+            <div class="ai-section">
+                <h2>Education</h2>
+                <p>${data.education}</p>
+            </div>
+            ` : ''}
+
+            ${data.certifications ? `
+            <div class="ai-section">
+                <h2>Certifications</h2>
+                <p>${data.certifications}</p>
+            </div>
+            ` : ''}
+
+            ${aiContent.additionalSections ? `
+            <div class="ai-section">
+                <h2>Additional Information</h2>
+                ${aiContent.additionalSections.map(section => `<p>${section}</p>`).join('')}
+            </div>
+            ` : ''}
+        </div>
+    `;
+}
+
+// Basic fallback template
+function generateBasicResumeHTML(data) {
+    const { personalInfo, experience, skills, jobTitle, education, certifications } = data;
+    
+    return `
+        <div class="modern-template">
+            <div class="resume-header">
+                <h1>${personalInfo.name || 'Your Name'}</h1>
+                <div class="subtitle">${jobTitle || 'Professional'}</div>
+                <div class="contact-info">
+                    <span>${personalInfo.email || 'email@example.com'}</span>
+                    <span>${personalInfo.phone || 'Phone'}</span>
+                    <span>${personalInfo.location || 'Location'}</span>
+                </div>
+            </div>
+
+            <div class="resume-section">
+                <h2>Professional Experience</h2>
+                ${experience.map(exp => `
+                    <div class="experience-item">
+                        <div class="experience-header">
+                            <h3>${exp.position}</h3>
+                            <div class="company-date">
+                                <span class="company">${exp.company}</span>
+                                <span class="date">${formatDate(exp.startDate)} - ${formatDate(exp.endDate)}</span>
+                            </div>
+                        </div>
+                        <div class="experience-description">
+                            <p>${exp.description || 'Key responsibilities and achievements'}</p>
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+
+            <div class="resume-section">
+                <h2>Skills</h2>
+                <div class="skills-container">
+                    ${skills.map(skill => `<span class="skill-tag">${skill}</span>`).join('')}
+                </div>
+            </div>
+
+            ${education ? `
+            <div class="resume-section">
+                <h2>Education</h2>
+                <p>${education}</p>
+            </div>
+            ` : ''}
+
+            ${certifications ? `
+            <div class="resume-section">
+                <h2>Certifications</h2>
+                <p>${certifications}</p>
+            </div>
+            ` : ''}
+        </div>
+    `;
+}
+
 function displayResumePreview(resumeHtml) {
-    const previewContent = document.getElementById('resumePreviewContent');
+    const previewContent = document.getElementById('resumeContent');
     if (previewContent && resumeHtml) {
         previewContent.innerHTML = resumeHtml;
-        previewModal.style.display = 'block';
+        if (previewModal) {
+            previewModal.style.display = 'block';
+            document.body.style.overflow = 'hidden';
+        }
+    } else {
+        console.error('Preview content element not found or no HTML provided');
     }
 }
 
