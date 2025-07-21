@@ -835,7 +835,7 @@ app.post('/api/create-order', async (req, res) => {
       response: error.response?.data,      status: error.response?.status
     });
 
-    let errorMessage = ''Failed to create payment order';
+    let errorMessage = 'Failed to create payment order';
     if (error.error && error.error.code === 'BAD_REQUEST_ERROR') {
       errorMessage = 'Invalid payment request - Please check your details';
     }
