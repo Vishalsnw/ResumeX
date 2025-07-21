@@ -1018,7 +1018,7 @@ function createBasicResumeHTML() {
     if (window.resumeTemplates && window.resumeTemplates[selectedTemplate]) {
         return window.resumeTemplates[selectedTemplate].html(window.resumeData);
     }
-    
+
     // Fallback to built-in templates
     switch(selectedTemplate) {
         case 'ats_bold_accounting':
@@ -1043,7 +1043,7 @@ function createAtsBoldAccountingTemplate() {
     if (window.resumeTemplates && window.resumeTemplates.ats_bold_accounting) {
         return window.resumeTemplates.ats_bold_accounting.html(window.resumeData);
     }
-    
+
     // Fallback template if templates.js not loaded
     const personalInfo = window.resumeData.personalInfo || {};
     const experience = window.resumeData.experience || [];
@@ -1930,7 +1930,7 @@ async function initiatePayment(amount, planName) {
         });
 
         if (!response.ok) {
-            const errorText = await response.text();
+            const errorText = await await response.text();
             console.error('Payment error response:', errorText);
             throw new Error(`Payment service error: ${response.status}`);
         }
