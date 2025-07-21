@@ -17,15 +17,15 @@ if (typeof window.currentStep === 'undefined') {
     window.hasUsedAI = false;
 }
 
-// Local references to global variables
-let currentStep = window.currentStep;
-let resumeData = window.resumeData;
-let uploadedResumeFile = window.uploadedResumeFile;
-let enhancedResumeData = window.enhancedResumeData;
-let isProcessing = window.isProcessing;
-let selectedTemplate = window.selectedTemplate;
-let jobAnalysisData = window.jobAnalysisData;
-let hasUsedAI = window.hasUsedAI;
+// Use window references directly to avoid redeclaration
+var currentStep = window.currentStep;
+var resumeData = window.resumeData;
+var uploadedResumeFile = window.uploadedResumeFile;
+var enhancedResumeData = window.enhancedResumeData;
+var isProcessing = window.isProcessing;
+var selectedTemplate = window.selectedTemplate;
+var jobAnalysisData = window.jobAnalysisData;
+var hasUsedAI = window.hasUsedAI;
 
 let modal, previewModal, loadingOverlay;
 
@@ -1190,12 +1190,25 @@ function displayResumePreview(resumeHtml) {
     const previewContent = document.getElementById('resumeContent');
     if (previewContent && resumeHtml) {
         previewContent.innerHTML = resumeHtml;
+        
+        // Store the generated content globally for download
+        window.generatedResumeHtml = resumeHtml;
+        
         if (previewModal) {
             previewModal.style.display = 'block';
             document.body.style.overflow = 'hidden';
+            
+            // Scroll to top of modal
+            const modalBody = previewModal.querySelector('.modal-body');
+            if (modalBody) {
+                modalBody.scrollTop = 0;
+            }
         }
+        
+        console.log('Resume preview displayed successfully');
     } else {
         console.error('Preview content element not found or no HTML provided');
+        showToast('Error displaying resume preview', 'error');
     }
 }
 
@@ -1203,48 +1216,164 @@ async function downloadPDF() {
     try {
         showLoading();
         
-        // Get the resume content
-        const resumeContent = document.getElementById('resumePreviewContent').innerHTML;
+        // Get the resume content from the correct element
+        const resumeContent = document.getElementById('resumeContent');
         
-        if (!resumeContent) {
+        if (!resumeContent || !resumeContent.innerHTML.trim()) {
             throw new Error('No resume content to download');
         }
 
-        // Create a new window for printing
-        const printWindow = window.open('', '_blank');
-        printWindow.document.write(`
+        // Create download content with proper styling
+        const downloadContent = `
             <!DOCTYPE html>
             <html>
             <head>
-                <title>Resume</title>
+                <title>Resume - ${window.resumeData?.personalInfo?.name || 'Resume'}</title>
+                <meta charset="UTF-8">
                 <style>
-                    body { font-family: Arial, sans-serif; margin: 0; padding: 20px; }
-                    .modern-template { max-width: 800px; margin: 0 auto; }
+                    * { box-sizing: border-box; margin: 0; padding: 0; }
+                    body { 
+                        font-family: 'Arial', sans-serif; 
+                        line-height: 1.4; 
+                        color: #333; 
+                        background: white;
+                        padding: 20px;
+                        font-size: 12px;
+                    }
+                    .modern-template, .ai-enhanced-template { 
+                        max-width: 800px; 
+                        margin: 0 auto; 
+                        background: white;
+                    }
+                    .resume-header, .ai-header { 
+                        text-align: center; 
+                        margin-bottom: 20px; 
+                        border-bottom: 2px solid #4f46e5;
+                        padding-bottom: 15px;
+                    }
+                    .resume-header h1, .ai-header h1 { 
+                        color: #4f46e5; 
+                        font-size: 24px; 
+                        margin-bottom: 5px; 
+                    }
+                    .subtitle, .ai-subtitle { 
+                        font-size: 14px; 
+                        color: #666; 
+                        margin-bottom: 10px;
+                    }
+                    .contact-info, .ai-contact { 
+                        font-size: 11px; 
+                        color: #555; 
+                    }
+                    .contact-info span, .ai-contact span { 
+                        margin: 0 10px; 
+                    }
+                    .resume-section, .ai-section { 
+                        margin-bottom: 20px; 
+                    }
+                    .resume-section h2, .ai-section h2 { 
+                        color: #4f46e5; 
+                        font-size: 16px; 
+                        margin-bottom: 10px; 
+                        border-bottom: 1px solid #ddd;
+                        padding-bottom: 3px;
+                    }
+                    .experience-item { 
+                        margin-bottom: 15px; 
+                        page-break-inside: avoid;
+                    }
+                    .experience-header { 
+                        margin-bottom: 5px; 
+                    }
+                    .experience-header h3 { 
+                        color: #333; 
+                        font-size: 14px; 
+                        margin-bottom: 2px;
+                    }
+                    .company-date { 
+                        display: flex; 
+                        justify-content: space-between; 
+                        font-size: 11px; 
+                        color: #666; 
+                    }
+                    .experience-description p { 
+                        margin: 3px 0; 
+                        font-size: 11px;
+                        line-height: 1.3;
+                    }
+                    .skills-container { 
+                        display: flex; 
+                        flex-wrap: wrap; 
+                        gap: 5px; 
+                    }
+                    .skill-tag { 
+                        background: #f0f0f0; 
+                        padding: 3px 8px; 
+                        border-radius: 3px; 
+                        font-size: 10px; 
+                        color: #555;
+                    }
                     @media print {
-                        body { margin: 0; padding: 10px; }
-                        .modern-template { max-width: none; }
+                        body { 
+                            margin: 0; 
+                            padding: 15px; 
+                            font-size: 11px;
+                        }
+                        .modern-template, .ai-enhanced-template { 
+                            max-width: none; 
+                        }
+                        .experience-item {
+                            page-break-inside: avoid;
+                        }
                     }
                 </style>
             </head>
             <body>
-                ${resumeContent}
+                ${resumeContent.innerHTML}
             </body>
             </html>
-        `);
+        `;
+
+        // Create a new window for printing
+        const printWindow = window.open('', '_blank', 'width=800,height=600');
         
+        if (!printWindow) {
+            throw new Error('Popup blocked. Please allow popups and try again.');
+        }
+
+        printWindow.document.write(downloadContent);
         printWindow.document.close();
         
         // Wait for content to load, then print
+        printWindow.onload = function() {
+            setTimeout(() => {
+                printWindow.print();
+                // Don't close immediately to allow user to save/cancel
+                showToast('Resume download dialog opened!', 'success');
+                hideLoading();
+            }, 500);
+        };
+        
+        // Fallback if onload doesn't fire
         setTimeout(() => {
-            printWindow.print();
-            printWindow.close();
+            if (printWindow) {
+                printWindow.print();
+                showToast('Resume download dialog opened!', 'success');
+            }
             hideLoading();
-            showToast('Resume download initiated!', 'success');
         }, 1000);
         
     } catch (error) {
         console.error('Download error:', error);
-        showToast('Failed to download resume', 'error');
+        let errorMessage = 'Failed to download resume';
+        
+        if (error.message.includes('Popup blocked')) {
+            errorMessage = 'Popup blocked. Please allow popups and try again.';
+        } else if (error.message.includes('No resume content')) {
+            errorMessage = 'No resume generated yet. Please generate a resume first.';
+        }
+        
+        showToast(errorMessage, 'error');
         hideLoading();
     }
 }
