@@ -966,6 +966,7 @@ async function generateAIResume() {
         }
     } catch (error) {
         console.error('AI Resume generation error:', error);
+        console.error('Error details:', error.message, error.stack);
 
         // Handle specific error types
         if (error.name === 'AbortError' || error.message.includes('aborted')) {
@@ -981,7 +982,7 @@ async function generateAIResume() {
 function createBasicResumeHTML() {
     // Use templates from templates.js if available
     if (window.resumeTemplates && window.resumeTemplates[selectedTemplate]) {
-        return window.resumeTemplates[selectedTemplate].html(window.resumeData);
+        return window.resumeTemplates[selectedTemplate.html(window.resumeData);
     }
 
     // Fallback to built-in templates
@@ -1557,7 +1558,7 @@ function createTechTemplate() {
 
 function createBasicResumeHTML(data) {
     const { personalInfo, experience, skills, jobTitle } = data;
-    
+
     return `
         <div class="resume-container basic-template">
             <div class="resume-header">
@@ -1659,11 +1660,11 @@ function createAIEnhancedResumeHTML(enhancedData) {
     // Helper function to format description properly
     function formatDescription(description) {
         if (!description) return 'Key responsibilities and achievements';
-        
+
         if (Array.isArray(description)) {
             return description.map(item => `<p>• ${item}</p>`).join('');
         }
-        
+
         if (typeof description === 'string') {
             // If already has bullet points, format as list
             if (description.includes('•') || description.includes('\n•')) {
@@ -1678,7 +1679,7 @@ function createAIEnhancedResumeHTML(enhancedData) {
             }
             return `<p>${description}</p>`;
         }
-        
+
         return '<p>Key responsibilities and achievements</p>';
     }
 
@@ -1713,7 +1714,7 @@ function createAIEnhancedResumeHTML(enhancedData) {
                             return date;
                         }
                     };
-                    
+
                     return `
                         <div class="ai-experience">
                             <div class="experience-header">

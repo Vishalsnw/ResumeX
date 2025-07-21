@@ -166,23 +166,9 @@ app.post('/api/generate-resume', async (req, res) => {
       aiContent = JSON.parse(cleanContent);
       console.log('Successfully parsed AI content');
     } catch (parseError) {
-      console.warn('Failed to parse AI response, using fallback');
-      console.warn('Parse error:', parseError.message);
-
-      // Fallback content
-      aiContent = {
-        summary: `Experienced ${jobTitle} with strong background in ${skills?.slice(0, 3).join(', ') || 'professional skills'}. Proven track record of delivering results and driving success.`,
-        enhancedExperience: experience?.map(exp => ({
-          position: exp.position,
-          company: exp.company,
-          description: exp.description || `Successfully contributed to ${exp.company} as ${exp.position}, delivering key results and maintaining high performance standards.`
-        })) || [],
-        optimizedSkills: skills || ['Professional Skills', 'Industry Knowledge', 'Communication'],
-        additionalSections: [],
-        atsScore: 85,
-        improvementSuggestions: ['Consider adding specific metrics and achievements', 'Include relevant keywords for your industry'],
-        keywordMatches: ['Strong match with target role requirements']
-      };
+      console.error('Failed to parse AI response:', parseError.message);
+      console.error('Raw AI response:', response.data.choices[0].message.content);
+      throw new Error('AI response parsing failed - invalid JSON format');
     }
 
     res.json({ success: true, content: aiContent });
@@ -591,9 +577,10 @@ app.post('/api/enhance-resume', async (req, res) => {
       console.log('Successfully parsed enhanced data');
     } catch (parseError) {
       console.error('Failed to parse AI response:', parseError.message);
+      console.error('Raw AI response:', response.data.choices[0].message.content);
       return res.status(500).json({ 
         success: false, 
-        error: 'AI response parsing failed'
+        error: 'AI response parsing failed - invalid JSON format'
       });
     }
 
