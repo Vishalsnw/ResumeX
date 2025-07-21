@@ -2520,18 +2520,23 @@ body {
 
         /* AI Enhanced Template Styles */
         .ai-enhanced-template {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: white;
             color: #333;
             padding: 0;
             margin: 0;
+            max-width: 800px;
+            margin: 0 auto;
+            font-family: 'Inter', Arial, sans-serif;
+            line-height: 1.6;
         }
 
         .ai-enhanced-template .ai-header {
-            background: white;
-            padding: 30px;
+            background: #f8fafc;
+            padding: 40px 30px;
             text-align: center;
-            border-bottom: 4px solid #667eea;
+            border-bottom: 3px solid #2563eb;
             position: relative;
+            margin-bottom: 0;
         }
 
         .ai-enhanced-template .ai-header::before {
@@ -2541,22 +2546,23 @@ body {
             left: 0;
             right: 0;
             height: 4px;
-            background: linear-gradient(90deg, #667eea, #764ba2);
+            background: linear-gradient(90deg, #2563eb, #1d4ed8);
         }
 
         .ai-enhanced-template .ai-header h1 {
-            font-size: 32px;
-            font-weight: 700;
-            margin-bottom: 8px;
-            color: #2d3748;
+            font-size: 36px;
+            font-weight: 800;
+            margin-bottom: 10px;
+            color: #1e293b;
             letter-spacing: -0.5px;
+            text-transform: uppercase;
         }
 
         .ai-enhanced-template .ai-subtitle {
-            font-size: 18px;
-            color: #667eea;
+            font-size: 20px;
+            color: #2563eb;
             font-weight: 600;
-            margin-bottom: 15px;
+            margin-bottom: 20px;
             text-transform: uppercase;
             letter-spacing: 1px;
         }
@@ -2564,30 +2570,35 @@ body {
         .ai-enhanced-template .ai-contact {
             display: flex;
             justify-content: center;
-            gap: 25px;
+            gap: 30px;
             flex-wrap: wrap;
-            font-size: 14px;
-            color: #4a5568;
+            font-size: 15px;
+            color: #475569;
         }
 
         .ai-enhanced-template .ai-contact span {
             display: flex;
             align-items: center;
             gap: 8px;
+            font-weight: 500;
         }
 
         .ai-enhanced-template .ai-contact i {
-            color: #667eea;
-            width: 16px;
+            color: #2563eb;
+            width: 18px;
+            font-size: 14px;
         }
 
         .ai-enhanced-template .ai-section {
             background: white;
-            margin: 20px;
-            padding: 25px;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin: 0;
+            padding: 30px;
             position: relative;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .ai-enhanced-template .ai-section:last-child {
+            border-bottom: none;
         }
 
         .ai-enhanced-template .ai-section::before {
@@ -2597,78 +2608,107 @@ body {
             left: 0;
             width: 4px;
             height: 100%;
-            background: linear-gradient(180deg, #667eea, #764ba2);
-            border-radius: 2px 0 0 2px;
+            background: linear-gradient(180deg, #2563eb, #1d4ed8);
         }
 
         .ai-enhanced-template .ai-section h2 {
-            color: #2d3748;
-            font-size: 20px;
+            color: #1e293b;
+            font-size: 22px;
             font-weight: 700;
-            margin-bottom: 20px;
+            margin-bottom: 25px;
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 12px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
+            border-bottom: 2px solid #2563eb;
+            padding-bottom: 8px;
         }
 
         .ai-enhanced-template .ai-section h2 i {
-            color: #667eea;
-            font-size: 18px;
+            color: #2563eb;
+            font-size: 20px;
         }
 
         .ai-enhanced-template .ai-summary {
-            font-size: 16px;
-            line-height: 1.6;
-            color: #4a5568;
+            font-size: 17px;
+            line-height: 1.7;
+            color: #374151;
             font-style: italic;
-            border-left: 3px solid #667eea;
-            padding-left: 15px;
-            background: #f7fafc;
-            padding: 15px;
+            border-left: 4px solid #2563eb;
+            padding: 20px;
+            background: #f8fafc;
             border-radius: 8px;
+            margin: 0;
         }
 
         .ai-enhanced-template .ai-experience {
-            margin-bottom: 25px;
-            padding-bottom: 20px;
-            border-bottom: 1px solid #e2e8f0;
+            margin-bottom: 30px;
+            padding-bottom: 25px;
+            border-bottom: 1px solid #e5e7eb;
+            page-break-inside: avoid;
         }
 
         .ai-enhanced-template .ai-experience:last-child {
             border-bottom: none;
+            margin-bottom: 0;
         }
 
         .ai-enhanced-template .ai-experience .experience-header {
-            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            gap: 10px;
         }
 
-        .ai-enhanced-template .ai-experience h3 {
+        .ai-enhanced-template .ai-experience .position-company h3 {
+            font-size: 20px;
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 5px;
+            line-height: 1.3;
+        }
+
+        .ai-enhanced-template .ai-experience .position-company h4 {
             font-size: 18px;
+            color: #2563eb;
             font-weight: 600;
-            color: #2d3748;
-            margin-bottom: 5px;
-        }
-
-        .ai-enhanced-template .ai-experience .company {
-            font-size: 16px;
-            color: #667eea;
-            font-weight: 500;
-            margin-bottom: 5px;
-            display: block;
+            margin-bottom: 0;
         }
 
         .ai-enhanced-template .ai-experience .dates {
-            font-size: 14px;
-            color: #718096;
+            font-size: 15px;
+            color: #64748b;
             font-weight: 500;
+            font-style: italic;
+            text-align: right;
+            white-space: nowrap;
         }
 
-        .ai-enhanced-template .ai-experience .experience-details p {
-            color: #4a5568;
-            line-height: 1.6;
-            margin-top: 10px;
+        .ai-enhanced-template .ai-experience .experience-details ul {
+            margin: 0;
+            padding-left: 0;
+            list-style: none;
+        }
+
+        .ai-enhanced-template .ai-experience .experience-details li {
+            color: #374151;
+            line-height: 1.7;
+            margin-bottom: 8px;
+            position: relative;
+            padding-left: 20px;
+            font-size: 15px;
+        }
+
+        .ai-enhanced-template .ai-experience .experience-details li::before {
+            content: '▪';
+            color: #2563eb;
+            font-weight: bold;
+            position: absolute;
+            left: 0;
+            top: 0;
         }
 
         .ai-enhanced-template .skills-grid {

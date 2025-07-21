@@ -1066,62 +1066,59 @@ function generateResumeHTML(aiContent, data) {
                 <h1>${personalInfo.name || 'Your Name'}</h1>
                 <div class="ai-subtitle">${data.jobTitle || 'Professional'}</div>
                 <div class="ai-contact">
-                    <span>${personalInfo.email || 'email@example.com'}</span>
-                    <span>${personalInfo.phone || 'Phone'}</span>
-                    <span>${personalInfo.location || 'Location'}</span>
+                    <span><i class="fas fa-envelope"></i> ${personalInfo.email || 'email@example.com'}</span>
+                    <span><i class="fas fa-phone"></i> ${formatPhoneNumber(personalInfo.phone) || 'Phone'}</span>
+                    <span><i class="fas fa-map-marker-alt"></i> ${personalInfo.location || 'Location'}</span>
                 </div>
             </div>
 
-            ${aiContent.summary ? `
+            ${aiContent && aiContent.summary ? `
             <div class="ai-section">
-                <h2>Professional Summary</h2>
-                <p>${aiContent.summary}</p>
+                <h2><i class="fas fa-user"></i> Professional Summary</h2>
+                <div class="ai-summary">${aiContent.summary}</div>
             </div>
             ` : ''}
 
             <div class="ai-section">
-                <h2>Professional Experience</h2>
-                ${(aiContent.enhancedExperience || experience).map(exp => `
-                    <div class="experience-item">
+                <h2><i class="fas fa-briefcase"></i> Professional Experience</h2>
+                ${(aiContent && aiContent.enhancedExperience || experience).map(exp => `
+                    <div class="ai-experience">
                         <div class="experience-header">
-                            <h3>${exp.position}</h3>
-                            <div class="company-date">
-                                <span class="company">${exp.company}</span>
-                                <span class="date">${formatDate(exp.startDate)} - ${formatDate(exp.endDate)}</span>
+                            <div class="position-company">
+                                <h3>${exp.position || 'Position'}</h3>
+                                <h4 class="company">${exp.company || 'Company'}</h4>
                             </div>
+                            <div class="dates">${formatEmploymentDate(exp.startDate)} - ${formatEmploymentDate(exp.endDate)}</div>
                         </div>
-                        <div class="experience-description">
-                            ${exp.description ? exp.description.split('\n').map(line => `<p>${line}</p>`).join('') : ''}
+                        <div class="experience-details">
+                            ${formatExperienceDescription(exp.description)}
                         </div>
                     </div>
                 `).join('')}
             </div>
 
             <div class="ai-section">
-                <h2>Skills</h2>
+                <h2><i class="fas fa-cogs"></i> Technical Skills</h2>
                 <div class="skills-container">
-                    ${(aiContent.optimizedSkills || skills).map(skill => `<span class="skill-tag">${skill}</span>`).join('')}
+                    ${(aiContent && aiContent.optimizedSkills || skills).map(skill => `<span class="skill-tag">${skill}</span>`).join('')}
                 </div>
             </div>
 
-            ${data.education ? `
+            ${data.education && data.education !== 'NA' ? `
             <div class="ai-section">
-                <h2>Education</h2>
-                <p>${data.education}</p>
+                <h2><i class="fas fa-graduation-cap"></i> Education</h2>
+                <div class="education-content">
+                    <p>${data.education}</p>
+                </div>
             </div>
             ` : ''}
 
-            ${data.certifications ? `
+            ${data.certifications && data.certifications !== 'NA' ? `
             <div class="ai-section">
-                <h2>Certifications</h2>
-                <p>${data.certifications}</p>
-            </div>
-            ` : ''}
-
-            ${aiContent.additionalSections ? `
-            <div class="ai-section">
-                <h2>Additional Information</h2>
-                ${aiContent.additionalSections.map(section => `<p>${section}</p>`).join('')}
+                <h2><i class="fas fa-certificate"></i> Certifications</h2>
+                <div class="certifications-content">
+                    <p>${data.certifications}</p>
+                </div>
             </div>
             ` : ''}
         </div>
@@ -1524,6 +1521,57 @@ function formatDate(dateString) {
         return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short' });
     } catch {
         return dateString;
+    }
+}
+
+// Helper function to format employment dates properly
+function formatEmploymentDate(dateString) {
+    if (!dateString || dateString === '') return 'Present';
+    try {
+        const date = new Date(dateString);
+        if (isNaN(date.getTime())) {
+            // Handle YYYY-MM format
+            if (dateString.match(/^\d{4}-\d{2}$/)) {
+                const [year, month] = dateString.split('-');
+                const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 
+                                  'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                return `${monthNames[parseInt(month) - 1]} ${year}`;
+            }
+            return dateString;
+        }
+        return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short' });
+    } catch {
+        return dateString || 'Present';
+    }
+}
+
+// Helper function to format phone numbers
+function formatPhoneNumber(phone) {
+    if (!phone) return '';
+    // Handle multiple phone numbers
+    if (phone.includes(',')) {
+        const phones = phone.split(',').map(p => p.trim());
+        return phones[0]; // Use first phone number
+    }
+    return phone;
+}
+
+// Helper function to format experience descriptions with proper bullet points
+function formatExperienceDescription(description) {
+    if (!description) return '<ul><li>Key responsibilities and achievements</li></ul>';
+    
+    let formatted = description.trim();
+    
+    // If description contains bullet points or newlines, format as list
+    if (formatted.includes('•') || formatted.includes('\n')) {
+        const items = formatted.split(/[•\n]/)
+            .map(item => item.trim())
+            .filter(item => item.length > 5);
+        
+        return `<ul>${items.map(item => `<li>${item}</li>`).join('')}</ul>`;
+    } else {
+        // Single paragraph
+        return `<ul><li>${formatted}</li></ul>`;
     }
 }
 
