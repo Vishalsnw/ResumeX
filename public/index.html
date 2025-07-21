@@ -1,6 +1,3 @@
-` tags.
-
-```
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -292,59 +289,59 @@
                     <div class="template-selection">
                         <h3>Choose Your Template</h3>
                         <div class="template-grid">
-                            <div class="template-card" data-template="modern" onclick="selectTemplate('modern')">
-                                <div class="template-preview modern-preview">
+                            <div class="template-card" data-template="ats_bold_accounting" onclick="selectTemplate('ats_bold_accounting')">
+                                <div class="template-preview ats-bold-preview">
                                     <div class="template-header"></div>
                                     <div class="template-content"></div>
                                 </div>
-                                <h4>Modern</h4>
-                                <p>Clean and professional</p>
-                                <span class="template-tag">Free</span>
+                                <h4>ATS Bold Accounting</h4>
+                                <p>ATS-optimized template perfect for accounting and finance professionals</p>
+                                <span class="template-tag">Professional</span>
                             </div>
-                            <div class="template-card" data-template="classic" onclick="selectTemplate('classic')">
-                                <div class="template-preview classic-preview">
+                            <div class="template-card" data-template="ats_classic_hr" onclick="selectTemplate('ats_classic_hr')">
+                                <div class="template-preview ats-hr-preview">
                                     <div class="template-header"></div>
                                     <div class="template-content"></div>
                                 </div>
-                                <h4>Classic</h4>
-                                <p>Traditional and elegant</p>
-                                <span class="template-tag">Free</span>
+                                <h4>ATS Classic HR</h4>
+                                <p>Professional HR template optimized for applicant tracking systems</p>
+                                <span class="template-tag">Professional</span>
                             </div>
-                            <div class="template-card" data-template="creative" onclick="selectTemplate('creative')">
-                                <div class="template-preview creative-preview">
+                            <div class="template-card" data-template="attorney_resume" onclick="selectTemplate('attorney_resume')">
+                                <div class="template-preview attorney-preview">
                                     <div class="template-header"></div>
                                     <div class="template-content"></div>
                                 </div>
-                                <h4>Creative</h4>
-                                <p>Eye-catching design</p>
-                                <span class="template-tag">Free</span>
+                                <h4>Attorney Professional</h4>
+                                <p>Sophisticated template designed for legal professionals</p>
+                                <span class="template-tag">Executive</span>
                             </div>
-                            <div class="template-card" data-template="executive" onclick="selectTemplate('executive')">
-                                <div class="template-preview executive-preview">
+                            <div class="template-card" data-template="industry_manager" onclick="selectTemplate('industry_manager')">
+                                <div class="template-preview manager-preview">
                                     <div class="template-header"></div>
                                     <div class="template-content"></div>
                                 </div>
-                                <h4>Executive</h4>
-                                <p>Senior-level professional</p>
-                                <span class="template-tag">Free</span>
+                                <h4>Industry Manager</h4>
+                                <p>Executive template for management and leadership positions</p>
+                                <span class="template-tag">Executive</span>
                             </div>
-                            <div class="template-card" data-template="minimalist" onclick="selectTemplate('minimalist')">
-                                <div class="template-preview minimalist-preview">
+                            <div class="template-card" data-template="modern_nursing" onclick="selectTemplate('modern_nursing')">
+                                <div class="template-preview nursing-preview">
                                     <div class="template-header"></div>
                                     <div class="template-content"></div>
                                 </div>
-                                <h4>Minimalist</h4>
-                                <p>Simple and clean</p>
-                                <span class="template-tag">Free</span>
+                                <h4>Modern Nursing</h4>
+                                <p>Healthcare-focused template for nursing professionals</p>
+                                <span class="template-tag">Healthcare</span>
                             </div>
-                            <div class="template-card" data-template="tech" onclick="selectTemplate('tech')">
-                                <div class="template-preview tech-preview">
+                            <div class="template-card" data-template="simple_resume" onclick="selectTemplate('simple_resume')">
+                                <div class="template-preview simple-preview">
                                     <div class="template-header"></div>
                                     <div class="template-content"></div>
                                 </div>
-                                <h4>Tech Pro</h4>
-                                <p>Perfect for developers</p>
-                                <span class="template-tag">Free</span>
+                                <h4>Simple Clean</h4>
+                                <p>Clean and straightforward template for any profession</p>
+                                <span class="template-tag">Universal</span>
                             </div>
                         </div>
                     </div>
@@ -352,418 +349,6 @@
                         <button class="btn-secondary" onclick="prevStep()">Previous</button>
                         <button class="btn-primary" onclick="nextStep()">Next</button>
                     </div>
-                </div>
-
-                <!-- Step 5: Generate -->
-                <div id="step5" class="form-step">
-                    <div class="generate-options">
-                        <h3>Generate Your Resume</h3>
-                        <div class="single-option">
-                            <div class="option-card featured" onclick="generateResume('ai')">
-                                <i class="fas fa-magic"></i>
-                                <h4>AI-Enhanced Resume</h4>
-                                <p>Create a professional resume with AI-optimized content and formatting</p>
-                                <button class="btn-primary btn-large">
-                                    <i class="fas fa-rocket"></i> Generate Resume
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="form-actions">
-                        <button class="btn-secondary" onclick="prevStep()">Previous</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Loading Overlay -->
-    <div id="loadingOverlay" class="loading-overlay">
-        <div class="loading-content">
-            <div class="spinner"></div>
-            <p>Generating your AI-powered resume...</p>
-        </div>
-    </div>
-
-    <!-- Resume Preview Modal -->
-    <div id="resumePreview" class="modal">
-        <div class="modal-content large">
-            <div class="modal-header">
-                <h2>Your Resume</h2>
-                <div class="preview-actions">
-                    <button class="btn-secondary" onclick="editResume()">Edit</button>
-                    <button class="btn-primary" onclick="downloadPDF()">Download PDF</button>
-                    <span class="close">&times;</span>
-                </div>
-            </div>
-            <div class="modal-body">
-                <div id="resumeContent" class="resume-content">
-                    <!-- Generated resume will appear here -->
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
-    <script src="./script.js"></script>
-</body>
-</html>
-```
-
-```
-<replit_final_file>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Resume Builder - Create Professional Resumes in Minutes</title>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link href="styles.css" rel="stylesheet">
-</head>
-<body>
-    <!-- Header -->
-    <header class="header">
-        <nav class="navbar">
-            <div class="nav-brand">
-                <i class="fas fa-file-alt"></i>
-                <span>AI Resume Builder</span>
-            </div>
-            <div class="nav-menu">
-                <a href="#features">Features</a>
-                <a href="#pricing">Pricing</a>
-                <a href="privacy.html">Privacy Policy</a>
-                <button class="btn-primary" onclick="startBuilding()">Build Resume</button>
-            </div>
-            <div class="mobile-menu-toggle">
-                <i class="fas fa-bars"></i>
-            </div>
-        </nav>
-    </header>
-
-    <!-- Hero Section -->
-    <section class="hero">
-        <div class="container">
-            <div class="hero-content">
-                <h1>Build a <span class="gradient-text">perfect resume</span> in minutes</h1>
-                <p>Our AI-powered resume builder helps you create professional resumes that get noticed by employers. Choose from expert-approved templates and get hired faster.</p>
-                <div class="hero-buttons">
-                    <button class="btn-primary btn-large" onclick="startBuilding()">
-                        <i class="fas fa-rocket"></i> Create My Resume
-                    </button>
-                    <button class="btn-secondary btn-large" onclick="viewTemplates()">
-                        <i class="fas fa-eye"></i> Browse Templates
-                    </button>
-                </div>
-            </div>
-            <div class="hero-image">
-                <div class="resume-preview">
-                    <i class="fas fa-file-alt fa-8x"></i>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Features Section -->
-    <section id="features" class="features">
-        <div class="container">
-            <h2>Why choose our resume builder?</h2>
-            <p class="subtitle">Create professional resumes that get results with our powerful features</p>
-            <div class="features-grid">
-                <div class="feature-card">
-                    <i class="fas fa-brain"></i>
-                    <h3>AI-Powered Writing</h3>
-                    <p>Our advanced AI helps you write compelling content that highlights your achievements and gets you noticed by hiring managers.</p>
-                </div>
-                <div class="feature-card">
-                    <i class="fas fa-eye"></i>
-                    <h3>ATS-Friendly</h3>
-                    <p>Beat applicant tracking systems with resumes optimized for modern hiring technology. Get past the robots to human recruiters.</p>
-                </div>
-                <div class="feature-card">
-                    <i class="fas fa-palette"></i>
-                    <h3>Professional Templates</h3>
-                    <p>Choose from expertly designed templates created by hiring professionals and loved by recruiters worldwide.</p>
-                </div>
-                <div class="feature-card">
-                    <i class="fas fa-mobile-alt"></i>
-                    <h3>Works Everywhere</h3>
-                    <p>Build your resume on any device. Our mobile-friendly builder works seamlessly on desktop, tablet, and mobile.</p>
-                </div>
-                <div class="feature-card">
-                    <i class="fas fa-download"></i>
-                    <h3>Easy Export</h3>
-                    <p>Download your finished resume as a high-quality PDF or share it directly with employers. Always print-ready.</p>
-                </div>
-                <div class="feature-card">
-                    <i class="fas fa-lock"></i>
-                    <h3>100% Secure</h3>
-                    <p>Your personal information is encrypted and protected. We never share your data with third parties.</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Pricing Section -->
-    <section id="pricing" class="pricing">
-        <div class="container">
-            <h2>Simple, transparent pricing</h2>
-            <p class="subtitle">Choose the plan that's right for your career goals</p>
-            <div class="pricing-grid">
-                <div class="pricing-card featured">
-                    <div class="popular-badge">One-Time Payment</div>
-                    <h3>Download Only</h3>
-                    <div class="price">₹99<span>/one-time</span></div>
-                    <ul>
-                        <li><i class="fas fa-check"></i> Create Resume Online</li>
-                        <li><i class="fas fa-check"></i> All Templates</li>
-                        <li><i class="fas fa-check"></i> PDF Download</li>
-                        <li><i class="fas fa-check"></i> Print Quality Output</li>
-                        <li><i class="fas fa-check"></i> Instant Download</li>
-                    </ul>
-                    <button class="btn-primary" onclick="upgradeToDownload()">Pay ₹99 & Download</button>
-                </div></div>
-                    <div class="price">₹599<span>/month</span></div>
-                    <ul>
-                        <li><i class="fas fa-check"></i> Everything in Premium</li>
-                        <li><i class="fas fa-check"></i> Custom Branding</li>
-                        <li><i class="fas fa-check"></i> LinkedIn Integration</li>
-                        <li><i class="fas fa-check"></i> Career Coaching</li>
-                        <li><i class="fas fa-check"></i> 24/7 Support</li>
-                    </ul>
-                    <button class="btn-secondary" onclick="upgradeToPro()">Choose Pro</button>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Resume Builder Modal -->
-    <div id="resumeBuilder" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>Build Your Resume</h2>
-                <span class="close">&times;</span>
-            </div>
-            <div class="modal-body">
-                <div class="form-steps">
-                    <div class="step active" data-step="1">Personal Info</div>
-                    <div class="step" data-step="2">Experience</div>
-                    <div class="step" data-step="3">Skills</div>
-                    <div class="step" data-step="4">Template</div>
-                    <div class="step" data-step="5">Generate</div>
-                </div>
-
-                <!-- Step 1: Personal Information & Job Target -->
-                <div id="step1" class="form-step active">
-                    <div class="form-group">
-                        <label><i class="fas fa-cloud-upload-alt"></i> Upload Existing Resume (Optional)</label>
-                        <div class="file-upload-area" id="resumeUploadArea">
-                            <input type="file" id="existingResume" accept=".pdf,.doc,.docx,.txt" style="display: none;">
-                            <div class="upload-placeholder">
-                                <i class="fas fa-cloud-upload-alt"></i>
-                                <p>Click to upload your existing resume or drag and drop</p>
-                                <small>Supports PDF, DOC, DOCX, TXT files - AI will enhance it for you!</small>
-                            </div>
-                            <div class="uploaded-file" id="uploadedFileInfo" style="display: none;">
-                                <i class="fas fa-file-alt"></i>
-                                <span id="fileName"></span>
-                                <button type="button" class="btn-remove" onclick="removeUploadedFile()">
-                                    <i class="fas fa-times"></i>
-                                </button>
-                            </div>
-                        </div>
-                        <button type="button" class="btn-secondary btn-small" onclick="enhanceExistingResume()" id="enhanceBtn" style="display: none;">
-                            <i class="fas fa-magic"></i> Enhance with AI
-                        </button>
-                    </div>
-                    <div class="form-group">
-                        <label>Job Description (Optional - for AI optimization)</label>
-                        <textarea id="targetJobDescription" rows="4" placeholder="Paste the job description you're targeting for better AI optimization"></textarea>
-                        <button type="button" class="btn-secondary btn-small" onclick="analyzeJobDescription()">
-                            <i class="fas fa-search"></i> Analyze Job
-                        </button>
-                    </div>
-                    <div id="jobAnalysis" class="job-analysis" style="display: none;">
-                        <!-- Job analysis results will appear here -->
-                    </div>
-                    <div class="form-group required">
-                        <label>Full Name</label>
-                        <div class="input-group">
-                            <i class="fas fa-user input-group-icon"></i>
-                            <input type="text" id="fullName" placeholder="Enter your full name" required>
-                        </div>
-                    </div>
-                    <div class="form-group required">
-                        <label>Email Address</label>
-                        <div class="input-group">
-                            <i class="fas fa-envelope input-group-icon"></i>
-                            <input type="email" id="email" placeholder="your.email@company.com" required>
-                        </div>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group required">
-                            <label>Phone Number</label>
-                            <div class="input-group">
-                                <i class="fas fa-phone input-group-icon"></i>
-                                <input type="tel" id="phone" placeholder="+1 (555) 123-4567" required>
-                            </div>
-                        </div>
-                        <div class="form-group required">
-                            <label>Location</label>
-                            <div class="input-group">
-                                <i class="fas fa-map-marker-alt input-group-icon"></i>
-                                <input type="text" id="location" placeholder="City, State" required>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="form-group required">
-                        <label>Target Job Title</label>
-                        <div class="input-group">
-                            <i class="fas fa-briefcase input-group-icon"></i>
-                            <input type="text" id="jobTitle" placeholder="e.g. Senior Software Engineer" required>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label>Industry Focus</label>
-                        <select id="industryFocus">
-                            <option value="">Select Industry</option>
-                            <option value="technology">Technology</option>
-                            <option value="healthcare">Healthcare</option>
-                            <option value="finance">Finance</option>
-                            <option value="marketing">Marketing</option>
-                            <option value="education">Education</option>
-                            <option value="manufacturing">Manufacturing</option>
-                            <option value="retail">Retail</option>
-                            <option value="other">Other</option>
-                        </select>
-                    </div>
-                    <div class="form-actions">
-                        <button class="btn-primary" onclick="nextStep()">Next</button>
-                    </div>
-                </div>
-
-                <!-- Step 2: Experience -->
-                <div id="step2" class="form-step">
-                    <div id="experienceContainer">
-                        <div class="experience-item">
-                            <div class="form-group">
-                                <label>Company</label>
-                                <input type="text" class="company" required>
-                            </div>
-                            <div class="form-group">
-                                <label>Position</label>
-                                <input type="text" class="position" required>
-                            </div>
-                            <div class="form-row">
-                                <div class="form-group">
-                                    <label>Start Date</label>
-                                    <input type="date" class="startDate" required>
-                                </div>
-                                <div class="form-group">
-                                    <label>End Date</label>
-                                    <input type="date" class="endDate">
-                                </div>
-                            </div>
-                            <div class="form-group">
-                                <label>Description</label>
-                                <textarea class="description" rows="3" placeholder="Describe your responsibilities and achievements"></textarea>
-                            </div>
-                        </div>
-                    </div>
-                    <button class="btn-secondary btn-small" onclick="addExperience()">+ Add Experience</button>
-                    <div class="form-actions">
-                        <button class="btn-secondary" onclick="prevStep()">Previous</button>
-                        <button class="btn-primary" onclick="nextStep()">Next</button>
-                    </div>
-                </div>
-
-                <!-- Step 3: Skills -->
-                <div id="step3" class="form-step">
-                    <div class="form-group">
-                        <label>Skills (comma separated)</label>
-                        <textarea id="skills" rows="4" placeholder="JavaScript, Python, React, Node.js, etc."></textarea>
-                    </div>
-                    <div class="form-group">
-                        <label>Education</label>
-                        <input type="text" id="education" placeholder="Degree, University, Year">
-                    </div>
-                    <div class="form-group">
-                        <label>Certifications</label>
-                        <textarea id="certifications" rows="2" placeholder="List your certifications"></textarea>
-                    </div>
-                    <div class="form-actions">
-                        <button class="btn-secondary" onclick="prevStep()">Previous</button>
-                        <button class="btn-primary" onclick="nextStep()">Next</button>
-                    </div>
-                </div>
-
-                <!-- Step 4: Template Selection -->
-                <div id="step4" class="form-step">
-                    <div class="template-selection">
-                        <h3>Choose Your Template</h3>
-                        <div class="template-grid">
-                            <div class="template-card" data-template="modern" onclick="selectTemplate('modern')">
-                                <div class="template-preview modern-preview">
-                                    <div class="template-header"></div>
-                                    <div class="template-content"></div>
-                                </div>
-                                <h4>Modern</h4>
-                                <p>Clean and professional</p>
-                                <span class="template-tag">Free</span>
-                            </div>
-                            <div class="template-card" data-template="classic" onclick="selectTemplate('classic')">
-                                <div class="template-preview classic-preview">
-                                    <div class="template-header"></div>
-                                    <div class="template-content"></div>
-                                </div>
-                                <h4>Classic</h4>
-                                <p>Traditional and elegant</p>
-                                <span class="template-tag">Free</span>
-                            </div>
-                            <div class="template-card" data-template="creative" onclick="selectTemplate('creative')">
-                                <div class="template-preview creative-preview">
-                                    <div class="template-header"></div>
-                                    <div class="template-content"></div>
-                                </div>
-                                <h4>Creative</h4>
-                                <p>Eye-catching design</p>
-                                <span class="template-tag">Free</span>
-                            </div>
-                            <div class="template-card" data-template="executive" onclick="selectTemplate('executive')">
-                                <div class="template-preview executive-preview">
-                                    <div class="template-header"></div>
-                                    <div class="template-content"></div>
-                                </div>
-                                <h4>Executive</h4>
-                                <p>Senior-level professional</p>
-                                <span class="template-tag">Free</span>
-                            </div>
-                            <div class="template-card" data-template="minimalist" onclick="selectTemplate('minimalist')">
-                                <div class="template-preview minimalist-preview">
-                                    <div class="template-header"></div>
-                                    <div class="template-content"></div>
-                                </div>
-                                <h4>Minimalist</h4>
-                                <p>Simple and clean</p>
-                                <span class="template-tag">Free</span>
-                            </div>
-                            <div class="template-card" data-template="tech" onclick="selectTemplate('tech')">
-                                <div class="template-preview tech-preview">
-                                    <div class="template-header"></div>
-                                    <div class="template-content"></div>
-                                </div>
-                                <h4>Tech Pro</h4>
-                                <p>Perfect for developers</p>
-                                <span class="template-tag">Free</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="form-actions">
-                        <button class="btn-secondary" onclick="prevStep()">Previous</button>
-                        <button class="btn-primary" onclick="nextStep()">Next</button>
-                    </div>
-                ```
                 </div>
 
                 <!-- Step 5: Generate -->
