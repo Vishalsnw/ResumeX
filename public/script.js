@@ -971,8 +971,7 @@ function collectFormData() {
         industryFocus,
         targetJobDescription,
         experience: experiences.length > 0 ? experiences : [{
-            company:```text
- 'Your Company',
+            company: 'Your Company',
             position: 'Software Engineer',
             startDate: '2023-01-01',
             endDate: '',
