@@ -1,3 +1,4 @@
+
 // Global variables - Initialize only if not already defined
 if (typeof window.currentStep === 'undefined') {
     window.currentStep = 1;
@@ -11,7 +12,7 @@ if (typeof window.currentStep === 'undefined') {
     window.uploadedResumeFile = null;
     window.enhancedResumeData = null;
     window.isProcessing = false;
-    window.selectedTemplate = 'ats_bold_accounting';
+    window.selectedTemplate = 'modern';
     window.jobAnalysisData = null;
     window.hasUsedAI = false;
 }
@@ -27,8 +28,6 @@ let jobAnalysisData = window.jobAnalysisData;
 let hasUsedAI = window.hasUsedAI;
 
 let modal, previewModal, loadingOverlay;
-
-// DOM elements
 
 // Initialize the application
 document.addEventListener('DOMContentLoaded', function() {
@@ -289,6 +288,7 @@ async function enhanceExistingResume() {
 
         // Try to use basic extraction as fallback
         try {
+            const fileText = await readFileAsText(uploadedResumeFile);
             const fallbackData = extractBasicResumeInfo(fileText);
             populateFormWithEnhancedData(fallbackData);
             showToast('Basic resume info extracted successfully!', 'success');
@@ -505,17 +505,26 @@ function populateFormWithEnhancedData(data) {
         // Populate skills
         if (data.skills) {
             const skillsValue = Array.isArray(data.skills) ? data.skills.join(', ') : data.skills;
-            document.getElementById('skills').value = skillsValue;
+            const skillsElement = document.getElementById('skills');
+            if (skillsElement) {
+                skillsElement.value = skillsValue;
+            }
         }
 
         // Populate education
         if (data.education && data.education !== 'NA') {
-            document.getElementById('education').value = data.education;
+            const educationElement = document.getElementById('education');
+            if (educationElement) {
+                educationElement.value = data.education;
+            }
         }
 
         // Populate certifications
         if (data.certifications && data.certifications !== 'NA') {
-            document.getElementById('certifications').value = data.certifications;
+            const certificationsElement = document.getElementById('certifications');
+            if (certificationsElement) {
+                certificationsElement.value = data.certifications;
+            }
         }
 
         // Update global resumeData
@@ -619,6 +628,9 @@ function cleanResumeData(data) {
     cleaned.education = cleanString(data.education);
     cleaned.certifications = cleanString(data.certifications);
 
+    return cleaned;
+}
+
 // Function to validate and clean enhanced data
 function validateAndCleanEnhancedData(data) {
     const cleaned = {
@@ -682,11 +694,6 @@ function validateAndCleanEnhancedData(data) {
     // Clean education and certifications
     cleaned.education = cleanString(data.education);
     cleaned.certifications = cleanString(data.certifications);
-
-    return cleaned;
-}
-
-
 
     return cleaned;
 }
@@ -774,6 +781,10 @@ function prevStep() {
 
 function updateProgress() {
     const progressPercent = (currentStep / 5) * 100;
+    const progressBar = document.querySelector('.progress');
+    if (progressBar) {
+        progressBar.style.width = progressPercent + '%';
+    }
 }
 
 function validateCurrentStep() {
@@ -885,6 +896,8 @@ async function analyzeJobDescription() {
 
 function displayJobAnalysis(analysis) {
     const analysisDiv = document.getElementById('jobAnalysis');
+    if (!analysisDiv) return;
+
     analysisDiv.innerHTML = `
         <div class="analysis-card">
             <h4><i class="fas fa-chart-line"></i> Job Analysis Results</h4>
@@ -994,10 +1007,7 @@ async function generateResume(type) {
     showLoading();
 
     try {
-        // Payment check disabled for testing
-        console.log('Payment check disabled for testing');
-
-        // Generate AI-enhanced resume
+        console.log('Generating AI-enhanced resume...');
         await generateAIResume();
     } catch (error) {
         console.error('Resume generation error:', error);
@@ -1008,129 +1018,98 @@ async function generateResume(type) {
     }
 }
 
-function checkPremiumAccess() {
-    return localStorage.getItem('premiumAccess') === 'true';
-}
-
-function checkProAccess() {
-    return localStorage.getItem('proAccess') === 'true';
-}
-
-async function upgradeToDownload() {
-    await initiatePayment(99, 'Download Access');
-}
-
-async function upgradeToPremium() {
-    await initiatePayment(99, 'Download Access');
-}
-
-async function upgradeToPro() {
-    await initiatePayment(99, 'Download Access');
-}
-
-async function initiatePayment(amount, planName) {
+async function generateAIResume() {
     try {
-        showLoading();
-        console.log('Initiating payment for:', planName, 'Amount:', amount);
-
-        const response = await fetch('/api/create-order', {
+        const response = await fetch('/api/generate-resume', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ amount })
-        });
-
-        if (!response.ok) {
-            const errorText = await response.text();
-            console.error('Payment error response:', errorText);
-            throw new Error(`Payment service error: ${response.status}`);
-        }
-
-        const result = await response.json();
-
-        if (result.success && result.order) {
-            if (typeof Razorpay === 'undefined') {
-                throw new Error('Razorpay SDK not loaded. Please refresh the page and try again.');
-            }
-
-            const keyResponse = await fetch('/api/razorpay-key');
-            const keyData = await keyResponse.json();
-
-            const options = {
-                key: keyData.key,
-                amount: result.order.amount,
-                currency: result.order.currency,
-                name: 'AI Resume Builder',
-                description: planName,
-                order_id: result.order.id,
-                handler: function(response) {
-                    console.log('Payment successful:', response);
-                    verifyPayment(response);
-                },
-                prefill: {
-                    name: resumeData.personalInfo?.name || '',
-                    email: resumeData.personalInfo?.email || ''
-                },
-                theme: {
-                    color: '#4f46e5'
-                },
-                modal: {
-                    ondismiss: function() {
-                        console.log('Payment cancelled by user');
-                        showToast('Payment cancelled', 'info');
-                        hideLoading();
-                    }
-                }
-            };
-
-            const rzp = new Razorpay(options);
-            rzp.open();
-        } else {
-            throw new Error(result.error || 'Failed to create payment order');
-        }
-    } catch (error) {
-        console.error('Payment initialization error:', error);
-        let errorMessage = 'Payment initialization failed';
-
-        if (error.message.includes('Failed to fetch')) {
-            errorMessage = 'Network error - Please check your connection';
-        } else if (error.message.includes('Payment service error')) {
-            errorMessage = 'Payment service unavailable - Please try again later';
-        } else if (error.message) {
-            errorMessage = error.message;
-        }
-
-        showToast(errorMessage, 'error');
-    } finally {
-        hideLoading();
-    }
-}
-
-async function verifyPayment(paymentResponse) {
-    try {
-        const response = await fetch('/api/verify-payment', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(paymentResponse)
+            body: JSON.stringify(window.resumeData)
         });
 
         const result = await response.json();
 
         if (result.success) {
-            localStorage.setItem('premiumAccess', 'true');
-            showToast('Payment successful! Download access activated.', 'success');
-            setTimeout(() =>{
-                performDownload();
-            }, 1000);
+            displayResumePreview(result.resumeHtml);
+            showToast('Resume generated successfully!', 'success');
         } else {
-            throw new Error(result.error || 'Payment verification failed');
+            throw new Error(result.error || 'Failed to generate resume');
         }
     } catch (error) {
-        console.error('Payment verification error:', error);
-        showToast('Payment verification failed. Please contact support.', 'error');
+        console.error('AI Resume generation error:', error);
+        showToast('Failed to generate AI-enhanced resume', 'error');
+    }
+}
+
+function displayResumePreview(resumeHtml) {
+    const previewContent = document.getElementById('resumePreviewContent');
+    if (previewContent && resumeHtml) {
+        previewContent.innerHTML = resumeHtml;
+        previewModal.style.display = 'block';
+    }
+}
+
+async function downloadPDF() {
+    try {
+        showLoading();
+        
+        // Get the resume content
+        const resumeContent = document.getElementById('resumePreviewContent').innerHTML;
+        
+        if (!resumeContent) {
+            throw new Error('No resume content to download');
+        }
+
+        // Create a new window for printing
+        const printWindow = window.open('', '_blank');
+        printWindow.document.write(`
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>Resume</title>
+                <style>
+                    body { font-family: Arial, sans-serif; margin: 0; padding: 20px; }
+                    .modern-template { max-width: 800px; margin: 0 auto; }
+                    @media print {
+                        body { margin: 0; padding: 10px; }
+                        .modern-template { max-width: none; }
+                    }
+                </style>
+            </head>
+            <body>
+                ${resumeContent}
+            </body>
+            </html>
+        `);
+        
+        printWindow.document.close();
+        
+        // Wait for content to load, then print
+        setTimeout(() => {
+            printWindow.print();
+            printWindow.close();
+            hideLoading();
+            showToast('Resume download initiated!', 'success');
+        }, 1000);
+        
+    } catch (error) {
+        console.error('Download error:', error);
+        showToast('Failed to download resume', 'error');
+        hideLoading();
+    }
+}
+
+function editResume() {
+    closeModal();
+}
+
+function showEnhancedResumePreview() {
+    if (window.enhancedResumeData) {
+        window.resumeData = window.enhancedResumeData;
+        generateAIResume();
+    } else {
+        showToast('No enhanced resume data available', 'error');
     }
 }
 
@@ -1184,12 +1163,18 @@ function resetForm() {
     });
 
     const container = document.getElementById('experienceContainer');
-    const firstItem = container.querySelector('.experience-item');
-    container.innerHTML = '';
-    container.appendChild(firstItem);
-    firstItem.querySelectorAll('input, textarea').forEach(input => {
-        input.value = '';
-    });
+    if (container) {
+        const firstItem = container.querySelector('.experience-item');
+        container.innerHTML = '';
+        if (firstItem) {
+            container.appendChild(firstItem);
+            firstItem.querySelectorAll('input, textarea').forEach(input => {
+                input.value = '';
+            });
+        } else {
+            addDefaultExperience();
+        }
+    }
 
     localStorage.removeItem('usedAIEnhancement');
 }
@@ -1229,85 +1214,4 @@ window.selectTemplate = selectTemplate;
 window.addExperience = addExperience;
 window.removeExperience = removeExperience;
 window.analyzeJobDescription = analyzeJobDescription;
-window.enhanceUploadedResume = enhanceExistingResume; //Alias for compatibility
-
-// Global variables
-let currentTemplate = 'modern';
-let resumeData = {};
-let isEnhancing = false;
-
-// Add missing startBuilding function
-function startBuilding() {
-    console.log('Starting resume building process...');
-
-    // Get the form data
-    const formData = getFormData();
-
-    if (!validateFormData(formData)) {
-        showToast('Please fill in all required fields', 'error');
-        return;
-    }
-
-    // Store the data and proceed to generation
-    resumeData = formData;
-    generateResume();
-}
-
-// Get form data function
-function getFormData() {
-    const personalInfo = {
-        name: document.getElementById('name')?.value || '',
-        email: document.getElementById('email')?.value || '',
-        phone: document.getElementById('phone')?.value || '',
-        location: document.getElementById('location')?.value || ''
-    };
-
-    const experience = [];
-    const experienceItems = document.querySelectorAll('.experience-item');
-    experienceItems.forEach(item => {
-        const company = item.querySelector('.company')?.value || '';
-        const position = item.querySelector('.position')?.value || '';
-        const startDate = item.querySelector('.startDate')?.value || '';
-        const endDate = item.querySelector('.endDate')?.value || '';
-        const description = item.querySelector('.description')?.value || '';
-
-        if (company && position) {
-            experience.push({
-                company,
-                position,
-                startDate,
-                endDate,
-                description
-            });
-        }
-    });
-
-    const skillsText = document.getElementById('skills')?.value || '';
-    const skills = skillsText.split(',').map(skill => skill.trim()).filter(skill => skill);
-
-    const jobTitle = document.getElementById('jobTitle')?.value || '';
-    const targetJobDescription = document.getElementById('targetJobDescription')?.value || '';
-
-    return {
-        personalInfo,
-        experience,
-        skills,
-        jobTitle,
-        targetJobDescription,
-        industryFocus: 'General'
-    };
-}
-
-// Validate form data
-function validateFormData(data) {
-    if (!data.personalInfo.name || !data.personalInfo.email) {
-        return false;
-    }
-    if (!data.jobTitle) {
-        return false;
-    }
-    if (data.experience.length === 0) {
-        return false;
-    }
-    return true;
-}
+window.enhanceUploadedResume = enhanceExistingResume; // Alias for compatibility
