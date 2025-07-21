@@ -263,30 +263,11 @@ async function enhanceExistingResume() {
                 enhanceBtn.classList.add('btn-success');
             }
         } else {
-            throw new Error(result.error || 'Enhancement failed - no data returned');
+            throw new Error(result.error || 'AI enhancement failed - no data returned');
         }
     } catch (error) {
         console.error('Resume enhancement error:', error);
-
-        // Try basic extraction as fallback
-        try {
-            const fileText = await readFileAsText(uploadedResumeFile);
-            const basicData = extractBasicResumeInfo(fileText);
-            populateFormWithEnhancedData(basicData);
-            window.enhancedResumeData = basicData;
-            showToast('Resume processed (AI enhancement unavailable)', 'info');
-
-            const enhanceBtn = document.getElementById('enhanceBtn');
-            if (enhanceBtn) {
-                enhanceBtn.innerHTML = '<i class="fas fa-eye"></i> Preview & Download';
-                enhanceBtn.onclick = function() {
-                    showEnhancedResumePreview();
-                };
-            }
-        } catch (fallbackError) {
-            console.error('Basic extraction failed:', fallbackError);
-            showToast('Failed to process resume. Please check the file and try again.', 'error');
-        }
+        showToast('AI enhancement failed. Please check the file and try again.', 'error');
     } finally {
         hideLoading();
     }
@@ -920,30 +901,8 @@ async function generateResume(type) {
         // Payment check disabled for testing
         console.log('Payment check disabled for testing');
 
-        // If we already have enhanced data from upload, use it directly
-        if (window.enhancedResumeData && localStorage.getItem('usedAIEnhancement') === 'true') {
-            console.log('Using previously enhanced data');
-
-            // Merge enhanced data with current form data
-            const mergedData = {
-                ...window.enhancedResumeData,
-                ...window.resumeData,
-                personalInfo: {
-                    ...window.enhancedResumeData.personalInfo,
-                    ...window.resumeData.personalInfo
-                }
-            };
-
-            window.resumeData = mergedData;
-
-            // Generate resume using basic template with enhanced data
-            const resumeHTML = createBasicResumeHTML();
-            showResumePreview(resumeHTML);
-            showToast('Resume generated using enhanced data!', 'success');
-        } else {
-            // Generate AI-enhanced resume for new resumes
-            await generateAIResume();
-        }
+        // Generate AI-enhanced resume
+        await generateAIResume();
     } catch (error) {
         console.error('Resume generation error:', error);
         showToast('Failed to generate resume. Please try again.', 'error');
@@ -985,42 +944,25 @@ async function generateAIResume() {
         const result = await response.json();
         console.log('AI generation result:', result);
 
-        if (result.success) {
+        if (result.success && result.content && typeof result.content === 'object') {
             localStorage.setItem('usedAIEnhancement', 'true');
             window.hasUsedAI = true;
 
             // Create AI-enhanced resume with the generated content
-            if (result.content && typeof result.content === 'object') {
-                // Merge AI content with user data for complete resume
-                const enhancedData = {
-                    ...window.resumeData,
-                    aiContent: result.content
-                };
-                
-                const resumeHTML = createAIEnhancedResumeHTML(enhancedData);
-                showResumePreview(resumeHTML, result.content);
-                showToast('AI-enhanced resume generated successfully!', 'success');
-            } else {
-                // Fallback to enhanced basic template
-                const basicHTML = createBasicResumeHTML();
-                showResumePreview(basicHTML);
-                showToast('Resume generated with enhanced formatting!', 'success');
-            }
+            const enhancedData = {
+                ...window.resumeData,
+                aiContent: result.content
+            };
+            
+            const resumeHTML = createAIEnhancedResumeHTML(enhancedData);
+            showResumePreview(resumeHTML, result.content);
+            showToast('AI-enhanced resume generated successfully!', 'success');
         } else {
-            throw new Error(result.error || 'AI generation failed');
+            throw new Error(result.error || 'AI generation failed - no content returned');
         }
     } catch (error) {
         console.error('AI Resume generation error:', error);
-
-        // Always show a resume even if AI fails
-        try {
-            const basicHTML = createBasicResumeHTML();
-            showResumePreview(basicHTML);
-            showToast('Resume generated using professional template (AI enhancement temporarily unavailable)', 'info');
-        } catch (fallbackError) {
-            console.error('Fallback generation error:', fallbackError);
-            showToast('Failed to generate resume. Please check your information and try again.', 'error');
-        }
+        showToast('AI resume generation failed. Please try again.', 'error');
     }
 }
 

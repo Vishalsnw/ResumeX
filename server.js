@@ -589,9 +589,11 @@ app.post('/api/enhance-resume', async (req, res) => {
       enhancedData = JSON.parse(cleanContent);
       console.log('Successfully parsed enhanced data');
     } catch (parseError) {
-      console.warn('Failed to parse AI response, using fallback extraction');
-      console.warn('Parse error:', parseError.message);
-      enhancedData = extractBasicInfo(resumeText, jobTitle || 'Professional');
+      console.error('Failed to parse AI response:', parseError.message);
+      return res.status(500).json({ 
+        success: false, 
+        error: 'AI response parsing failed'
+      });
     }
 
     res.json({ success: true, enhancedData });
@@ -613,21 +615,6 @@ app.post('/api/enhance-resume', async (req, res) => {
     } else if (error.message.includes('timeout')) {
       errorMessage = 'Request timeout - please try again';
       statusCode = 408;
-    }
-
-    // Try fallback extraction even on error
-    try {
-      const { resumeText, jobTitle } = req.body;
-      if (resumeText && resumeText.trim().length > 0) {
-        const fallbackData = extractBasicInfo(resumeText, jobTitle || 'Professional');
-        return res.json({ 
-          success: true, 
-          enhancedData: fallbackData,
-          note: 'Used basic extraction due to AI service unavailability'
-        });
-      }
-    } catch (fallbackError) {
-      console.error('Fallback extraction also failed:', fallbackError.message);
     }
 
     res.status(statusCode).json({ success: false, error: errorMessage });

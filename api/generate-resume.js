@@ -1,4 +1,3 @@
-
 import axios from 'axios';
 
 export default async function handler(req, res) {
@@ -68,7 +67,12 @@ export default async function handler(req, res) {
     });
 
     const aiContent = JSON.parse(response.data.choices[0].message.content);
-    res.json({ success: true, content: aiContent });
+    
+    if (aiContent) {
+      res.json({ success: true, content: aiContent });
+    } else {
+      res.status(500).json({ success: false, error: 'AI content generation failed' });
+    }
   } catch (error) {
     console.error('AI Generation Error:', error);
     res.status(500).json({ success: false, error: 'Failed to generate AI content' });
