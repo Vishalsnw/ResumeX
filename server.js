@@ -487,21 +487,24 @@ app.post('/api/enhance-resume', async (req, res) => {
       return res.json({ success: true, enhancedData: fallbackData });
     }
 
-    const prompt = `As an expert resume writer, analyze and enhance this existing resume. Extract structured information and improve the content for better ATS compatibility and job matching.
+    const prompt = `As an expert resume writer, analyze and enhance this existing resume. Extract ALL work experience entries and structured information, then improve the content for better ATS compatibility and job matching.
 
     EXISTING RESUME TEXT:
-    ${resumeText.substring(0, 3000)}
+    ${resumeText.substring(0, 4000)}
 
     TARGET JOB TITLE: ${jobTitle || 'Professional'}
     JOB DESCRIPTION: ${jobDescription || 'Not provided'}
 
-    TASKS:
+    CRITICAL REQUIREMENTS:
     1. Extract personal information (name, email, phone, location)
-    2. Parse work experience with improved descriptions
-    3. Identify and categorize skills
-    4. Extract education and certifications
-    5. Enhance content with action verbs and quantifiable achievements
-    6. Optimize for ATS compatibility
+    2. Parse ALL work experience entries - do not miss any jobs or positions
+    3. For each experience, extract: company name, job title, dates, and detailed description
+    4. Identify and categorize ALL skills mentioned
+    5. Extract education and certifications
+    6. Enhance content with action verbs and quantifiable achievements
+    7. Optimize for ATS compatibility
+
+    IMPORTANT: Ensure you capture EVERY work experience mentioned in the resume, even if briefly described.
 
     Return as JSON with these exact fields:
     {

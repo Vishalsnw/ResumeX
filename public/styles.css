@@ -1173,118 +1173,150 @@ body {
 }
 
 /* Resume Content Styles */
-.resume-container { 
-            max-width: 210mm; 
-            margin: 0 auto; 
-            background: white; 
-            padding: 15mm 20mm;
-            font-family: 'Calibri', 'Arial', sans-serif;
-            font-size: 11pt;
-            line-height: 1.3;
-            color: #2d3748;
-        }
+/* Resume Preview Styles */
+.resume-container {
+    background: white;
+    padding: 40px;
+    margin: 20px auto;
+    max-width: 800px;
+    font-family: 'Arial', sans-serif;
+    line-height: 1.5;
+    color: #333;
+    box-shadow: 0 0 20px rgba(0,0,0,0.1);
+}
 
-        .resume-header, .ai-header { 
-            text-align: center;
-            border-bottom: 2px solid #2d3748; 
-            padding-bottom: 10pt; 
-            margin-bottom: 15pt; 
-        }
-        .resume-header h1, .ai-header h1 { 
-            font-size: 18pt; 
-            font-weight: bold; 
-            margin-bottom: 4pt; 
-            color: #2d3748; 
-            letter-spacing: 0.5pt;
-        }
-        .subtitle, .ai-subtitle { 
-            font-size: 12pt; 
-            color: #4a5568; 
-            font-weight: 600; 
-            margin-bottom: 8pt;
-        }
-        .contact-info, .ai-contact { 
-            font-size: 10pt; 
-            color: #4a5568; 
-            line-height: 1.2;
-        }
-        .contact-info span, .ai-contact span { 
-            margin: 0 8pt; 
-            display: inline-block;
-        }
+.resume-section {
+    margin-bottom: 25px;
+    page-break-inside: avoid;
+}
 
-        .resume-section, .ai-section { 
-            margin-bottom: 12pt; 
-        }
-        .resume-section h2, .ai-section h2 { 
-            font-size: 12pt; 
-            color: #2d3748; 
-            font-weight: bold;
-            text-transform: uppercase;
-            border-bottom: 1pt solid #4a5568; 
-            padding-bottom: 2pt; 
-            margin-bottom: 8pt; 
-            letter-spacing: 0.5pt;
-        }
+.resume-section h2 {
+    font-size: 18px;
+    font-weight: bold;
+    color: #2c3e50;
+    margin-bottom: 15px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid #3498db;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
 
-        .experience-item, .ai-experience { 
-            margin-bottom: 10pt; 
-            page-break-inside: avoid;
-        }
-        .experience-header { 
-            margin-bottom: 4pt; 
-            display: flex;
-            justify-content: space-between;
-            align-items: baseline;
-        }
-        .experience-header h3 { 
-            font-size: 11pt; 
-            font-weight: bold; 
-            color: #2d3748; 
-            margin-bottom: 1pt;
-        }
-        .company { 
-            font-size: 10pt; 
-            color: #4a5568; 
-            font-weight: 600;
-            margin-bottom: 1pt;
-        }
-        .dates {
-            font-size: 9pt; 
-            color: #718096; 
-            font-style: italic; 
-            white-space: nowrap;
-        }
-        .description p, .experience-details p { 
-            font-size: 10pt; 
-            margin-bottom: 2pt; 
-            line-height: 1.2;
-            text-align: justify;
-        }
+.ai-section h2 {
+    font-size: 18px;
+    font-weight: bold;
+    color: #2c3e50;
+    margin-bottom: 15px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid #3498db;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
 
-        .skills-grid { 
-            display: flex; 
-            flex-wrap: wrap; 
-            gap: 4pt; 
-        }
-        .skill-tag { 
-            background: #e2e8f0; 
-            color: #2d3748; 
-            padding: 2pt 6pt; 
-            border-radius: 2pt; 
-            font-size: 9pt; 
-            font-weight: 500;
-            border: 1pt solid #cbd5e0;
-        }
+.resume-header, .ai-header {
+    text-align: center;
+    margin-bottom: 30px;
+    padding-bottom: 20px;
+    border-bottom: 3px solid #3498db;
+}
 
-        .ai-summary {
-            font-size: 10pt;
-            line-height: 1.3;
-            color: #4a5568;
-            margin-bottom: 8pt;
-            text-align: justify;
-            font-style: italic;
-        }
+.resume-header h1, .ai-header h1 {
+    font-size: 32px;
+    font-weight: bold;
+    margin-bottom: 8px;
+    color: #2c3e50;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.subtitle, .ai-subtitle {
+    font-size: 20px;
+    color: #3498db;
+    font-weight: 600;
+    margin-bottom: 15px;
+}
+
+.contact-info, .ai-contact {
+    font-size: 14px;
+    color: #7f8c8d;
+    line-height: 1.4;
+}
+
+.contact-info span, .ai-contact span {
+    margin: 0 15px;
+    display: inline-block;
+}
+
+.experience-item, .ai-experience {
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #ecf0f1;
+}
+
+.experience-header {
+    margin-bottom: 12px;
+}
+
+.experience-header h3 {
+    font-size: 18px;
+    font-weight: bold;
+    color: #2c3e50;
+    margin-bottom: 5px;
+}
+
+.company {
+    font-size: 16px;
+    color: #3498db;
+    font-weight: 600;
+    margin-bottom: 5px;
+}
+
+.dates {
+    font-size: 14px;
+    color: #7f8c8d;
+    font-style: italic;
+}
+
+.bullet-point {
+    margin-bottom: 8px;
+    padding-left: 15px;
+    line-height: 1.6;
+    font-size: 14px;
+}
+
+.description p, .experience-details p {
+    margin-bottom: 8px;
+    padding-left: 15px;
+    line-height: 1.6;
+    font-size: 14px;
+}
+
+.skills-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.skill-tag {
+    background: #3498db;
+    color: white;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.ai-summary {
+    font-size: 16px;
+    line-height: 1.6;
+    color: #2c3e50;
+    margin-bottom: 15px;
+    padding: 15px;
+    background: #f8f9fa;
+    border-left: 4px solid #3498db;
+    font-style: italic;
+}
 
 /* File upload area */
 .file-upload-area {

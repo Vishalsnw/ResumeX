@@ -220,6 +220,7 @@ async function enhanceExistingResume() {
         const jobTitle = document.getElementById('jobTitle').value || 'Professional';
 
         console.log('Starting resume enhancement...');
+        console.log('Resume text length:', fileText.length);
 
         const response = await fetch('/api/enhance-resume', {
             method: 'POST',
@@ -246,10 +247,15 @@ async function enhanceExistingResume() {
         }
 
         const result = await response.json();
+        console.log('Enhancement result:', result);
 
         if (result.success && result.enhancedData) {
-            populateFormWithEnhancedData(result.enhancedData);
-            window.enhancedResumeData = result.enhancedData;
+            // Validate and clean the enhanced data
+            const cleanedData = validateAndCleanEnhancedData(result.enhancedData);
+            console.log('Cleaned enhanced data:', cleanedData);
+            
+            populateFormWithEnhancedData(cleanedData);
+            window.enhancedResumeData = cleanedData;
             localStorage.setItem('usedAIEnhancement', 'true');
             showToast('Resume enhanced successfully! You can now edit and preview.', 'success');
 
@@ -591,6 +597,75 @@ function cleanResumeData(data) {
     // Clean education and certifications
     cleaned.education = cleanString(data.education);
     cleaned.certifications = cleanString(data.certifications);
+
+// Function to validate and clean enhanced data
+function validateAndCleanEnhancedData(data) {
+    const cleaned = {
+        personalInfo: {},
+        experience: [],
+        skills: [],
+        jobTitle: '',
+        education: '',
+        certifications: ''
+    };
+
+    // Clean personal info
+    if (data.personalInfo) {
+        cleaned.personalInfo = {
+            name: cleanString(data.personalInfo.name),
+            email: cleanString(data.personalInfo.email),
+            phone: cleanString(data.personalInfo.phone),
+            location: cleanString(data.personalInfo.location)
+        };
+    }
+
+    // Clean job title
+    cleaned.jobTitle = cleanString(data.jobTitle) || 'Professional';
+
+    // Clean and extract ALL experience entries
+    if (Array.isArray(data.experience)) {
+        cleaned.experience = data.experience
+            .filter(exp => exp && typeof exp === 'object')
+            .map(exp => ({
+                company: cleanString(exp.company),
+                position: cleanString(exp.position),
+                startDate: exp.startDate || '',
+                endDate: exp.endDate || '',
+                description: cleanString(exp.description)
+            }))
+            .filter(exp => exp.company && exp.position);
+    }
+
+    // Clean skills with better object handling
+    if (data.skills) {
+        if (Array.isArray(data.skills)) {
+            cleaned.skills = data.skills
+                .filter(skill => skill && typeof skill === 'string' && skill.trim() !== '')
+                .map(skill => skill.trim());
+        } else if (typeof data.skills === 'object') {
+            // Handle skills object with categories
+            const allSkills = [];
+            Object.values(data.skills).forEach(category => {
+                if (Array.isArray(category)) {
+                    allSkills.push(...category.filter(skill => typeof skill === 'string' && skill.trim()));
+                } else if (typeof category === 'string') {
+                    allSkills.push(category.trim());
+                }
+            });
+            cleaned.skills = allSkills;
+        } else if (typeof data.skills === 'string') {
+            cleaned.skills = data.skills.split(',').map(skill => skill.trim()).filter(skill => skill !== '');
+        }
+    }
+
+    // Clean education and certifications
+    cleaned.education = cleanString(data.education);
+    cleaned.certifications = cleanString(data.certifications);
+
+    return cleaned;
+}
+
+
 
     return cleaned;
 }
@@ -1659,10 +1734,10 @@ function createAIEnhancedResumeHTML(enhancedData) {
 
     // Helper function to format description properly
     function formatDescription(description) {
-        if (!description) return '<p>• Key responsibilities and achievements</p>';
+        if (!description) return '<div class="bullet-point">• Key responsibilities and achievements</div>';
 
         if (Array.isArray(description)) {
-            return description.map(item => `<p>• ${item}</p>`).join('');
+            return description.map(item => `<div class="bullet-point">• ${item}</div>`).join('');
         }
 
         if (typeof description === 'string') {
@@ -1673,15 +1748,43 @@ function createAIEnhancedResumeHTML(enhancedData) {
                     .map(line => {
                         line = line.trim();
                         if (!line.startsWith('•')) line = '• ' + line;
-                        return `<p>${line}</p>`;
+                        return `<div class="bullet-point">${line}</div>`;
                     })
                     .join('');
             }
             // For single paragraphs, add bullet point
-            return `<p>• ${description}</p>`;
+            return `<div class="bullet-point">• ${description}</div>`;
         }
 
-        return '<p>• Key responsibilities and achievements</p>';
+        return '<div class="bullet-point">• Key responsibilities and achievements</div>';
+    }
+
+    // Helper function to extract skills properly
+    function extractSkills(skillsData) {
+        if (!skillsData) return ['Professional Skills'];
+        
+        if (Array.isArray(skillsData)) {
+            return skillsData.filter(skill => typeof skill === 'string' && skill.trim());
+        }
+        
+        if (typeof skillsData === 'object') {
+            // Handle nested skill objects
+            const allSkills = [];
+            Object.values(skillsData).forEach(category => {
+                if (Array.isArray(category)) {
+                    allSkills.push(...category.filter(skill => typeof skill === 'string' && skill.trim()));
+                } else if (typeof category === 'string') {
+                    allSkills.push(category.trim());
+                }
+            });
+            return allSkills.length > 0 ? allSkills : ['Professional Skills'];
+        }
+        
+        if (typeof skillsData === 'string') {
+            return skillsData.split(',').map(skill => skill.trim()).filter(skill => skill);
+        }
+        
+        return ['Professional Skills'];
     }
 
     return `
@@ -1734,13 +1837,10 @@ function createAIEnhancedResumeHTML(enhancedData) {
             <div class="resume-section ai-section">
                 <h2><i class="fas fa-cog"></i> Core Skills</h2>
                 <div class="skills-grid">
-                    ${(aiContent && aiContent.optimizedSkills ? 
-                        (Array.isArray(aiContent.optimizedSkills) ? aiContent.optimizedSkills : [aiContent.optimizedSkills])
-                        : skills).map(skill => 
-                        `<span class="skill-tag">${skill}</span>`
-                    ).join('')}
+                    ${extractSkills(aiContent && aiContent.optimizedSkills ? aiContent.optimizedSkills : skills)
+                        .map(skill => `<span class="skill-tag">${skill}</span>`).join('')}
                 </div>
-            </div>
+            </div></div>
 
             ${education && education !== 'NA' ? `
                 <div class="resume-section ai-section">
