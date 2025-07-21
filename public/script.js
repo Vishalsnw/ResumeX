@@ -232,7 +232,8 @@ async function enhanceExistingResume() {
                 resumeText: fileText,
                 jobDescription,
                 jobTitle
-            })
+            }),
+            signal: AbortSignal.timeout(120000) // 2 minutes timeout
         });
 
         if (!response.ok) {
@@ -273,7 +274,27 @@ async function enhanceExistingResume() {
         }
     } catch (error) {
         console.error('Resume enhancement error:', error);
-        showToast('AI enhancement failed. Please check the file and try again.', 'error');
+        
+        let errorMessage = 'AI enhancement failed. Please try again.';
+        
+        if (error.name === 'TimeoutError') {
+            errorMessage = 'Enhancement timeout - please try with a shorter resume or check your connection.';
+        } else if (error.name === 'AbortError') {
+            errorMessage = 'Enhancement was cancelled - please try again.';
+        } else if (error.message.includes('Failed to fetch')) {
+            errorMessage = 'Network error - please check your connection and try again.';
+        }
+        
+        showToast(errorMessage, 'error');
+        
+        // Try to use basic extraction as fallback
+        try {
+            const fallbackData = extractBasicResumeInfo(fileText);
+            populateFormWithEnhancedData(fallbackData);
+            showToast('Basic resume info extracted successfully!', 'success');
+        } catch (fallbackError) {
+            console.error('Fallback extraction also failed:', fallbackError);
+        }
     } finally {
         hideLoading();
     }

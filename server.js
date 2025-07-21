@@ -553,7 +553,7 @@ app.post('/api/enhance-resume', async (req, res) => {
         'Authorization': `Bearer ${apiKey}`,
         'Content-Type': 'application/json'
       },
-      timeout: 30000
+      timeout: 120000 // Increase to 2 minutes
     });
 
     console.log('API Response received:', response.status);
@@ -603,9 +603,19 @@ app.post('/api/enhance-resume', async (req, res) => {
     } else if (error.response?.status === 429) {
       errorMessage = 'Service temporarily busy - please try again';
       statusCode = 429;
-    } else if (error.message.includes('timeout')) {
-      errorMessage = 'Request timeout - Please try again';
+    } else if (error.message.includes('timeout') || error.code === 'ECONNABORTED') {
+      errorMessage = 'Request timeout - Please try again with a shorter resume';
       statusCode = 408;
+    } else if (error.message.includes('aborted')) {
+      errorMessage = 'Request was cancelled - Please try again';
+      statusCode = 499;
+    }
+
+    // Use fallback extraction for better user experience
+    if (!process.env.DEEPSEEK_API_KEY || statusCode >= 500) {
+      console.log('Using fallback extraction...');
+      const fallbackData = extractBasicInfo(req.body.resumeText, req.body.jobTitle || 'Professional');
+      return res.json({ success: true, enhancedData: fallbackData });
     }
 
     res.status(statusCode).json({ success: false, error: errorMessage });
