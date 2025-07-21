@@ -982,7 +982,7 @@ async function generateAIResume() {
 function createBasicResumeHTML() {
     // Use templates from templates.js if available
     if (window.resumeTemplates && window.resumeTemplates[selectedTemplate]) {
-        return window.resumeTemplates[selectedTemplate.html(window.resumeData);
+        return window.resumeTemplates[selectedTemplate].html(window.resumeData);
     }
 
     // Fallback to built-in templates
@@ -1755,14 +1755,6 @@ function createAIEnhancedResumeHTML(enhancedData) {
                 </div>
             ` : ''}
 
-            ${aiContent && aiContent.additionalSections && Array.isArray(aiContent.additionalSections) ? 
-                aiContent.additionalSections.map(section => `
-                    <div class="resume-section ai-section">
-                        <h2><i class="fas fa-star"></i> ${section.title}</h2>
-                        <p>${section.content}</p>
-                    </div>
-                `).join('') : ''}
-
             ${aiContent && aiContent.atsScore ? `
                 <div class="ai-footer">
                     <div class="ats-score">
@@ -1777,8 +1769,6 @@ function createAIEnhancedResumeHTML(enhancedData) {
 
 function showResumePreview(htmlContent, aiContent) {
     document.getElementById('resumeContent').innerHTML = htmlContent;
-
-    // Payment indicator disabled for testing
     console.log('Payment indicator disabled for testing');
 
     if (modal) modal.style.display = 'none';
@@ -1787,10 +1777,7 @@ function showResumePreview(htmlContent, aiContent) {
 
 function showEnhancedResumePreview() {
     try {
-        // Collect current form data in case user made edits
         const currentFormData = collectFormData();
-
-        // Use enhanced data as base but allow form overrides
         const dataToUse = {
             ...window.enhancedResumeData,
             ...currentFormData,
@@ -1801,13 +1788,8 @@ function showEnhancedResumePreview() {
         };
 
         window.resumeData = dataToUse;
-
-        // Generate HTML using the selected template
-        const resumeHTML = createBasicResumeHTML();
-
-        // Show the preview
+        const resumeHTML = createAIEnhancedResumeHTML(dataToUse);
         showResumePreview(resumeHTML);
-
         showToast('Resume preview ready for download!', 'success');
     } catch (error) {
         console.error('Preview generation error:', error);
@@ -1821,7 +1803,6 @@ function editResume() {
 }
 
 function downloadPDF() {
-    // Temporarily disable payment requirement for testing
     console.log('Payment check disabled for testing');
     performDownload();
 }
@@ -1897,52 +1878,37 @@ function getResumeStyles() {
 
         .resume-container { max-width: 800px; margin: 0 auto; background: white; }
 
-        .resume-header { 
-            text-align: center; 
+        .resume-header, .ai-header { 
+            text-align: center;
             border-bottom: 2px solid #4f46e5; 
             padding-bottom: 15px; 
             margin-bottom: 20px; 
         }
-        .resume-header h1 { 
+        .resume-header h1, .ai-header h1 { 
             font-size: 24px; 
             font-weight: bold; 
             margin-bottom: 5px; 
             color: #1e293b; 
         }
-        .subtitle { 
+        .subtitle, .ai-subtitle { 
             font-size: 16px; 
             color: #4f46e5; 
             font-weight: 600; 
             margin-bottom: 10px;
         }
-        .contact-info { 
+        .contact-info, .ai-contact { 
             font-size: 12px; 
             color: #666; 
         }
-        .contact-info span { 
+        .contact-info span, .ai-contact span { 
             margin: 0 10px; 
             display: inline-block;
         }
 
-        .resume-body { 
-            display: flex; 
-            gap: 20px; 
-            align-items: flex-start;
-        }
-        .main-content { 
-            flex: 2; 
-        }
-        .sidebar { 
-            flex: 1; 
-            background: #f8fafc; 
-            padding: 15px; 
-            border-radius: 5px;
-        }
-
-        .resume-section { 
+        .resume-section, .ai-section { 
             margin-bottom: 20px; 
         }
-        .resume-section h2 { 
+        .resume-section h2, .ai-section h2 { 
             font-size: 16px; 
             color: #4f46e5; 
             border-bottom: 1px solid #e2e8f0; 
@@ -1950,7 +1916,7 @@ function getResumeStyles() {
             margin-bottom: 10px; 
         }
 
-        .experience-item { 
+        .experience-item, .ai-experience { 
             margin-bottom: 15px; 
             page-break-inside: avoid;
         }
@@ -1963,17 +1929,18 @@ function getResumeStyles() {
             color: #1e293b; 
             margin-bottom: 2px;
         }
-        .experience-header h4 { 
+        .company { 
             font-size: 13px; 
             color: #4f46e5; 
             font-weight: 600;
             margin-bottom: 2px;
         }
-        .dates {        font-size: 12px; 
+        .dates {
+            font-size: 12px; 
             color: #64748b; 
             font-style: italic; 
         }
-        .description p { 
+        .description p, .experience-details p { 
             font-size: 12px; 
             margin-bottom: 3px; 
             line-height: 1.3;
@@ -1993,9 +1960,11 @@ function getResumeStyles() {
             font-weight: 500;
         }
 
-        .education-item, .certifications-item { 
-            font-size: 12px; 
-            line-height: 1.3;
+        .ai-summary {
+            font-size: 13px;
+            line-height: 1.4;
+            color: #374151;
+            margin-bottom: 10px;
         }
 
         @media print { 
@@ -2003,13 +1972,6 @@ function getResumeStyles() {
                 margin: 0; 
                 padding: 10px; 
                 font-size: 12px;
-            }
-            .resume-body { 
-                display: block; 
-            }
-            .sidebar { 
-                margin-top: 20px; 
-                background: white;
             }
             .skill-tag { 
                 border: 1px solid #4f46e5; 
@@ -2169,6 +2131,17 @@ function showToast(message, type = 'info') {
     }, 5000);
 }
 
+// Helper function to format dates properly
+function formatDate(dateString) {
+    if (!dateString) return 'Present';
+    try {
+        const date = new Date(dateString);
+        return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short' });
+    } catch {
+        return dateString;
+    }
+}
+
 function resetForm() {
     currentStep = 1;
     showStep(currentStep);
@@ -2186,20 +2159,6 @@ function resetForm() {
 
     localStorage.removeItem('usedAIEnhancement');
 }
-
-// Smooth scrolling for anchor links
-document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-    anchor.addEventListener('click', function (e) {
-        e.preventDefault();
-        const target = document.querySelector(this.getAttribute('href'));
-        if (target) {
-            target.scrollIntoView({
-                behavior: 'smooth',
-                block: 'start'
-            });
-        }
-    });
-});
 
 // Add animation styles only if not already added
 if (!document.querySelector('style[data-animations]')) {
