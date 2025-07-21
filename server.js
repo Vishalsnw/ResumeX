@@ -126,26 +126,27 @@ app.post('/api/generate-resume', async (req, res) => {
     console.log('Making request to Deepseek API...');
 
     const response = await axios.post('https://api.deepseek.com/v1/chat/completions', {
-      model: 'deepseek-chat',
-      messages: [
-        {
-          role: 'system',
-          content: 'You are a professional resume writer with expertise in ATS optimization, career coaching, and industry-specific resume strategies. Always return valid JSON format.'
-        },
-        {
-          role: 'user',
-          content: prompt
-        }
-      ],
-      max_tokens: 3000,
-      temperature: 0.6
-    }, {
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json'
-      },
-      timeout: 30000
-    });
+            model: 'deepseek-chat',
+            messages: [
+                {
+                    role: 'system',
+                    content: 'You are a professional resume writer with expertise in ATS optimization, career coaching, and industry-specific resume strategies. Always return valid JSON format.'
+                },
+                {
+                    role: 'user',
+                    content: prompt
+                }
+            ],
+            max_tokens: 2500,
+            temperature: 0.7,
+            top_p: 0.9
+        }, {
+            headers: {
+                'Authorization': `Bearer ${apiKey}`,
+                'Content-Type': 'application/json'
+            },
+            timeout: 60000 // Increase timeout to 60 seconds
+        });
 
     console.log('Deepseek API response received, status:', response.status);
 
@@ -613,7 +614,7 @@ app.post('/api/enhance-resume', async (req, res) => {
       errorMessage = 'Service temporarily busy - please try again';
       statusCode = 429;
     } else if (error.message.includes('timeout')) {
-      errorMessage = 'Request timeout - please try again';
+      errorMessage = 'Request timeout - Please try again';
       statusCode = 408;
     }
 
@@ -834,7 +835,7 @@ app.post('/api/create-order', async (req, res) => {
       response: error.response?.data,      status: error.response?.status
     });
 
-    let errorMessage = 'Failed to create payment order';
+    let errorMessage = ''Failed to create payment order';
     if (error.error && error.error.code === 'BAD_REQUEST_ERROR') {
       errorMessage = 'Invalid payment request - Please check your details';
     }

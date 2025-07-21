@@ -928,7 +928,7 @@ async function generateBasicResume() {
 async function generateAIResume() {
     try {
         console.log('Generating AI resume with data:', window.resumeData);
-        
+
         const response = await fetch('/api/generate-resume', {
             method: 'POST',
             headers: {
@@ -953,16 +953,24 @@ async function generateAIResume() {
                 ...window.resumeData,
                 aiContent: result.content
             };
-            
+
             const resumeHTML = createAIEnhancedResumeHTML(enhancedData);
             showResumePreview(resumeHTML, result.content);
             showToast('AI-enhanced resume generated successfully!', 'success');
         } else {
-            throw new Error(result.error || 'AI generation failed - no content returned');
+            throw new Error(result.error || 'AI generation failed - no data returned');
         }
     } catch (error) {
         console.error('AI Resume generation error:', error);
-        showToast('AI resume generation failed. Please try again.', 'error');
+
+        // Handle specific error types
+        if (error.name === 'AbortError' || error.message.includes('aborted')) {
+            showToast('Request timeout - Please try again with a shorter description', 'error');
+        } else if (error.message.includes('Failed to fetch')) {
+            showToast('Network error - Please check your connection and try again', 'error');
+        } else {
+            showToast('AI resume generation failed. Please try again.', 'error');
+        }
     }
 }
 
@@ -1408,7 +1416,7 @@ function createMinimalistTemplate() {
                 <section class="minimalist-section">
                     <h2>Education</h2>
                     <p>${resumeData.education}</p>
-                </section>
+                </div>
             ` : ''}
         </div>
     `;
@@ -1613,7 +1621,7 @@ function createAIResumeHTML(aiContent) {
 
 function createAIEnhancedResumeHTML(enhancedData) {
     const { personalInfo, experience, skills, jobTitle, education, certifications, aiContent } = enhancedData;
-    
+
     return `
         <div class="resume-container ai-enhanced-template">
             <div class="ai-header">
@@ -1888,8 +1896,7 @@ function getResumeStyles() {
             font-weight: 600;
             margin-bottom: 2px;
         }
-        .dates { 
-            font-size: 12px; 
+        .dates {        font-size: 12px; 
             color: #64748b; 
             font-style: italic; 
         }
