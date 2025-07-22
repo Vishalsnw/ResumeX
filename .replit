@@ -4,7 +4,7 @@ modules = ["nodejs-18", "web"]
 channel = "stable-24_05"
 
 [deployment]
-run = ["sh", "-c", "npm run dev"]
+run = ["sh", "-c", "node server.js"]
 
 [workflows]
 runButton = "Start Resume Builder"
