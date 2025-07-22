@@ -1,4 +1,3 @@
-
 // Global variables - Initialize only if not already defined
 if (typeof window.currentStep === 'undefined') {
     window.currentStep = 1;
@@ -1059,7 +1058,7 @@ async function generateAIResume() {
 // Generate HTML from AI-enhanced content
 function generateResumeHTML(aiContent, data) {
     const { personalInfo, experience, skills } = data;
-    
+
     return `
         <div class="ai-enhanced-template">
             <div class="ai-header">
@@ -1128,7 +1127,7 @@ function generateResumeHTML(aiContent, data) {
 // Basic fallback template
 function generateBasicResumeHTML(data) {
     const { personalInfo, experience, skills, jobTitle, education, certifications } = data;
-    
+
     return `
         <div class="modern-template">
             <div class="resume-header">
@@ -1187,21 +1186,21 @@ function displayResumePreview(resumeHtml) {
     const previewContent = document.getElementById('resumeContent');
     if (previewContent && resumeHtml) {
         previewContent.innerHTML = resumeHtml;
-        
+
         // Store the generated content globally for download
         window.generatedResumeHtml = resumeHtml;
-        
+
         if (previewModal) {
             previewModal.style.display = 'block';
             document.body.style.overflow = 'hidden';
-            
+
             // Scroll to top of modal
             const modalBody = previewModal.querySelector('.modal-body');
             if (modalBody) {
                 modalBody.scrollTop = 0;
             }
         }
-        
+
         console.log('Resume preview displayed successfully');
     } else {
         console.error('Preview content element not found or no HTML provided');
@@ -1210,262 +1209,266 @@ function displayResumePreview(resumeHtml) {
 }
 
 async function downloadPDF() {
-    try {
-        showLoading();
-        
-        // Get the resume content from the correct element
-        const resumeContent = document.getElementById('resumeContent');
-        
-        if (!resumeContent || !resumeContent.innerHTML.trim()) {
-            throw new Error('No resume content to download');
-        }
+    if (hasValidDownloadPass()) {
+        try {
+            showLoading();
 
-        // Get all styles from the current page that apply to resume content
-        const allStyles = Array.from(document.styleSheets)
-            .map(styleSheet => {
-                try {
-                    return Array.from(styleSheet.cssRules)
-                        .map(rule => rule.cssText)
-                        .join('\n');
-                } catch (e) {
-                    return '';
-                }
-            })
-            .join('\n');
+            // Get the resume content from the correct element
+            const resumeContent = document.getElementById('resumeContent');
 
-        // Create download content with all current styles
-        const downloadContent = `
-            <!DOCTYPE html>
-            <html>
-            <head>
-                <title>Resume - ${window.resumeData?.personalInfo?.name || 'Resume'}</title>
-                <meta charset="UTF-8">
-                <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-                <style>
-                    ${allStyles}
-                    
-                    /* Override for print */
-                    body { 
-                        font-family: 'Inter', 'Arial', sans-serif !important;
-                        line-height: 1.5 !important;
-                        color: #333 !important;
-                        background: white !important;
-                        padding: 20px !important;
-                        margin: 0 !important;
-                        font-size: 12px !important;
+            if (!resumeContent || !resumeContent.innerHTML.trim()) {
+                throw new Error('No resume content to download');
+            }
+
+            // Get all styles from the current page that apply to resume content
+            const allStyles = Array.from(document.styleSheets)
+                .map(styleSheet => {
+                    try {
+                        return Array.from(styleSheet.cssRules)
+                            .map(rule => rule.cssText)
+                            .join('\n');
+                    } catch (e) {
+                        return '';
                     }
-                    
-                    .modal { display: none !important; }
-                    .header { display: none !important; }
-                    .hero { display: none !important; }
-                    .features { display: none !important; }
-                    .pricing { display: none !important; }
-                    .loading-overlay { display: none !important; }
-                    
-                    .resume-content,
-                    .modern-template, 
-                    .ai-enhanced-template { 
-                        max-width: 800px !important;
-                        margin: 0 auto !important;
-                        background: white !important;
-                        box-shadow: none !important;
-                        padding: 0 !important;
-                    }
-                    
-                    .resume-header, .ai-header { 
-                        text-align: center !important;
-                        margin-bottom: 25px !important;
-                        border-bottom: 3px solid #4f46e5 !important;
-                        padding-bottom: 20px !important;
-                    }
-                    
-                    .resume-header h1, .ai-header h1 { 
-                        color: #2d3748 !important;
-                        font-size: 28px !important;
-                        margin-bottom: 8px !important;
-                        font-weight: 700 !important;
-                        letter-spacing: 0.5px !important;
-                    }
-                    
-                    .subtitle, .ai-subtitle { 
-                        font-size: 16px !important;
-                        color: #4f46e5 !important;
-                        margin-bottom: 15px !important;
-                        font-weight: 600 !important;
-                    }
-                    
-                    .contact-info, .ai-contact { 
-                        font-size: 13px !important;
-                        color: #4a5568 !important;
-                        display: flex !important;
-                        justify-content: center !important;
-                        gap: 20px !important;
-                        flex-wrap: wrap !important;
-                    }
-                    
-                    .contact-info span, .ai-contact span { 
-                        margin: 0 !important;
-                    }
-                    
-                    .resume-section, .ai-section { 
-                        margin-bottom: 25px !important;
-                        page-break-inside: avoid !important;
-                    }
-                    
-                    .resume-section h2, .ai-section h2 { 
-                        color: #2d3748 !important;
-                        font-size: 18px !important;
-                        margin-bottom: 15px !important;
-                        border-bottom: 2px solid #4f46e5 !important;
-                        padding-bottom: 5px !important;
-                        font-weight: 700 !important;
-                        text-transform: uppercase !important;
-                        letter-spacing: 0.5px !important;
-                    }
-                    
-                    .experience-item { 
-                        margin-bottom: 20px !important;
-                        padding-bottom: 15px !important;
-                        border-bottom: 1px solid #e2e8f0 !important;
-                        page-break-inside: avoid !important;
-                    }
-                    
-                    .experience-item:last-child {
-                        border-bottom: none !important;
-                    }
-                    
-                    .experience-header { 
-                        margin-bottom: 10px !important;
-                    }
-                    
-                    .experience-header h3 { 
-                        color: #2d3748 !important;
-                        font-size: 16px !important;
-                        margin-bottom: 5px !important;
-                        font-weight: 600 !important;
-                    }
-                    
-                    .company-date { 
-                        display: flex !important;
-                        justify-content: space-between !important;
-                        font-size: 13px !important;
-                        color: #4a5568 !important;
-                        margin-bottom: 8px !important;
-                    }
-                    
-                    .company {
-                        color: #4f46e5 !important;
-                        font-weight: 500 !important;
-                    }
-                    
-                    .date {
-                        color: #718096 !important;
-                        font-style: italic !important;
-                    }
-                    
-                    .experience-description p,
-                    .experience-details p { 
-                        margin: 5px 0 !important;
-                        font-size: 13px !important;
-                        line-height: 1.4 !important;
-                        color: #4a5568 !important;
-                    }
-                    
-                    .skills-container { 
-                        display: flex !important;
-                        flex-wrap: wrap !important;
-                        gap: 8px !important;
-                        margin-top: 10px !important;
-                    }
-                    
-                    .skill-tag { 
-                        background: #f7fafc !important;
-                        border: 1px solid #e2e8f0 !important;
-                        color: #2d3748 !important;
-                        padding: 5px 12px !important;
-                        border-radius: 15px !important;
-                        font-size: 12px !important;
-                        font-weight: 500 !important;
-                    }
-                    
-                    @media print {
+                })
+                .join('\n');
+
+            // Create download content with all current styles
+            const downloadContent = `
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>Resume - ${window.resumeData?.personalInfo?.name || 'Resume'}</title>
+                    <meta charset="UTF-8">
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+                    <style>
+                        ${allStyles}
+
+                        /* Override for print */
                         body { 
-                            margin: 0 !important;
+                            font-family: 'Inter', 'Arial', sans-serif !important;
+                            line-height: 1.5 !important;
+                            color: #333 !important;
+                            background: white !important;
                             padding: 20px !important;
-                            font-size: 11px !important;
+                            margin: 0 !important;
+                            font-size: 12px !important;
                         }
-                        
+
+                        .modal { display: none !important; }
+                        .header { display: none !important; }
+                        .hero { display: none !important; }
+                        .features { display: none !important; }
+                        .pricing { display: none !important; }
+                        .loading-overlay { display: none !important; }
+
                         .resume-content,
                         .modern-template, 
                         .ai-enhanced-template { 
-                            max-width: none !important;
+                            max-width: 800px !important;
+                            margin: 0 auto !important;
+                            background: white !important;
+                            box-shadow: none !important;
+                            padding: 0 !important;
+                        }
+
+                        .resume-header, .ai-header { 
+                            text-align: center !important;
+                            margin-bottom: 25px !important;
+                            border-bottom: 3px solid #4f46e5 !important;
+                            padding-bottom: 20px !important;
+                        }
+
+                        .resume-header h1, .ai-header h1 { 
+                            color: #2d3748 !important;
+                            font-size: 28px !important;
+                            margin-bottom: 8px !important;
+                            font-weight: 700 !important;
+                            letter-spacing: 0.5px !important;
+                        }
+
+                        .subtitle, .ai-subtitle { 
+                            font-size: 16px !important;
+                            color: #4f46e5 !important;
+                            margin-bottom: 15px !important;
+                            font-weight: 600 !important;
+                        }
+
+                        .contact-info, .ai-contact { 
+                            font-size: 13px !important;
+                            color: #4a5568 !important;
+                            display: flex !important;
+                            justify-content: center !important;
+                            gap: 20px !important;
+                            flex-wrap: wrap !important;
+                        }
+
+                        .contact-info span, .ai-contact span { 
                             margin: 0 !important;
                         }
-                        
-                        .experience-item,
-                        .resume-section,
-                        .ai-section {
+
+                        .resume-section, .ai-section { 
+                            margin-bottom: 25px !important;
                             page-break-inside: avoid !important;
                         }
-                        
-                        .skill-tag {
-                            background: white !important;
-                            border: 1px solid #cbd5e0 !important;
+
+                        .resume-section h2, .ai-section h2 { 
                             color: #2d3748 !important;
+                            font-size: 18px !important;
+                            margin-bottom: 15px !important;
+                            border-bottom: 2px solid #4f46e5 !important;
+                            padding-bottom: 5px !important;
+                            font-weight: 700 !important;
+                            text-transform: uppercase !important;
+                            letter-spacing: 0.5px !important;
                         }
-                    }
-                </style>
-            </head>
-            <body>
-                <div class="resume-content">
-                    ${resumeContent.innerHTML}
-                </div>
-            </body>
-            </html>
-        `;
 
-        // Create a new window for printing
-        const printWindow = window.open('', '_blank', 'width=900,height=700');
-        
-        if (!printWindow) {
-            throw new Error('Popup blocked. Please allow popups and try again.');
-        }
+                        .experience-item { 
+                            margin-bottom: 20px !important;
+                            padding-bottom: 15px !important;
+                            border-bottom: 1px solid #e2e8f0 !important;
+                            page-break-inside: avoid !important;
+                        }
 
-        printWindow.document.write(downloadContent);
-        printWindow.document.close();
-        
-        // Wait for content and fonts to load, then print
-        printWindow.onload = function() {
-            // Give extra time for fonts and styles to load
-            setTimeout(() => {
-                printWindow.print();
-                showToast('Resume download dialog opened! Save as PDF from the print dialog.', 'success');
-                hideLoading();
-            }, 1000);
-        };
-        
-        // Fallback if onload doesn't fire
-        setTimeout(() => {
-            if (printWindow && !printWindow.closed) {
-                printWindow.print();
-                showToast('Resume download dialog opened! Save as PDF from the print dialog.', 'success');
+                        .experience-item:last-child {
+                            border-bottom: none !important;
+                        }
+
+                        .experience-header { 
+                            margin-bottom: 10px !important;
+                        }
+
+                        .experience-header h3 { 
+                            color: #2d3748 !important;
+                            font-size: 16px !important;
+                            margin-bottom: 5px !important;
+                            font-weight: 600 !important;
+                        }
+
+                        .company-date { 
+                            display: flex !important;
+                            justify-content: space-between !important;
+                            font-size: 13px !important;
+                            color: #4a5568 !important;
+                            margin-bottom: 8px !important;
+                        }
+
+                        .company {
+                            color: #4f46e5 !important;
+                            font-weight: 500 !important;
+                        }
+
+                        .date {
+                            color: #718096 !important;
+                            font-style: italic !important;
+                        }
+
+                        .experience-description p,
+                        .experience-details p { 
+                            margin: 5px 0 !important;
+                            font-size: 13px !important;
+                            line-height: 1.4 !important;
+                            color: #4a5568 !important;
+                        }
+
+                        .skills-container { 
+                            display: flex !important;
+                            flex-wrap: wrap !important;
+                            gap: 8px !important;
+                            margin-top: 10px !important;
+                        }
+
+                        .skill-tag { 
+                            background: #f7fafc !important;
+                            border: 1px solid #e2e8f0 !important;
+                            color: #2d3748 !important;
+                            padding: 5px 12px !important;
+                            border-radius: 15px !important;
+                            font-size: 12px !important;
+                            font-weight: 500 !important;
+                        }
+
+                        @media print {
+                            body { 
+                                margin: 0 !important;
+                                padding: 20px !important;
+                                font-size: 11px !important;
+                            }
+
+                            .resume-content,
+                            .modern-template, 
+                            .ai-enhanced-template { 
+                                max-width: none !important;
+                                margin: 0 !important;
+                            }
+
+                            .experience-item,
+                            .resume-section,
+                            .ai-section {
+                                page-break-inside: avoid !important;
+                            }
+
+                            .skill-tag {
+                                background: white !important;
+                               border: 1px solid #cbd5e0 !important;
+                                color: #2d3748 !important;
+                            }
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="resume-content">
+                        ${resumeContent.innerHTML}
+                    </div>
+                </body>
+                </html>
+            `;
+
+            // Create a new window for printing
+            const printWindow = window.open('', '_blank', 'width=900,height=700');
+
+            if (!printWindow) {
+                throw new Error('Popup blocked. Please allow popups and try again.');
             }
+
+            printWindow.document.write(downloadContent);
+            printWindow.document.close();
+
+            // Wait for content and fonts to load, then print
+            printWindow.onload = function() {
+                // Give extra time for fonts and styles to load
+                setTimeout(() => {
+                    printWindow.print();
+                    showToast('Resume download dialog opened! Save as PDF from the print dialog.', 'success');
+                    hideLoading();
+                }, 1000);
+            };
+
+            // Fallback if onload doesn't fire
+            setTimeout(() => {
+                if (printWindow && !printWindow.closed) {
+                    printWindow.print();
+                    showToast('Resume download dialog opened! Save as PDF from the print dialog.', 'success');
+                }
+                hideLoading();
+            }, 2000);
+
+        } catch (error) {
+            console.error('Download error:', error);
+            let errorMessage = 'Failed to download resume';
+
+            if (error.message.includes('Popup blocked')) {
+                errorMessage = 'Popup blocked. Please allow popups and try again.';
+            } else if (error.message.includes('No resume content')) {
+                errorMessage = 'No resume generated yet. Please generate a resume first.';
+            }
+
+            showToast(errorMessage, 'error');
             hideLoading();
-        }, 2000);
-        
-    } catch (error) {
-        console.error('Download error:', error);
-        let errorMessage = 'Failed to download resume';
-        
-        if (error.message.includes('Popup blocked')) {
-            errorMessage = 'Popup blocked. Please allow popups and try again.';
-        } else if (error.message.includes('No resume content')) {
-            errorMessage = 'No resume generated yet. Please generate a resume first.';
         }
-        
-        showToast(errorMessage, 'error');
-        hideLoading();
+    } else {
+        showDownloadPassModal();
     }
 }
 
@@ -1486,8 +1489,85 @@ function showLoading() {
     if (loadingOverlay) loadingOverlay.style.display = 'block';
 }
 
+async function getRazorpayKey() {
+    try {
+        const response = await fetch('/api/razorpay-key', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            return result.key;
+        } else {
+            console.error('Failed to fetch Razorpay key:', result.error);
+            showToast('Failed to fetch payment key', 'error');
+            return null;
+        }
+    } catch (error) {
+        console.error('Error fetching Razorpay key:', error);
+        showToast('Error fetching payment key', 'error');
+        return null;
+    }
+}
+
 function hideLoading() {
     if (loadingOverlay) loadingOverlay.style.display = 'none';
+}
+
+function showDownloadPassStatus() {
+    const passData = localStorage.getItem('downloadPass');
+    if (!passData) return;
+
+    try {
+        const pass = JSON.parse(passData);
+        const now = new Date().getTime();
+        const passExpiry = new Date(pass.expiryTime).getTime();
+
+        if (now < passExpiry) {
+            const timeLeft = passExpiry - now;
+            const hoursLeft = Math.floor(timeLeft / (1000 * 60 * 60));
+            const minutesLeft = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+
+            // Add status indicator to page
+            const statusDiv = document.createElement('div');
+            statusDiv.id = 'downloadPassStatus';
+            statusDiv.style.cssText = `
+                position: fixed;
+                top: 10px;
+                right: 10px;
+                background: linear-gradient(45deg, #4CAF50, #45a049);
+                color: white;
+                padding: 8px 15px;
+                border-radius: 20px;
+                font-size: 12px;
+                font-weight: bold;
+                z-index: 1001;
+                box-shadow: 0 2px 10px rgba(76, 175, 80, 0.3);
+                animation: pulse 2s infinite;
+            `;
+            statusDiv.innerHTML = `🎫 Download Pass Active: ${hoursLeft}h ${minutesLeft}m left`;
+            document.body.appendChild(statusDiv);
+
+            // Add animation
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes pulse {
+                    0% { transform: scale(1); }
+                    50% { transform: scale(1.05); }
+                    100% { transform: scale(1); }
+                }
+            `;
+            document.head.appendChild(style);
+        } else {
+            localStorage.removeItem('downloadPass');
+        }
+    } catch (error) {
+        localStorage.removeItem('downloadPass');
+    }
 }
 
 function showToast(message, type = 'info') {
@@ -1509,8 +1589,15 @@ function showToast(message, type = 'info') {
     document.body.appendChild(toast);
 
     setTimeout(() => {
-        toast.remove();
-    }, 5000);
+        toast.classList.add('show');
+    }, 100);
+
+    setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => {
+            document.body.removeChild(toast);
+        }, 300);
+    }, 3000);
 }
 
 // Helper function to format dates properly
@@ -1559,15 +1646,15 @@ function formatPhoneNumber(phone) {
 // Helper function to format experience descriptions with proper bullet points
 function formatExperienceDescription(description) {
     if (!description) return '<ul><li>Key responsibilities and achievements</li></ul>';
-    
+
     let formatted = description.trim();
-    
+
     // If description contains bullet points or newlines, format as list
     if (formatted.includes('•') || formatted.includes('\n')) {
         const items = formatted.split(/[•\n]/)
             .map(item => item.trim())
             .filter(item => item.length > 5);
-        
+
         return `<ul>${items.map(item => `<li>${item}</li>`).join('')}</ul>`;
     } else {
         // Single paragraph
@@ -1618,6 +1705,188 @@ if (!document.querySelector('style[data-animations]')) {
     document.head.appendChild(animationsStyle);
 }
 
+// Download Pass System
+function hasValidDownloadPass() {
+    const passData = localStorage.getItem('downloadPass');
+    if (!passData) return false;
+
+    try {
+        const pass = JSON.parse(passData);
+        const now = new Date().getTime();
+        const passExpiry = new Date(pass.expiryTime).getTime();
+
+        return now < passExpiry;
+    } catch (error) {
+        localStorage.removeItem('downloadPass');
+        return false;
+    }
+}
+
+function setDownloadPass() {
+    const now = new Date();
+    const expiry = new Date(now.getTime() + (24 * 60 * 60 * 1000)); // 24 hours
+
+    const passData = {
+        purchaseTime: now.toISOString(),
+        expiryTime: expiry.toISOString(),
+        amount: 99
+    };
+
+    localStorage.setItem('downloadPass', JSON.stringify(passData));
+}
+
+function showDownloadPassModal() {
+    const modal = document.createElement('div');
+    modal.className = 'modal';
+    modal.style.display = 'block';
+    modal.innerHTML = `
+        <div class="modal-content" style="max-width: 400px;">
+            <div class="modal-header">
+                <h3>Download Pass Required</h3>
+                <span class="close" onclick="this.closest('.modal').remove()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div style="text-align: center; padding: 20px;">
+                    <div style="font-size: 48px; color: #4CAF50; margin-bottom: 15px;">📄</div>
+                    <h4>Unlimited Downloads & Edits</h4>
+                    <p style="color: #666; margin: 15px 0;">Get 24-hour unlimited access to:</p>
+                    <ul style="text-align: left; margin: 15px 0; padding-left: 20px;">
+                        <li>Unlimited PDF downloads</li>
+                        <li>Unlimited resume edits</li>
+                        <li>All template access</li>
+                        <li>Priority AI processing</li>
+                    </ul>
+                    <div style="font-size: 32px; font-weight: bold; color: #2196F3; margin: 20px 0;">
+                        ₹99 <span style="font-size: 16px; color: #666;">for 24 hours</span>
+                    </div>
+                    <button class="btn-primary" onclick="purchaseDownloadPass()" style="width: 100%; margin-bottom: 10px;">
+                        Purchase Download Pass
+                    </button>
+                    <p style="font-size: 12px; color: #888;">Secure payment via Razorpay</p>
+                </div>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(modal);
+}
+
+async function purchaseDownloadPass() {
+    try {
+        showLoading();
+
+        const response = await fetch('/api/create-order', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                amount: 99,
+                currency: 'INR'
+            })
+        });
+
+        const result = await response.json();
+
+        if (!result.success) {
+            throw new Error(result.error || 'Failed to create payment order');
+        }
+
+        const options = {
+            key: await getRazorpayKey(),
+            amount: result.order.amount,
+            currency: result.order.currency,
+            name: 'AI Resume Builder',
+            description: '24-Hour Download Pass',
+            order_id: result.order.id,
+            handler: function(response) {
+                verifyDownloadPassPayment(response);
+            },
+            prefill: {
+                name: window.resumeData?.personalInfo?.name || '',
+                email: window.resumeData?.personalInfo?.email || ''
+            },
+            theme: {
+                color: '#4CAF50'
+            },
+            modal: {
+                ondismiss: function() {
+                    hideLoading();
+                }
+            }
+        };
+
+        const rzp = new Razorpay(options);
+        rzp.open();
+        hideLoading();
+
+    } catch (error) {
+        console.error('Payment initiation error:', error);
+        showToast('Failed to initiate payment: ' + error.message, 'error');
+        hideLoading();
+    }
+}
+
+async function verifyDownloadPassPayment(paymentResponse) {
+    try {
+        showLoading();
+
+        const response = await fetch('/api/verify-payment', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(paymentResponse)
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            setDownloadPass();
+            document.querySelector('.modal').remove();
+            showToast('Download Pass activated! Valid for 24 hours', 'success');
+
+            // Automatically start download
+            setTimeout(() => {
+                downloadPDF();
+            }, 1000);
+        } else {
+            showToast('Payment verification failed', 'error');
+        }
+    } catch (error) {
+        console.error('Payment verification error:', error);
+        showToast('Payment verification failed', 'error');
+    } finally {
+        hideLoading();
+    }
+}
+
+// Initialize the application
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM Content Loaded');
+
+    // Initialize modal functionality
+    initializeModals();
+
+    // Initialize file upload
+    initializeFileUpload();
+
+    // Initialize form validation
+    initializeFormValidation();
+
+    // Show pass status if user has one
+    showDownloadPassStatus();
+
+    console.log('App initialized successfully');
+});
+
+function initializeModals() {
+    // Implement any specific modal initialization logic here
+}
+
+function initializeFormValidation() {
+    // Implement any specific form validation logic here
+}
+
 // Make all functions globally available for HTML onclick handlers
 window.startBuilding = startBuilding;
 window.viewTemplates = viewTemplates;
@@ -1635,3 +1904,6 @@ window.addExperience = addExperience;
 window.removeExperience = removeExperience;
 window.analyzeJobDescription = analyzeJobDescription;
 window.enhanceUploadedResume = enhanceExistingResume; // Alias for compatibility
+window.purchaseDownloadPass = purchaseDownloadPass; // Add this line
+window.verifyDownloadPassPayment = verifyDownloadPassPayment;
+window.getRazorpayKey = getRazorpayKey;
