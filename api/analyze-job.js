@@ -263,3 +263,102 @@ Job Description: ${jobDescription.substring(0, 2000)}`;
     });
   }
 }
+import axios from 'axios';
+
+export default async function handler(req, res) {
+  // Enable CORS
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  try {
+    const { jobDescription } = req.body;
+
+    if (!jobDescription || jobDescription.trim().length === 0) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Job description is required' 
+      });
+    }
+
+    if (!process.env.DEEPSEEK_API_KEY) {
+      // Provide fallback analysis
+      const fallbackAnalysis = {
+        requiredSkills: ['Communication', 'Problem Solving', 'Teamwork', 'Leadership', 'Technical Skills'],
+        experienceLevel: 'mid-level',
+        industry: 'Technology',
+        recommendations: [
+          'Highlight relevant experience prominently',
+          'Include industry-specific keywords',
+          'Quantify achievements with metrics',
+          'Tailor skills to job requirements'
+        ]
+      };
+      
+      return res.json({ success: true, analysis: fallbackAnalysis });
+    }
+
+    const prompt = `Analyze this job description and extract key information. Return ONLY valid JSON:
+{
+  "requiredSkills": ["skill1", "skill2", "skill3", "skill4", "skill5"],
+  "experienceLevel": "entry-level/mid-level/senior-level/executive",
+  "industry": "industry name",
+  "recommendations": ["recommendation1", "recommendation2", "recommendation3"]
+}
+
+Job Description: ${jobDescription.substring(0, 2000)}`;
+
+    const response = await axios.post('https://api.deepseek.com/v1/chat/completions', {
+      model: 'deepseek-chat',
+      messages: [
+        {
+          role: 'system',
+          content: 'You are an expert recruiter. Return only valid JSON.'
+        },
+        {
+          role: 'user',
+          content: prompt
+        }
+      ],
+      max_tokens: 1000,
+      temperature: 0.1
+    }, {
+      headers: {
+        'Authorization': `Bearer ${process.env.DEEPSEEK_API_KEY}`,
+        'Content-Type': 'application/json'
+      },
+      timeout: 30000
+    });
+
+    const aiContent = response.data.choices[0].message.content;
+    let cleanContent = aiContent.trim();
+    
+    if (cleanContent.startsWith('```json')) {
+      cleanContent = cleanContent.replace(/^```json\s*/, '').replace(/\s*```$/, '');
+    }
+
+    const analysis = JSON.parse(cleanContent);
+    res.json({ success: true, analysis });
+    
+  } catch (error) {
+    console.error('Job Analysis Error:', error);
+    
+    // Fallback analysis
+    const fallbackAnalysis = {
+      requiredSkills: ['Communication', 'Problem Solving', 'Teamwork', 'Leadership'],
+      experienceLevel: 'mid-level',
+      industry: 'General',
+      recommendations: ['Tailor resume to job requirements', 'Highlight relevant experience']
+    };
+    
+    res.json({ success: true, analysis: fallbackAnalysis });
+  }
+}

@@ -1887,6 +1887,21 @@ function initializeFormValidation() {
     // Implement any specific form validation logic here
 }
 
+// Add missing Razorpay key endpoint
+app.get('/api/razorpay-key', (req, res) => {
+  if (!process.env.RAZORPAY_KEY_ID) {
+    return res.status(400).json({ 
+      success: false, 
+      error: 'Razorpay key not configured' 
+    });
+  }
+  
+  res.json({ 
+    success: true, 
+    key: process.env.RAZORPAY_KEY_ID 
+  });
+});
+
 // Make all functions globally available for HTML onclick handlers
 window.startBuilding = startBuilding;
 window.viewTemplates = viewTemplates;
@@ -1903,7 +1918,7 @@ window.selectTemplate = selectTemplate;
 window.addExperience = addExperience;
 window.removeExperience = removeExperience;
 window.analyzeJobDescription = analyzeJobDescription;
-window.enhanceUploadedResume = enhanceExistingResume; // Alias for compatibility
-window.purchaseDownloadPass = purchaseDownloadPass; // Add this line
+window.enhanceUploadedResume = enhanceExistingResume;
+window.purchaseDownloadPass = purchaseDownloadPass;
 window.verifyDownloadPassPayment = verifyDownloadPassPayment;
 window.getRazorpayKey = getRazorpayKey;

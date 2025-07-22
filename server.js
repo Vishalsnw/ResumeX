@@ -883,6 +883,21 @@ app.get('/api/status', (req, res) => {
   });
 });
 
+// Add Razorpay key endpoint
+app.get('/api/razorpay-key', (req, res) => {
+  if (!process.env.RAZORPAY_KEY_ID) {
+    return res.status(400).json({ 
+      success: false, 
+      error: 'Razorpay key not configured' 
+    });
+  }
+  
+  res.json({ 
+    success: true, 
+    key: process.env.RAZORPAY_KEY_ID 
+  });
+});
+
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`Server running on http://0.0.0.0:${PORT}`);
   console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
