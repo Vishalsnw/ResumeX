@@ -1767,7 +1767,7 @@ function showDownloadPassModal() {
             </div>
         </div>
     `;
-    document.body.appendChild(modal);endChild(modal);
+    document.body.appendChild(modal);
 }
 
 async function purchaseDownloadPass() {
@@ -1886,8 +1886,6 @@ function initializeModals() {
 function initializeFormValidation() {
     // Implement any specific form validation logic here
 }
-
-// Razorpay key is handled by the server endpoint
 
 // Make all functions globally available for HTML onclick handlers
 window.startBuilding = startBuilding;

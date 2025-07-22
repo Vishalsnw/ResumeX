@@ -98,7 +98,7 @@ Return JSON with: personalInfo, jobTitle, experience, skills, education, certifi
         'Authorization': `Bearer ${process.env.DEEPSEEK_API_KEY}`,
         'Content-Type': 'application/json'
       },
-      timeout: 60000
+      timeout: 30000
     });
 
     const aiContent = response.data.choices[0].message.content;
@@ -106,9 +106,26 @@ Return JSON with: personalInfo, jobTitle, experience, skills, education, certifi
     
     if (cleanContent.startsWith('```json')) {
       cleanContent = cleanContent.replace(/^```json\s*/, '').replace(/\s*```$/, '');
+    } else if (cleanContent.startsWith('```')) {
+      cleanContent = cleanContent.replace(/^```\s*/, '').replace(/\s*```$/, '');
     }
 
-    const enhancedData = JSON.parse(cleanContent);
+    // Try to extract JSON object if embedded in text
+    const jsonMatch = cleanContent.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      cleanContent = jsonMatch[0];
+    }
+
+    let enhancedData;
+    try {
+      enhancedData = JSON.parse(cleanContent);
+    } catch (parseError) {
+      console.error('JSON parse error:', parseError);
+      // Use fallback extraction on parse error
+      const fallbackData = extractBasicInfo(req.body.resumeText, req.body.jobTitle);
+      return res.json({ success: true, enhancedData: fallbackData });
+    }
+
     res.json({ success: true, enhancedData });
     
   } catch (error) {
