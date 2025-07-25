@@ -6,7 +6,7 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "dev": "node server.js"
+    "dev": "nodemon server.js"
   },
   "dependencies": {
     "axios": "^1.10.0",
@@ -17,13 +17,14 @@
     "puppeteer": "^21.11.0",
     "razorpay": "^2.9.6"
   },
-  "engines": {
-    "node": "22.x"
-  },
   "devDependencies": {
     "@eslint/js": "^9.31.0",
     "eslint": "^9.31.0",
     "eslint-plugin-react": "^7.37.5",
-    "globals": "^16.3.0"
+    "globals": "^16.3.0",
+    "nodemon": "^3.1.0"
+  },
+  "engines": {
+    "node": ">=22.0.0"
   }
 }
