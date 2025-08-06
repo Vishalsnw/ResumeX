@@ -1,10 +1,10 @@
-run = "node server.js"
+run = "npm run start"
 modules = ["nodejs-20", "web"]
 [nix]
 channel = "stable-25_05"
 
 [deployment]
-run = ["sh", "-c", "node server.js"]
+run = ["sh", "-c", "npm run start"]
 
 [workflows]
 runButton = "Start Resume Builder"
