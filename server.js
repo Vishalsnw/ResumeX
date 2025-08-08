@@ -35,6 +35,11 @@ app.use(express.static('public', {
   etag: false
 }));
 
+// Specifically handle app-ads.txt requests
+app.get('/app-ads.txt', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'app-ads.txt'));
+});
+
 // Serve sitemap and robots.txt
 app.get('/sitemap.xml', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'sitemap.xml'));
@@ -915,7 +920,7 @@ app.get('/api/razorpay-key', (req, res) => {
       error: 'Razorpay key not configured' 
     });
   }
-  
+
   res.json({ 
     success: true, 
     key: process.env.RAZORPAY_KEY_ID 
